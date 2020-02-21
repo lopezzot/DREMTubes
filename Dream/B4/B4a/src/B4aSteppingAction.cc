@@ -75,10 +75,10 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
   //define Birk's constant
   double k_B = 0.126; 
 
-  if (step->GetTrack()->GetGlobalTime() > 300.0*CLHEP::ns){
+  /*if (step->GetTrack()->GetGlobalTime() > 300.0*CLHEP::ns){
   	step->GetTrack()->SetTrackStatus(fStopAndKill);
   	//G4cout<<"sono qui "<<step->GetTrack()->GetTrackID()<<" "<<step->GetTrack()->GetGlobalTime()<<G4endl;
-  }
+  }*/
 
   if (PreStepVolume->GetName() == "module"){
     //Function to save absorber material name
@@ -95,12 +95,6 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
       // Function to add up energy escaped from calorimeter
       fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
       step->GetTrack()->SetTrackStatus(fStopAndKill);
-      if (particlename == "e-" || particlename == "e+"){
-      	fEventAction->Addem2(-1*(step->GetTrack()->GetKineticEnergy()+0.5));
-      }
-      if (particlename == "gamma"){
-      	fEventAction->Addem2(-1*(step->GetTrack()->GetKineticEnergy()));
-      }
     }
   }
 
@@ -111,16 +105,7 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
     }
   }
  
-  if (particlename == "pi0" && step->GetTrack()->GetTrackStatus() == 2){
-  	fEventAction->Addem2(step->GetTrack()->GetVertexKineticEnergy()+134.977);
-  }
-
- if (particlename == "gamma" && step->GetTrack()->GetTrackStatus() == 2){
-  	if (step->GetTrack()->GetCreatorProcess()->GetProcessName() != "eBrem" && step->GetTrack()->GetCreatorProcess()->GetProcessName() != "photonNuclear" && step->GetTrack()->GetCreatorProcess()->GetProcessName() != "annihil" && step->GetTrack()->GetCreatorProcess()->GetProcessName() != "electronNuclear" && step->GetTrack()->GetCreatorProcess()->GetProcessName() != "Decay" /*&& step->GetTrack()->GetCreatorProcess()->GetProcessName() != "neutronInelastic"*/ ){
-  	fEventAction->Addem2(step->GetTrack()->GetVertexKineticEnergy());
-  }
-}
-
+ 
   /* part for em2 fraction estimation
   if (particlename == "pi0" && step->GetTrack()->GetCurrentStepNumber() == 1){
     //if it's a neutral pion at first step
@@ -148,8 +133,7 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
   Fiber = PreStepVolume->GetName(); //name of current step fiber
 
   int copynumber;//copy number of fibers: from 0 to 63 by definition in detector construction
-  int copynumbermodule;//copy number of calorimetric modules: from 0 to NofModules^2 
-
+  
   G4double distance; // will be the distance a photon travels before reaching a SiPM 
   G4double pRandom,pDetection,pSurvive,pTot; // will be used as probabilities for parameterization of light
   pRandom=G4UniformRand(); // random numeber between 0 and 1
@@ -165,7 +149,6 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
     //- as regular energy deposition in all scintillating fibers in EnergyScin
     G4double saturatedenergydeposited = 0.;
     copynumber = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-    copynumbermodule = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3);
     if(step->GetTrack()->GetDefinition()->GetPDGCharge() != 0.){
         if (steplength != 0)
                 {
@@ -177,7 +160,8 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
             }
       fEventAction->AddScin(energydeposited); //All energy deposited in scin fibers (not saturated)
       //fEventAction->AddEnergyfibre(edep, copynumber); //only if you want to use Signalfibre[64]
-      fEventAction->AddVectorScinEnergy(saturatedenergydeposited,copynumbermodule,copynumber); //energy deposited in any scintillating fiber (saturated)
+      fEventAction->AddVectorScinEnergy(saturatedenergydeposited,copynumber); //energy deposited in any scintillating fiber (saturated)
+
   }
 
   if ( strstr(Fiber.c_str(),C_fiber.c_str())){//it's a Cherenkov fiber
@@ -251,7 +235,6 @@ G4ProcessManager* OpManager =
 
             if(strstr(Fiber.c_str(), C_fiber.c_str())){ //it's a Cherenkov fibre
                copynumber = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-               copynumbermodule = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(3);
                Prestep = step->GetPreStepPoint()->GetPosition();   
                Postsep = step->GetPostStepPoint()->GetPosition();
                Momentum = step->GetTrack()->GetMomentumDirection();
@@ -266,7 +249,7 @@ G4ProcessManager* OpManager =
                   if(pRandom<pTot){  
                     fEventAction->AddCherenkov(); // add one photoelectron from Cherenkov process in Cherenkov fibers                  
                     //fEventAction->AddSignalfibre(copynumber); //only if you want SignalFibre
-                    fEventAction->AddVectorCherPE(copynumbermodule,copynumber);
+                    fEventAction->AddVectorCherPE(copynumber);
                     step->GetTrack()->SetTrackStatus(fStopAndKill); //I kille the photon just after having counted it or excluded
                   }
                 }

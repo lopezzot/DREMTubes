@@ -215,9 +215,9 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4int NofFibersrow = 3*16;
   G4int NofFiberscolumn = 60;
   G4double moduleZ = (1000.)*mm;
-  double tolerance = 0.5;
-  G4double moduleX = 3*32.*mm+1*mm+tolerance*NofFibersrow; 
-  G4double moduleY = 59*1.733*mm+2.0*mm;
+  double tolerance = 0.05*mm;
+  G4double moduleX = 3*32.*mm+1*mm+2*tolerance*NofFibersrow; 
+  G4double moduleY = 59*(1.733+2*tolerance)*mm+2.0*mm;
 
   // Geometry parameters of the world, world is a box
   G4double worldX = 200 * moduleX;
@@ -255,9 +255,6 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4double AbsorberX = 1000.*mm;
   G4double AbsorberY = 1000.*mm;
   G4double AbsorberRadLen = 56.12 *mm;  
-
-  std::random_device rd;  //Will be used to obtain a seed for the random number engine
-  std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 
   // Geometry parameters of the module equipped with SiPM
   // I build it so I can replicate the entire module + SiPM 
@@ -528,8 +525,8 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
  
   // Here I place and rotate the entire calorimeter
   G4RotationMatrix rotm  = G4RotationMatrix();
-  rotm.rotateY(0.0*deg);  // Set the rotation angles //0.75
-  rotm.rotateX(0.0*deg);  //0.75
+  rotm.rotateY(1.0*deg);  // Set the rotation angles //0.75
+  rotm.rotateX(1.0*deg);  //0.75
   G4ThreeVector position;
   position.setX(0.);
   position.setY(0.);
@@ -666,161 +663,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   OpSurfacedefault -> SetType(dielectric_dielectric);
   OpSurfacedefault -> SetModel(unified);
   OpSurfacedefault -> SetFinish(polishedbackpainted); // Painted from inside the fibers, light is absorbed
- 
-  // Here I build the Scintillating fiber with its core and cladding
-  // I will put the fibers later inside the module
 
-  G4Tubs* S_fiber = new G4Tubs("S_fiber", 0., tuberadius, fiberZ/2, 0., 2.*pi);
-
-  G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,          //its solid
-                                                       absorberMaterial,  //its material
-                                                       "S_fiber");       //its name
-
-  G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
-
-  G4LogicalVolume* logic_Core_S_fiber = new G4LogicalVolume(Core_S_fiber,   //its solid
-                                                            ScinMaterial,   //its material
-                                                            "Core_S_fiber");//its name
-
-
-  // I set the visualization attributes of the scintillating core fibers
-  G4VisAttributes* ScincoreVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,0.8)); //blue
-  ScincoreVisAtt->SetVisibility(true);
-  ScincoreVisAtt->SetForceWireframe(true);
-  ScincoreVisAtt->SetForceSolid(true);
-  logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt); //end of visualization attributes
-
-  G4ThreeVector vec_Core_S;
-  vec_Core_S.setX(0.);
-  vec_Core_S.setY(0.);
-  vec_Core_S.setZ(0.); 
-                             
-  G4VPhysicalVolume* Core_S_PV = new G4PVPlacement(
-                                             0,                        // no rotation
-                                             vec_Core_S,               // its position
-                                             logic_Core_S_fiber,       // its logical volume                         
-                                             "Core_S_fiber",           // its name
-                                             logic_S_fiber,            // its mother  volume
-                                             false,                    // no boolean operation
-                                             0,                        // copy number
-                                             fCheckOverlaps);          // checking overlaps
- 
-  // Here I place the optical surface "OpSurfacedefault" between the scintillatinf core and the default material
-  G4LogicalBorderSurface* logic_OpSurface_SCoredefault;
-  logic_OpSurface_SCoredefault = new G4LogicalBorderSurface("logic_OpSurface_SCoredefault", Core_S_PV, worldPV, OpSurfacedefault);
-
-  G4Tubs* Clad_S_fiber = new G4Tubs("Clad_S_fiber", claddingradiusmin, claddingradiusmax, claddingZ/2, 0., 2.*pi);
-
-  G4LogicalVolume* logic_Clad_S_fiber = new G4LogicalVolume(Clad_S_fiber,   //its solid
-                                                            CherMaterial,   //its material
-                                                            "Clad_S_fiber");//its name
-
-  // I set the visualization attributes of the scintillating clad fibers
-  G4VisAttributes* ScincladVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));//light blue
-  ScincladVisAtt->SetVisibility(true);
-  ScincladVisAtt->SetForceWireframe(true);
-  ScincladVisAtt->SetForceSolid(true);
-  logic_Clad_S_fiber->SetVisAttributes(ScincladVisAtt); //end of visualization attributes
-
- G4ThreeVector vec_Clad_S;
- vec_Clad_S.setX(0.);
- vec_Clad_S.setY(0.);
- vec_Clad_S.setZ(0.); 
-                             
- G4VPhysicalVolume* Clad_S_PV = new G4PVPlacement(
-                                             0,                        // no rotation
-                                             vec_Clad_S,               // its position
-                                             logic_Clad_S_fiber,       // its logical volume                         
-                                             "Clad_S_fiber",           // its name
-                                             logic_S_fiber,            // its mother  volume
-                                             false,                    // no boolean operation
-                                             0,                        // copy number
-                                             fCheckOverlaps);          // checking overlaps
-
-// Here I place the optical surface "OpSurfacedefault" between the scintillating clad and the default material
-G4LogicalBorderSurface* logic_OpSurface_SCladdefault;
-logic_OpSurface_SCladdefault = new G4LogicalBorderSurface("logic_OpSurface_SCladdefault", Clad_S_PV, worldPV, OpSurfacedefault);
-
-// Here I build the Cherenkov fiber with its cladding
-// I will put the fibers later inside the module
-
-G4Tubs* C_fiber = new G4Tubs("C_fiber", 0., tuberadius, fiberZ/2, 0., 2.*pi);
-
-G4LogicalVolume* logic_C_fiber = new G4LogicalVolume(C_fiber,       //it solid
-                                                     absorberMaterial,  //its material
-                                                     "C_fiber");     //its name
-
-G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
-
-G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_S_fiber,   //its solid
-                                                          CherMaterial,   //its material
-                                                          "Core_C_fiber");//its name
-
-// I set the visualization attributes of the cherenkov core fibers
-G4VisAttributes* ChercoreVisAtt = new G4VisAttributes(G4Colour(1.0,0.0,0.0)); //red
-ChercoreVisAtt->SetVisibility(true);
-ChercoreVisAtt->SetForceWireframe(true);
-ChercoreVisAtt->SetForceSolid(true);
-logic_Core_C_fiber->SetVisAttributes(ChercoreVisAtt); //end of visualization attributes
-
- G4ThreeVector vec_Core_C;
- vec_Core_C.setX(0.);
- vec_Core_C.setY(0.);
- vec_Core_C.setZ(0.); 
-                             
- G4VPhysicalVolume* Core_C_PV = new G4PVPlacement(
-                                             0,                        // no rotation
-                                             vec_Core_C,               // its position
-                                             logic_Core_C_fiber,       // its logical volume                         
-                                             "Core_C_fiber",           // its name
-                                             logic_C_fiber,            // its mother  volume
-                                             false,                    // no boolean operation
-                                             0,                        // copy number
-                                             fCheckOverlaps);          // checking overlaps
-
-// Here I place the optical surface "OpSurfacedefault" between the cherenkov core and the default material
-G4LogicalBorderSurface* logic_OpSurface_CCoredefault;
-logic_OpSurface_CCoredefault = new G4LogicalBorderSurface("logic_OpSurface_CCoredefault", Core_C_PV, worldPV, OpSurfacedefault);
-
-  G4Tubs* Clad_C_fiber = new G4Tubs("Clad_C_fiber", claddingradiusmin, claddingradiusmax, claddingZ/2, 0., 2.*pi);
-
-  G4LogicalVolume* logic_Clad_C_fiber = new G4LogicalVolume(Clad_C_fiber,   //its solid
-                                                            CladCherMaterial,   //its material
-                                                            "Clad_C_fiber");//its name
-
-  // I set the visualization attributes of the cherenkov clad fibers
-  G4VisAttributes* ChercladVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));//yellow 
-  ChercladVisAtt->SetVisibility(true);
-  ChercladVisAtt->SetForceWireframe(true);
-  ChercladVisAtt->SetForceSolid(true);
-  logic_Clad_C_fiber->SetVisAttributes(ChercladVisAtt); //end of visualization attributes
-
- G4ThreeVector vec_Clad_C;
- vec_Clad_C.setX(0.);
- vec_Clad_C.setY(0.);
- vec_Clad_C.setZ(0.); 
-                             
- G4VPhysicalVolume* Clad_C_PV = new G4PVPlacement(
-                                             0,                        // no rotation
-                                             vec_Clad_C,               // its position
-                                             logic_Clad_C_fiber,       // its logical volume                         
-                                             "Clad_C_fiber",           // its name
-                                             logic_C_fiber,            // its mother  volume
-                                             false,                    // no boolean operation
-                                             0,                        // copy number
-                                             fCheckOverlaps);          // checking overlaps
-
- // Here I place the optical surface "OpSurfacedefault" between the cherenkov clad and the default material
-G4LogicalBorderSurface* logic_OpSurface_CCladdefault;
-logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CCladdefault", Clad_C_PV, worldPV, OpSurfacedefault);
-
- // I set the visualization attributes of the tubs
-  G4VisAttributes* TubeVisAtt = new G4VisAttributes(G4Colour(0.6,0.3,0.3)); //blue
-  TubeVisAtt->SetVisibility(true);
-  TubeVisAtt->SetForceWireframe(true);
-  TubeVisAtt->SetForceSolid(true);
-  logic_S_fiber->SetVisAttributes(TubeVisAtt);
-  logic_C_fiber->SetVisAttributes(TubeVisAtt);
 
   // Here I place the Scintillating fibers and the SiPM next to them
   // Attention: I place an optical surface painted (blacked) from the moduleequippedPV 
@@ -851,8 +694,8 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
         G4ThreeVector vec_SiPM;
 
           if(column%2==0){
-            S_x = -moduleX/2 + tuberadius + (tuberadius*2+tolerance)*row;
-            S_y = -moduleY/2 + tuberadius + (1.733*mm)*column;
+            S_x = -moduleX/2 + tuberadius + (tuberadius*2+2*tolerance)*row;
+            S_y = -moduleY/2 + tuberadius + (1.733+2*tolerance*mm)*(column);
             
             vec_S_fiber.setX(S_x);
             vec_S_fiber.setY(S_y);
@@ -862,9 +705,10 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
             vec_SiPM.setY(S_y);
             vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
             
-            copynumber = (8*row+column);
-            copynumber = 0;
+            copynumber = (NofFiberscolumn*row+column);
 
+
+            auto logic_S_fiber = constructscinfiber(tolerance,tuberadius,fiberZ,absorberMaterial,coreradius,coreZ,ScinMaterial,claddingradiusmin,claddingradiusmax,claddingZ,CherMaterial);
             // I need to place the scintillating fibers
             physi_S_fiber[row][column] = new G4PVPlacement(0,
                                                          vec_S_fiber,     //its position
@@ -910,8 +754,8 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
         G4ThreeVector vec_SiPM;
 
         if(column%2 != 0){
-            C_x = -moduleX/2 + tuberadius + tuberadius + (tuberadius*2+tolerance)*row;
-            C_y = -moduleY/2 + tuberadius + (1.733*mm)*column;
+            C_x = -moduleX/2 + tuberadius + tuberadius + (tuberadius*2+2*tolerance)*row;
+            C_y = -moduleY/2 + tuberadius + (1.733+2*tolerance*mm)*column;
          
             vec_C_fiber.setX(C_x);
             vec_C_fiber.setY(C_y);
@@ -921,14 +765,10 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
             vec_SiPM.setY(C_y);
             vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
 
-            copynumber = (8*row+column);
-
-            
-            std::uniform_real_distribution<> dis(0.0, tolerance);
-            double outradiussmear = dis(gen);
-            G4int a = 3;
-            
-
+            std::cout<< row << " " << column << std::endl;
+             copynumber = (NofFiberscolumn*row+column);
+                        
+            auto logic_C_fiber = constructcherfiber(tolerance,tuberadius,fiberZ,absorberMaterial,coreradius,coreZ,CherMaterial,claddingradiusmin,claddingradiusmax,claddingZ,CladCherMaterial);
             // I need to place the cherenkov fibers
            physi_C_fiber[row][column] = new G4PVPlacement(0,
                                                          vec_C_fiber,      //its position
@@ -953,11 +793,192 @@ logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CClad
   };
 
   // I return the physical World
-
   return worldPV;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+
+G4LogicalVolume* B4DetectorConstruction::constructscinfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
+  G4Material* ScinMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CherMaterial){
+  // Here I build the Scintillating fiber with its core and cladding
+  // I will put the fibers later inside the module
+  
+  std::random_device rd;  //Will be used to obtain a seed for the random number engine
+  std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()m
+  std::uniform_real_distribution<> dis(0.0, tolerance);
+  double outradiussmear = dis(gen);
+  tuberadius = tuberadius+outradiussmear;
+  G4Tubs* S_fiber = new G4Tubs("S_fiber", 0., tuberadius, fiberZ/2, 0., 2.*pi);
+
+  G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,          //its solid
+                                                       absorberMaterial,  //its material
+                                                       "S_fiber");       //its name
+
+  G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
+
+  G4LogicalVolume* logic_Core_S_fiber = new G4LogicalVolume(Core_S_fiber,   //its solid
+                                                            ScinMaterial,   //its material
+                                                            "Core_S_fiber");//its name
+
+
+  // I set the visualization attributes of the scintillating core fibers
+  G4VisAttributes* ScincoreVisAtt = new G4VisAttributes(G4Colour(0.0,0.0,0.8)); //blue
+  ScincoreVisAtt->SetVisibility(true);
+  ScincoreVisAtt->SetForceWireframe(true);
+  ScincoreVisAtt->SetForceSolid(true);
+  logic_Core_S_fiber->SetVisAttributes(ScincoreVisAtt); //end of visualization attributes
+
+  G4ThreeVector vec_Core_S;
+  vec_Core_S.setX(0.);
+  vec_Core_S.setY(0.);
+  vec_Core_S.setZ(0.); 
+                             
+  G4VPhysicalVolume* Core_S_PV = new G4PVPlacement(
+                                             0,                        // no rotation
+                                             vec_Core_S,               // its position
+                                             logic_Core_S_fiber,       // its logical volume                         
+                                             "Core_S_fiber",           // its name
+                                             logic_S_fiber,            // its mother  volume
+                                             false,                    // no boolean operation
+                                             0,                        // copy number
+                                             fCheckOverlaps);          // checking overlaps
+ 
+  // Here I place the optical surface "OpSurfacedefault" between the scintillatinf core and the default material
+  //G4LogicalBorderSurface* logic_OpSurface_SCoredefault;
+  //logic_OpSurface_SCoredefault = new G4LogicalBorderSurface("logic_OpSurface_SCoredefault", Core_S_PV, worldPV, OpSurfacedefault);
+
+  G4Tubs* Clad_S_fiber = new G4Tubs("Clad_S_fiber", claddingradiusmin, claddingradiusmax, claddingZ/2, 0., 2.*pi);
+
+  G4LogicalVolume* logic_Clad_S_fiber = new G4LogicalVolume(Clad_S_fiber,   //its solid
+                                                            CherMaterial,   //its material
+                                                            "Clad_S_fiber");//its name
+
+  // I set the visualization attributes of the scintillating clad fibers
+  G4VisAttributes* ScincladVisAtt = new G4VisAttributes(G4Colour(0.0,1.0,1.0));//light blue
+  ScincladVisAtt->SetVisibility(true);
+  ScincladVisAtt->SetForceWireframe(true);
+  ScincladVisAtt->SetForceSolid(true);
+  logic_Clad_S_fiber->SetVisAttributes(ScincladVisAtt); //end of visualization attributes
+
+ G4ThreeVector vec_Clad_S;
+ vec_Clad_S.setX(0.);
+ vec_Clad_S.setY(0.);
+ vec_Clad_S.setZ(0.); 
+                             
+ G4VPhysicalVolume* Clad_S_PV = new G4PVPlacement(
+                                             0,                        // no rotation
+                                             vec_Clad_S,               // its position
+                                             logic_Clad_S_fiber,       // its logical volume                         
+                                             "Clad_S_fiber",           // its name
+                                             logic_S_fiber,            // its mother  volume
+                                             false,                    // no boolean operation
+                                             0,                        // copy number
+                                             fCheckOverlaps);          // checking overlaps
+
+// Here I place the optical surface "OpSurfacedefault" between the scintillating clad and the default material
+//G4LogicalBorderSurface* logic_OpSurface_SCladdefault;
+//logic_OpSurface_SCladdefault = new G4LogicalBorderSurface("logic_OpSurface_SCladdefault", Clad_S_PV, worldPV, OpSurfacedefault);
+
+ // I set the visualization attributes of the tubs
+  G4VisAttributes* TubeVisAtt = new G4VisAttributes(G4Colour(0.6,0.3,0.3)); //blue
+  TubeVisAtt->SetVisibility(true);
+  TubeVisAtt->SetForceWireframe(true);
+  TubeVisAtt->SetForceSolid(true);
+  logic_S_fiber->SetVisAttributes(TubeVisAtt);
+return logic_S_fiber;
+}
+
+G4LogicalVolume* B4DetectorConstruction::constructcherfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
+  G4Material* CherMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CladCherMaterial){ 
+// Here I build the Cherenkov fiber with its cladding
+// I will put the fibers later inside the module
+ 
+std::random_device rd;  //Will be used to obtain a seed for the random number engine
+std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()m
+std::uniform_real_distribution<> dis(0.0, tolerance);
+double outradiussmear = dis(gen);
+tuberadius = tuberadius+outradiussmear;
+
+G4Tubs* C_fiber = new G4Tubs("C_fiber", 0., tuberadius, fiberZ/2, 0., 2.*pi);
+
+G4LogicalVolume* logic_C_fiber = new G4LogicalVolume(C_fiber,       //it solid
+                                                     absorberMaterial,  //its material
+                                                     "C_fiber");     //its name
+
+G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
+
+G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_C_fiber,   //its solid
+                                                          CherMaterial,   //its material
+                                                          "Core_C_fiber");//its name
+
+// I set the visualization attributes of the cherenkov core fibers
+G4VisAttributes* ChercoreVisAtt = new G4VisAttributes(G4Colour(1.0,0.0,0.0)); //red
+ChercoreVisAtt->SetVisibility(true);
+ChercoreVisAtt->SetForceWireframe(true);
+ChercoreVisAtt->SetForceSolid(true);
+logic_Core_C_fiber->SetVisAttributes(ChercoreVisAtt); //end of visualization attributes
+
+ G4ThreeVector vec_Core_C;
+ vec_Core_C.setX(0.);
+ vec_Core_C.setY(0.);
+ vec_Core_C.setZ(0.); 
+                             
+ G4VPhysicalVolume* Core_C_PV = new G4PVPlacement(
+                                             0,                        // no rotation
+                                             vec_Core_C,               // its position
+                                             logic_Core_C_fiber,       // its logical volume                         
+                                             "Core_C_fiber",           // its name
+                                             logic_C_fiber,            // its mother  volume
+                                             false,                    // no boolean operation
+                                             0,                        // copy number
+                                             fCheckOverlaps);          // checking overlaps
+
+// Here I place the optical surface "OpSurfacedefault" between the cherenkov core and the default material
+//G4LogicalBorderSurface* logic_OpSurface_CCoredefault;
+//logic_OpSurface_CCoredefault = new G4LogicalBorderSurface("logic_OpSurface_CCoredefault", Core_C_PV, worldPV, OpSurfacedefault);
+
+  G4Tubs* Clad_C_fiber = new G4Tubs("Clad_C_fiber", claddingradiusmin, claddingradiusmax, claddingZ/2, 0., 2.*pi);
+
+  G4LogicalVolume* logic_Clad_C_fiber = new G4LogicalVolume(Clad_C_fiber,   //its solid
+                                                            CladCherMaterial,   //its material
+                                                            "Clad_C_fiber");//its name
+
+  // I set the visualization attributes of the cherenkov clad fibers
+  G4VisAttributes* ChercladVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));//yellow 
+  ChercladVisAtt->SetVisibility(true);
+  ChercladVisAtt->SetForceWireframe(true);
+  ChercladVisAtt->SetForceSolid(true);
+  logic_Clad_C_fiber->SetVisAttributes(ChercladVisAtt); //end of visualization attributes
+
+ G4ThreeVector vec_Clad_C;
+ vec_Clad_C.setX(0.);
+ vec_Clad_C.setY(0.);
+ vec_Clad_C.setZ(0.); 
+                             
+ G4VPhysicalVolume* Clad_C_PV = new G4PVPlacement(
+                                             0,                        // no rotation
+                                             vec_Clad_C,               // its position
+                                             logic_Clad_C_fiber,       // its logical volume                         
+                                             "Clad_C_fiber",           // its name
+                                             logic_C_fiber,            // its mother  volume
+                                             false,                    // no boolean operation
+                                             0,                        // copy number
+                                             fCheckOverlaps);          // checking overlaps
+
+ // Here I place the optical surface "OpSurfacedefault" between the cherenkov clad and the default material
+//G4LogicalBorderSurface* logic_OpSurface_CCladdefault;
+//logic_OpSurface_CCladdefault = new G4LogicalBorderSurface("logic_OpSurface_CCladdefault", Clad_C_PV, worldPV, OpSurfacedefault);
+
+// I set the visualization attributes of the tubs
+  G4VisAttributes* TubeVisAtt = new G4VisAttributes(G4Colour(0.6,0.3,0.3)); //blue
+  TubeVisAtt->SetVisibility(true);
+  TubeVisAtt->SetForceWireframe(true);
+  TubeVisAtt->SetForceSolid(true);
+  logic_C_fiber->SetVisAttributes(TubeVisAtt);
+
+return logic_C_fiber;
+}
+
 
 void B4DetectorConstruction::ConstructSDandField()
 { 

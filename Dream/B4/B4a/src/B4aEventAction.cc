@@ -86,12 +86,12 @@ void B4aEventAction::BeginOfEventAction(const G4Event* /*event*/)
   VectorSignalsCher.at(i)=0.;
   }
   PrimaryParticleEnergy = 0;  
-  for(int i=0;i<788544;i++){
-    if(VectorSignals.size() < 788544){
+  for(int i=0;i<2880;i++){
+    if(VectorSignals.size() < 2880){
   VectorSignals.push_back(0.);}}
   //VectorSignals.at(i)=0;}
-  for(int k=0;k<788544;k++){
-    if(VectorSignalsCher.size() < 788544){
+  for(int k=0;k<2880;k++){
+    if(VectorSignalsCher.size() < 2880){
   VectorSignalsCher.push_back(0.);}}
   //VectorSignalsCher[k]=0;}  
 }
@@ -123,7 +123,7 @@ void B4aEventAction::EndOfEventAction(const G4Event* event)
   analysisManager->FillNtupleSColumn(6, PrimaryParticleName);
   analysisManager->FillNtupleSColumn(7, AbsorberMaterial);
   analysisManager->FillNtupleDColumn(8, EscapedEnergy);
-  analysisManager->FillNtupleDColumn(9, Energyem2);
+  //analysisManager->FillNtupleDColumn(9, Energyem2);
   analysisManager->AddNtupleRow();//columns with vector are automatically filled with this function
 
   //print here if you need event by event some information of the screen

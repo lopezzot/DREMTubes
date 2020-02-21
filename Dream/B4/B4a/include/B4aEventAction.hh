@@ -66,8 +66,8 @@ class B4aEventAction : public G4UserEventAction
     std::vector<G4double>& GetVectorSignalsCher() {return VectorSignalsCher;}
 
     //to fill vectors
-    void AddVectorScinEnergy(G4double de, G4int module, G4int fiber); //fill vector of scintillating fibers with energy deposition
-    void AddVectorCherPE(G4int module, G4int fiber);//fill vector of cherenkov fibers with chernekov photoelectrons
+    void AddVectorScinEnergy(G4double de, G4int fiber); //fill vector of scintillating fibers with energy deposition
+    void AddVectorCherPE(G4int fiber);//fill vector of cherenkov fibers with chernekov photoelectrons
     
   private:
     G4double  Energyem; //Energy of em component
@@ -105,12 +105,12 @@ inline void B4aEventAction::SavePrimaryEnergy(G4double primaryparticleenergy){
   PrimaryParticleEnergy = primaryparticleenergy;
 }
 
-inline void B4aEventAction::AddVectorScinEnergy(G4double de, G4int module, G4int fiber) {
-    VectorSignals.at(64*(module-1)+fiber) += de;
+inline void B4aEventAction::AddVectorScinEnergy(G4double de, G4int fiber) {
+    VectorSignals.at(fiber) += de;
 }
 
-inline void B4aEventAction::AddVectorCherPE(G4int module, G4int fiber) {
-    VectorSignalsCher.at(64*(module-1)+fiber) = VectorSignalsCher.at(64*(module-1)+fiber) +1;
+inline void B4aEventAction::AddVectorCherPE(G4int fiber) {
+    VectorSignalsCher.at(fiber) = VectorSignalsCher.at(fiber) +1;
 }
 
 inline void B4aEventAction::Addem(G4double de) {

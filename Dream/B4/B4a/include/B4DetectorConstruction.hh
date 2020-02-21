@@ -33,6 +33,8 @@
 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
+#include "G4Material.hh"
+#include "G4LogicalVolume.hh"
 
 class G4VPhysicalVolume;
 class G4GlobalMagFieldMessenger;
@@ -46,6 +48,11 @@ class B4DetectorConstruction : public G4VUserDetectorConstruction
   public:
     virtual G4VPhysicalVolume* Construct();
     virtual void ConstructSDandField();
+
+    G4LogicalVolume* constructscinfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
+  G4Material* ScinMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CherMaterial);
+    G4LogicalVolume* constructcherfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
+  G4Material* CherMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CladCherMaterial);
 
     // get methods
     //

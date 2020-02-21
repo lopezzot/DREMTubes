@@ -153,7 +153,7 @@ void B4RunAction::BeginOfRunAction(const G4Run* run /*run*/)
   analysisManager->CreateNtupleSColumn("PrimaryParticleName");
   analysisManager->CreateNtupleSColumn("AbsorberMaterial");
   analysisManager->CreateNtupleDColumn("EscapedEnergy");
-  analysisManager->CreateNtupleDColumn("Energyem2");
+  //analysisManager->CreateNtupleDColumn("Energyem2");
   analysisManager->CreateNtupleDColumn("VectorSignals",eventAction->GetVectorSignals());
   analysisManager->CreateNtupleDColumn("VectorSignalsCher",eventAction->GetVectorSignalsCher());
   analysisManager->FinishNtuple();
