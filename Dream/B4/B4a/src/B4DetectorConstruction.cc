@@ -59,6 +59,7 @@
 #include "G4LogicalSkinSurface.hh"
 #include <G4GeometryTolerance.hh>
 #include "G4LogicalBorderSurface.hh"
+#include "G4Sphere.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
@@ -215,7 +216,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4int NofFibersrow = 3*16;
   G4int NofFiberscolumn = 60;
   G4double moduleZ = (1000.)*mm;
-  double tolerance = 0.05*mm;
+  double tolerance = 0.0*mm;
   G4double moduleX = 3*32.*mm+1*mm+2*tolerance*NofFibersrow; 
   G4double moduleY = 59*(1.733+2*tolerance)*mm+2.0*mm;
 
@@ -471,6 +472,29 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
                  false,            // no boolean operation
                  0,                // copy number
                  fCheckOverlaps);  // checking overlaps 
+
+    //absorber to calculate leakage
+    G4VSolid* leakageabsorber
+    = new G4Sphere("leakageabsorber",                        // its name
+                1000., 1100., 0.*deg, 360.*deg, 0.*deg, 180.*deg); // its size
+    
+    G4LogicalVolume* leakageabsorberLV
+    = new G4LogicalVolume(
+                          leakageabsorber,           // its solid
+                          defaultMaterial,  // its material (Galactic or Air)
+                          "leakageabsorber");         // its name
+    
+    leakageabsorberLV->SetVisAttributes(G4VisAttributes::Invisible);   
+    G4VPhysicalVolume* leakageabsorberPV
+    = new G4PVPlacement(
+                        0,                // no rotation
+                        G4ThreeVector(),  // at (0,0,0)
+                        leakageabsorberLV,          // its logical volume
+                        "leakageabsorber",          // its name
+                        worldLV,                // its mother  volume
+                        false,            // no boolean operation
+                        0,                // copy number
+                        fCheckOverlaps);  // checking overlaps
    
    // Here I build the module equipped with SiPM
 

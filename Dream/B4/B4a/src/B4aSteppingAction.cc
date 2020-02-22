@@ -74,31 +74,24 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
   G4double steplength = step->GetStepLength();
   //define Birk's constant
   double k_B = 0.126; 
-
-  /*if (step->GetTrack()->GetGlobalTime() > 300.0*CLHEP::ns){
-  	step->GetTrack()->SetTrackStatus(fStopAndKill);
-  	//G4cout<<"sono qui "<<step->GetTrack()->GetTrackID()<<" "<<step->GetTrack()->GetGlobalTime()<<G4endl;
-  }*/
-
+  /*
   if (PreStepVolume->GetName() == "module"){
     //Function to save absorber material name
     fEventAction->SaveAbsorberMaterial(PreStepVolume->GetLogicalVolume()->GetMaterial()->GetName());
-  }
+  }*/
 
-  if ( PreStepVolume->GetName() != "World" ) {
+  if (PreStepVolume->GetName() == "leakageabsorber" ){
+          fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
+          step->GetTrack()->SetTrackStatus(fStopAndKill);
+  } 
+
+  if ( PreStepVolume->GetName() != "World" && PreStepVolume->GetName() != "leakageabsorber" ) {
      //Function to add up energy deposited in the whole calorimeter
      fEventAction->Addenergy(energydeposited);
   }
 
- if ( PreStepVolume->GetName() == "World" ){
-    if ( step->GetTrack()->GetTrackID() != 1 ){
-      // Function to add up energy escaped from calorimeter
-      fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
-      step->GetTrack()->SetTrackStatus(fStopAndKill);
-    }
-  }
 
-  if ( PreStepVolume->GetName() != "World" ) {
+  if ( PreStepVolume->GetName() != "World" && PreStepVolume->GetName() != "leakageabsorber") {
     if (particlename == "e-" || particlename == "e+"){
       //Function to add up energy deposited by em component
       fEventAction->Addem(energydeposited);
@@ -135,9 +128,9 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
   int copynumber;//copy number of fibers: from 0 to 63 by definition in detector construction
   
   G4double distance; // will be the distance a photon travels before reaching a SiPM 
-  G4double pRandom,pDetection,pSurvive,pTot; // will be used as probabilities for parameterization of light
-  pRandom=G4UniformRand(); // random numeber between 0 and 1
-  pDetection=1.0; // SiPM photon detection efficiency 40%
+  //G4double pRandom,pDetection,pSurvive,pTot; // will be used as probabilities for parameterization of light
+  //pRandom=G4UniformRand(); // random numeber between 0 and 1
+  //pDetection=1.0; // SiPM photon detection efficiency 40%
   G4ThreeVector Prestep;
   G4ThreeVector Postsep;
   G4ThreeVector Momentum; // will be the versor of the momentum of each photon inside fibres
@@ -245,13 +238,13 @@ G4ProcessManager* OpManager =
                   distance = (1560.9-Prestep.z())/costheta;
                   pSurvive = std::exp(-(distance/8900));
                   pTot=PSurvive*pDetection;*/
-                  pTot =pDetection;
-                  if(pRandom<pTot){  
+                  //pTot =pDetection;
+                  //if(pRandom<pTot){  
                     fEventAction->AddCherenkov(); // add one photoelectron from Cherenkov process in Cherenkov fibers                  
                     //fEventAction->AddSignalfibre(copynumber); //only if you want SignalFibre
                     fEventAction->AddVectorCherPE(copynumber);
                     step->GetTrack()->SetTrackStatus(fStopAndKill); //I kille the photon just after having counted it or excluded
-                  }
+                 // }
                 }
               }
              }
