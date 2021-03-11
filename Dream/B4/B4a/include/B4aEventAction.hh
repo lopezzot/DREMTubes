@@ -51,7 +51,7 @@ class B4aEventAction : public G4UserEventAction
     void Addem2(G4double de); //Add em component (different estimation)
     void AddScin(G4double de);//Add energy in scintillating fibers
     void AddCher(G4double de);//Add energy in Cherenkov fibers
-    void AddCherenkov();//Add cherenkov photoelectron
+    void AddCherenkov(G4int n);//Add cherenkov photoelectron
     //void AddScintillation();
     void Addenergy(G4double de);//Add all energy deposited
     //void AddEnergyfibre(G4double de, G4int number);//Add energy in copy number fiber
@@ -67,7 +67,7 @@ class B4aEventAction : public G4UserEventAction
 
     //to fill vectors
     void AddVectorScinEnergy(G4double de, G4int fiber); //fill vector of scintillating fibers with energy deposition
-    void AddVectorCherPE(G4int fiber);//fill vector of cherenkov fibers with chernekov photoelectrons
+    void AddVectorCherPE(G4int fiber, G4int n);//fill vector of cherenkov fibers with chernekov photoelectrons
     
   private:
     G4double  Energyem; //Energy of em component
@@ -109,8 +109,8 @@ inline void B4aEventAction::AddVectorScinEnergy(G4double de, G4int fiber) {
     VectorSignals.at(fiber) += de;
 }
 
-inline void B4aEventAction::AddVectorCherPE(G4int fiber) {
-    VectorSignalsCher.at(fiber) = VectorSignalsCher.at(fiber) +1;
+inline void B4aEventAction::AddVectorCherPE(G4int fiber, G4int n) {
+    VectorSignalsCher.at(fiber) = VectorSignalsCher.at(fiber) + n;
 }
 
 inline void B4aEventAction::Addem(G4double de) {
@@ -129,8 +129,8 @@ inline void B4aEventAction::AddCher(G4double de){
   EnergyCher += de;
 }
 
-inline void B4aEventAction::AddCherenkov(){
-  NofCherenkovDetected = NofCherenkovDetected + 1;
+inline void B4aEventAction::AddCherenkov(G4int n){
+  NofCherenkovDetected = NofCherenkovDetected +n;
 }
 
 /*inline void B4aEventAction::AddScintillation(){

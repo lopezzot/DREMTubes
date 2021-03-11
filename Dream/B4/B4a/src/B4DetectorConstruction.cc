@@ -216,7 +216,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4int NofFibersrow = 3*16;
   G4int NofFiberscolumn = 60;
   G4double moduleZ = (1000.)*mm;
-  double tolerance = 0.0*mm;
+  double tolerance = 0.05*mm;
   G4double moduleX = 3*32.*mm+1*mm+2*tolerance*NofFibersrow; 
   G4double moduleY = 59*(1.733+2*tolerance)*mm+2.0*mm;
 
@@ -575,7 +575,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4LogicalVolume* moduleLV
     = new G4LogicalVolume(
                  moduleS,           // its solid
-                 defaultMaterial,  // its material
+                 absorberMaterial,  // its material
                  "module");         // its name
 
   G4ThreeVector pos_module;

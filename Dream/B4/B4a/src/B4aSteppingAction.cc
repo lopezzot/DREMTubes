@@ -38,6 +38,9 @@
 
 #include "G4OpBoundaryProcess.hh"
 
+#include <chrono>
+#include <random>
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4aSteppingAction::B4aSteppingAction(
@@ -60,12 +63,16 @@ B4aSteppingAction::~B4aSteppingAction()
 void B4aSteppingAction::UserSteppingAction(const G4Step* step)
 {
   
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::default_random_engine generator(seed);
+
+  std::poisson_distribution<int> cher_distribution(0.19); //shift from 200 Cp.e./GeV to 50 Cp.e./GeV
+
   // get volume of the current pre-step
   G4VPhysicalVolume* PreStepVolume 
     = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
   // get volume of the current post-step
-  G4VPhysicalVolume* PostStepVolume
-    = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
+ // G4VPhysicalVolume* PostStepVolume  = step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
   // get energy deposited by ionization in step
   G4double energydeposited = step->GetTotalEnergyDeposit();
   // get step particle name
@@ -127,14 +134,14 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
 
   int copynumber;//copy number of fibers: from 0 to 63 by definition in detector construction
   
-  G4double distance; // will be the distance a photon travels before reaching a SiPM 
+  //G4double distance; // will be the distance a photon travels before reaching a SiPM 
   //G4double pRandom,pDetection,pSurvive,pTot; // will be used as probabilities for parameterization of light
   //pRandom=G4UniformRand(); // random numeber between 0 and 1
   //pDetection=1.0; // SiPM photon detection efficiency 40%
   G4ThreeVector Prestep;
   G4ThreeVector Postsep;
   G4ThreeVector Momentum; // will be the versor of the momentum of each photon inside fibres
-  G4double costheta; // will be the angle of emission of each photon inside fibres
+  //G4double costheta; // will be the angle of emission of each photon inside fibres
 
   if ( strstr(Fiber.c_str(),S_fiber.c_str())){ //it's a scintillating fiber
     //Function to add up energy depoisted in scintillating fibers:
@@ -153,7 +160,9 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
             }
       fEventAction->AddScin(energydeposited); //All energy deposited in scin fibers (not saturated)
       //fEventAction->AddEnergyfibre(edep, copynumber); //only if you want to use Signalfibre[64]
-      fEventAction->AddVectorScinEnergy(saturatedenergydeposited,copynumber); //energy deposited in any scintillating fiber (saturated)
+      std::poisson_distribution<int> scin_distribution(saturatedenergydeposited*4.74);
+      int s_signal = scin_distribution(generator);
+      fEventAction->AddVectorScinEnergy(s_signal,copynumber); //energy deposited in any scintillating fiber (saturated)
 
   }
 
@@ -231,23 +240,11 @@ G4ProcessManager* OpManager =
                Prestep = step->GetPreStepPoint()->GetPosition();   
                Postsep = step->GetPostStepPoint()->GetPosition();
                Momentum = step->GetTrack()->GetMomentumDirection();
-               if(Momentum.z()>0.){ //the photon is going towards SiPms
-                costheta = Momentum.z();
-                if(costheta>0.99){//0.94 //if the photon is under the acceptance angle of fibers
-                  /* only if you want exponential light attenuation
-                  distance = (1560.9-Prestep.z())/costheta;
-                  pSurvive = std::exp(-(distance/8900));
-                  pTot=PSurvive*pDetection;*/
-                  //pTot =pDetection;
-                  //if(pRandom<pTot){  
-                    fEventAction->AddCherenkov(); // add one photoelectron from Cherenkov process in Cherenkov fibers                  
-                    //fEventAction->AddSignalfibre(copynumber); //only if you want SignalFibre
-                    fEventAction->AddVectorCherPE(copynumber);
-                    step->GetTrack()->SetTrackStatus(fStopAndKill); //I kille the photon just after having counted it or excluded
-                 // }
-                }
-              }
-             }
+	       int c_signal = cher_distribution(generator);
+               fEventAction->AddCherenkov(c_signal); // add one photoelectron from Cherenkov process in Cherenkov fibers                  
+               fEventAction->AddVectorCherPE(copynumber, c_signal);
+               step->GetTrack()->SetTrackStatus(fStopAndKill); //I kille the photon just after having counted it or excluded
+            }
     break;
 
   case Detection:
