@@ -66,7 +66,7 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator(seed);
 
-  std::poisson_distribution<int> cher_distribution(0.19); //shift from 200 Cp.e./GeV to 50 Cp.e./GeV
+  std::poisson_distribution<int> cher_distribution(0.155); //shift from 200 Cp.e./GeV to 50 Cp.e./GeV
 
   // get volume of the current pre-step
   G4VPhysicalVolume* PreStepVolume 
@@ -160,7 +160,7 @@ void B4aSteppingAction::UserSteppingAction(const G4Step* step)
             }
       fEventAction->AddScin(energydeposited); //All energy deposited in scin fibers (not saturated)
       //fEventAction->AddEnergyfibre(edep, copynumber); //only if you want to use Signalfibre[64]
-      std::poisson_distribution<int> scin_distribution(saturatedenergydeposited*4.74);
+      std::poisson_distribution<int> scin_distribution(saturatedenergydeposited*3.78);
       int s_signal = scin_distribution(generator);
       fEventAction->AddVectorScinEnergy(s_signal,copynumber); //energy deposited in any scintillating fiber (saturated)
 

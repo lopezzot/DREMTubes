@@ -575,7 +575,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
   G4LogicalVolume* moduleLV
     = new G4LogicalVolume(
                  moduleS,           // its solid
-                 absorberMaterial,  // its material
+                 defaultMaterial,  // its material
                  "module");         // its name
 
   G4ThreeVector pos_module;
