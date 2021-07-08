@@ -1,36 +1,15 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-// $Id: exampleB4a.cc 95508 2016-02-12 13:52:06Z gcosmo $
-//
-/// \file exampleB4a.cc
-/// \brief Main program of the B4a example
+//**************************************************
+// \file DREMTubes.cc
+// \brief: main() of DREMTubes project
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \start date: 7 July 2021
+//**************************************************
 
+// Includers from project files
+//
 #include "B4DetectorConstruction.hh"
 #include "B4aActionInitialization.hh"
-#include "PhysicsList.hh"
+#include "DREMTubesPhysicsList.hh"
 
 #ifdef G4MULTITHREADED
 #include "G4MTRunManager.hh"
@@ -122,7 +101,7 @@ int main(int argc,char** argv)
   //G4VModularPhysicsList* physicsList = new FTFP_BERT;
   //runManager->SetUserInitialization(physicsList);
   G4String physName = "FTFP_BERT"; //"FTFP_BERT", "QGSP_BERT"
-  runManager->SetUserInitialization(new PhysicsList(physName));
+  runManager->SetUserInitialization(new DREMTubesPhysicsList(physName));
   
   B4aActionInitialization* actionInitialization
      = new B4aActionInitialization(detConstruction);
@@ -164,4 +143,4 @@ int main(int argc,char** argv)
   delete runManager;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo.....
+//**************************************************
