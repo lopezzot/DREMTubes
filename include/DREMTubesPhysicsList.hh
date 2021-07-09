@@ -15,11 +15,14 @@
 #include "G4VModularPhysicsList.hh"
 #include "globals.hh"
 
+//Includers from project files
+//
+#include "DREMTubesOpticalPhysics.hh"
+
 class G4VPhysicsConstructor;
-class OpticalPhysics;
 class G4NeutronTrackingCut;
 
-class DREMTubesPhysicsList: public G4VModularPhysicsList{
+class DREMTubesPhysicsList : public G4VModularPhysicsList{
     
     public:
         //Constructor
@@ -29,7 +32,7 @@ class DREMTubesPhysicsList: public G4VModularPhysicsList{
         //
         virtual ~DREMTubesPhysicsList();
     
-        OpticalPhysics* OpPhysics;
+        DREMTubesOpticalPhysics* OpPhysics;
     
         G4NeutronTrackingCut* nCut;
     

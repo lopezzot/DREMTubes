@@ -7,7 +7,7 @@
 
 //Includers from prject files
 #include "DREMTubesPhysicsList.hh"
-#include "OpticalPhysics.hh"
+#include "DREMTubesOpticalPhysics.hh"
 
 //Includers from Geant4
 //
@@ -58,7 +58,7 @@ DREMTubesPhysicsList::DREMTubesPhysicsList(G4String physName):G4VModularPhysicsL
     // Turn on and off the absorption of optical photons in materials
     // 
     AbsorptionOn = true;
-    RegisterPhysics( OpPhysics = new OpticalPhysics(AbsorptionOn) );
+    RegisterPhysics( OpPhysics = new DREMTubesOpticalPhysics(AbsorptionOn) );
     
 }
 
