@@ -6,6 +6,7 @@
 #
 # Kinematics: 
 #
+/run/printProgress 500
 /gps/particle e-
 /gps/energy 0.2 GeV
 /gps/position 0 0 -160 cm
