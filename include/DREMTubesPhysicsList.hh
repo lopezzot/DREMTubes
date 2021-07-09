@@ -13,14 +13,10 @@
 //Includers from Geant4
 //
 #include "G4VModularPhysicsList.hh"
-#include "globals.hh"
 
 //Includers from project files
 //
 #include "DREMTubesOpticalPhysics.hh"
-
-class G4VPhysicsConstructor;
-class G4NeutronTrackingCut;
 
 class DREMTubesPhysicsList : public G4VModularPhysicsList{
     
@@ -33,8 +29,6 @@ class DREMTubesPhysicsList : public G4VModularPhysicsList{
         virtual ~DREMTubesPhysicsList();
     
         DREMTubesOpticalPhysics* OpPhysics;
-    
-        G4NeutronTrackingCut* nCut;
     
         G4bool AbsorptionOn;
 };

@@ -1,7 +1,24 @@
-# Macro file for the visualization setting for the initialization phase 
-# of the B4 example when running in interactive mode
 #
-
+# Macro file for the initialization of DREMTubes and visualization settings
+# in interactive session
+#
+# Set some default verbose
+#
+/control/verbose 2
+#/control/saveHistory
+/run/verbose 2
+#
+# Change the default number of threads (in multi-threaded mode)
+#/run/numberOfThreads 4
+#
+# Initialize kernel
+/run/initialize
+#
+# Visualization setting
+#/control/execute vis.mac
+#
+# Visualization setting for the DREMTubes project 
+#
 # Use these open statements to open selected visualization
 #
 # Use this open statement to create an OpenGL view:
@@ -80,3 +97,4 @@
 #
 # For file-based drivers, use this to create an empty detector view:
 #/vis/viewer/flush
+#

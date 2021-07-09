@@ -11,8 +11,6 @@
 #include "G4EmSaturation.hh"
 #include "G4OpticalPhoton.hh"
 #include "G4ProcessManager.hh"
-//#include "G4ParticleDefinition.hh"
-//#include "G4ParticleTable.hh"
 
 // Includers from project files
 //
