@@ -40,15 +40,9 @@ target_link_libraries(DREMTubes ${Geant4_LIBRARIES})
 # Copy all scripts to the build directory 
 #
 set(DREMTubes_SCRIPTS
-  exampleB4a.out
-  exampleB4.in
-  icons.mac
-  gui.mac
-  run.png
-  init_vis.mac
-  run1.mac
-  run2.mac
-  vis.mac
+  DREMTubes_gui.mac
+  DREMTubes_init_vis.mac
+  DREMTubes_run.mac
   )
 
 foreach(_script ${DREMTubes_SCRIPTS})
