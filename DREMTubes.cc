@@ -30,7 +30,8 @@
 namespace PrintUsageError {
     void UsageError() {
     G4cerr << "->DREMTubes usage: " << G4endl;
-    G4cerr << "DREMTubes [-m macro ] [-u UIsession] [-t nThreads]" << G4endl;
+    G4cerr << "DREMTubes [-m macro ] [-u UIsession] [-t nThreads] [-pl PhysicsList]" 
+        << G4endl;
     }
 }
 
@@ -49,6 +50,7 @@ int main(int argc, char** argv) {
     //
     G4String macro;
     G4String session;
+    G4String custom_pl = "FTFP_BERT"; //default physics list
     #ifdef G4MULTITHREADED
     G4int nThreads = 0;
     #endif
@@ -56,6 +58,7 @@ int main(int argc, char** argv) {
     for ( G4int i=1; i<argc; i=i+2 ) {
         if      ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
         else if ( G4String(argv[i]) == "-u" ) session = argv[i+1];
+        else if ( G4String(argv[i]) == "-pl") custom_pl = argv[i+1];
         #ifdef G4MULTITHREADED
         else if ( G4String(argv[i]) == "-t" ) {
             nThreads = G4UIcommand::ConvertToInt(argv[i+1]);
@@ -90,8 +93,7 @@ int main(int argc, char** argv) {
     auto DetConstruction = new B4DetectorConstruction();
     runManager->SetUserInitialization(DetConstruction);
 
-    G4String physName = "FTFP_BERT"; 
-    runManager->SetUserInitialization(new DREMTubesPhysicsList(physName));
+    runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl));
   
     auto actionInitialization = new B4aActionInitialization(DetConstruction);
     runManager->SetUserInitialization(actionInitialization);
