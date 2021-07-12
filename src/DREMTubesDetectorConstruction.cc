@@ -311,113 +311,108 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //
     // Geometry parameters of the module
     //
-  G4int Nofmodules = 1; //the actual number of modules is Nofmodules^2, choose 3,5,7,9
-  G4int NofFibers = 16*20; // 32 of each type
-  G4int NofScinFibers = NofFibers/2;
-  G4int NofCherFibers = NofFibers/2;
-  G4int NofFibersrow = 3*16;
-  G4int NofFiberscolumn = 60;
-  G4double moduleZ = (1000.)*mm;
-  double tolerance = 0.05*mm;
-  G4double moduleX = 3*32.*mm+1*mm+2*tolerance*NofFibersrow; 
-  G4double moduleY = 59*(1.733+2*tolerance)*mm+2.0*mm;
+    G4int Nofmodules = 1; 
+    G4int NofFibers = 16*20; 
+    G4int NofScinFibers = NofFibers/2;
+    G4int NofCherFibers = NofFibers/2;
+    G4int NofFibersrow = 3*16;
+    G4int NofFiberscolumn = 60;
+    G4double moduleZ = (1000.)*mm;
+    double tolerance = 0.05*mm;
+    G4double moduleX = 3.*32.*mm+1.*mm+2.*tolerance*NofFibersrow; 
+    G4double moduleY = 59.*(1.733+2*tolerance)*mm+2.0*mm;
 
-  // Geometry parameters of the world, world is a box
-  G4double worldX = 200 * moduleX;
-  G4double worldY = 200 * moduleY;
-  G4double worldZ = 60 * moduleZ;
+    // Geometry parameters of the world, world is a G4Box
+    //
+    G4double worldX = 200 * moduleX;
+    G4double worldY = 200 * moduleY;
+    G4double worldZ = 60 * moduleZ;
 
-  // Geometry parameters of the fiber
-  G4double fiberradius = 0.5*mm;
-  G4double fiberZ = moduleZ;
-
-  // Geometry parameters of the tube
-  G4double tuberadius = 1.0*mm;
-  G4double tubeZ = fiberZ;
-
-  // Geometry parameters of the core
-  G4double coreradius = 0.485*mm;
-  G4double coreZ = moduleZ;
-
-  // Geometry parameters of the cladding
-  G4double claddingradiusmin = 0.485*mm;
-  G4double claddingradiusmax = 0.50*mm;
-  G4double claddingZ = moduleZ;
-
-  // Geometry parameters of the SiPM
-  G4double SiPMX = 1.*mm;
-  G4double SiPMY = SiPMX;
-  G4double SiPMZ = 0.36*mm;
-
-  // Geometry parameters of the SiPM, active silicon layer
-  G4double SiX = 1.*mm;
-  G4double SiY = SiX;
-  G4double SiZ = 0.05*mm;
-
-  // Absorber in front of calorimeter (to see how em resolution degrades, generally not used)
-  G4double AbsorberX = 1000.*mm;
-  G4double AbsorberY = 1000.*mm;
-  G4double AbsorberRadLen = 56.12 *mm;  
-
-  // Geometry parameters of the module equipped with SiPM
-  // I build it so I can replicate the entire module + SiPM 
-  G4double moduleequippedZ = moduleZ + SiPMZ;
-  G4double moduleequippedX = moduleX; 
-  G4double moduleequippedY = moduleY;
-
-  
-
-   
-  // Building the calorimeter
-
-  // Here I build the world
-
-  G4VSolid* worldS 
-    = new G4Box("World",                        // its name
-                 worldX/2, worldY/2, worldZ/2); // its size
-                         
-  G4LogicalVolume* worldLV
-    = new G4LogicalVolume(
-                 worldS,           // its solid
-                 defaultMaterial,  // its material (Galactic or Air)
-                 "World");         // its name
-  
-  // I set the world as invisible
-  worldLV->SetVisAttributes(G4VisAttributes::Invisible);
-
-  G4VPhysicalVolume* worldPV
-    = new G4PVPlacement(
-                 0,                // no rotation
-                 G4ThreeVector(),  // at (0,0,0)
-                 worldLV,          // its logical volume                         
-                 "World",          // its name
-                 0,                // its mother  volume
-                 false,            // no boolean operation
-                 0,                // copy number
-                 fCheckOverlaps);  // checking overlaps 
-
-    //absorber to calculate leakage
-    G4VSolid* leakageabsorber
-    = new G4Sphere("leakageabsorber",                        // its name
-                1000., 1100., 0.*deg, 360.*deg, 0.*deg, 180.*deg); // its size
+    // Geometry parameters of the fiber
+    //
+    G4double fiberradius = 0.5*mm;
+    G4double fiberZ = moduleZ;
     
-    G4LogicalVolume* leakageabsorberLV
-    = new G4LogicalVolume(
-                          leakageabsorber,           // its solid
-                          defaultMaterial,  // its material (Galactic or Air)
-                          "leakageabsorber");         // its name
+    // Geometry parameters of the core
+    //
+    G4double coreradius = 0.485*mm;
+    G4double coreZ = moduleZ;
+
+    // Geometry parameters of the cladding
+    //
+    G4double claddingradiusmin = 0.485*mm;
+    G4double claddingradiusmax = 0.50*mm;
+    G4double claddingZ = moduleZ;
+    
+    // Geometry parameters of the tube
+    //
+    G4double tuberadius = 1.0*mm;
+    G4double tubeZ = fiberZ;
+
+    // Geometry parameters of the SiPM
+    //
+    G4double SiPMX = 1.*mm;
+    G4double SiPMY = SiPMX;
+    G4double SiPMZ = 0.36*mm;
+
+    // Geometry parameters of the SiPM, active silicon layer
+    //
+    G4double SiX = 1.*mm;
+    G4double SiY = SiX;
+    G4double SiZ = 0.05*mm;
+
+    // Absorber in front of calorimeter
+    // (to see how em resolution degrades, generally not used)
+    //
+    //
+    G4double AbsorberX = 1000.*mm;
+    G4double AbsorberY = 1000.*mm;
+    G4double AbsorberRadLen = 56.12 *mm;  
+
+    // Geometry parameters of the module equipped with SiPM
+    //
+    G4double moduleequippedZ = moduleZ + SiPMZ;
+    G4double moduleequippedX = moduleX; 
+    G4double moduleequippedY = moduleY;
+
+    // Building geometries
+    //
+    // World
+    //
+    G4VSolid* worldS  = new G4Box("World", worldX/2, worldY/2, worldZ/2); 
+                         
+    G4LogicalVolume* worldLV = new G4LogicalVolume(worldS,          
+                                                   defaultMaterial, 
+                                                   "World");       
+  
+    worldLV->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4VPhysicalVolume* worldPV = new G4PVPlacement( 0,                // no rotation
+                                                    G4ThreeVector(),  // at (0,0,0)
+                                                    worldLV,          // its logical
+                                                    "World",          // its name
+                                                    0,                // its mother
+                                                    false,            // no boolean oper 
+                                                    0,                // copy number
+                                                    fCheckOverlaps);  // check overlaps 
+
+    //Absorber to calculate leakage
+    G4VSolid* leakageabsorber = new G4Sphere("leakageabsorber",                        
+        1000., 1100., 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
+    
+    G4LogicalVolume* leakageabsorberLV = new G4LogicalVolume(leakageabsorber,
+                                                             defaultMaterial,  
+                                                             "leakageabsorber");        
     
     leakageabsorberLV->SetVisAttributes(G4VisAttributes::Invisible);   
-    G4VPhysicalVolume* leakageabsorberPV
-    = new G4PVPlacement(
-                        0,                // no rotation
-                        G4ThreeVector(),  // at (0,0,0)
-                        leakageabsorberLV,          // its logical volume
-                        "leakageabsorber",          // its name
-                        worldLV,                // its mother  volume
-                        false,            // no boolean operation
-                        0,                // copy number
-                        fCheckOverlaps);  // checking overlaps
+
+    G4VPhysicalVolume* leakageabsorberPV = new G4PVPlacement( 0, G4ThreeVector(),  
+                                                              leakageabsorberLV,         
+                                                              "leakageabsorber",
+                                                              worldLV,               
+                                                              false,          
+                                                              0,               
+                                                              fCheckOverlaps); 
    
    // Here I build the module equipped with SiPM
 
