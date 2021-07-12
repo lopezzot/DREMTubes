@@ -40,8 +40,7 @@
 //
 DREMTubesDetectorConstruction::DREMTubesDetectorConstruction()
     : G4VUserDetectorConstruction(),
-    modulePV(0),
-    fCheckOverlaps(true){
+    fCheckOverlaps(false){
 }
 
 //De-constructor
