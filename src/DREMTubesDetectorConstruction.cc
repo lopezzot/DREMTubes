@@ -60,6 +60,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //--------------------------------------------------
     //Define Elements, Mixtures and Materials
     //--------------------------------------------------
+
     //Elements
     //
     G4String name, symbol;    
@@ -139,12 +140,177 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4Material* SiMaterial = G4Material::GetMaterial("G4_Si");
     G4Material* CladCherMaterial = G4Material::GetMaterial("Fluorinated_Polymer");
 
+    //--------------------------------------------------
+    //Define Optical Properties
+    //--------------------------------------------------
 
+    // Use Energy(eV)=1.24/waevelenght(um)
+    // 2.034eV is 610nm RED 
+    // 2.75eV is 450nm BLUE (peak of scintillating fibers)
+    // 3.09eV is 400nm VIOLET (end of visible)
+    //4.1eV is 300nm UV (cherenkov peak is 310-350nm)
+    //
+    const G4int ENTRIES = 32;
+    G4double photonEnergy[ENTRIES] =                    
+        { 2.034*eV, 2.068*eV, 2.103*eV, 2.139*eV,   
+          2.177*eV, 2.216*eV, 2.256*eV, 2.298*eV,     
+          2.341*eV, 2.386*eV, 2.433*eV, 2.481*eV,
+          2.532*eV, 2.585*eV, 2.640*eV, 2.697*eV,
+          2.757*eV, 2.820*eV, 2.885*eV, 2.954*eV, 
+          3.026*eV, 3.102*eV, 3.181*eV, 3.265*eV, 
+          3.353*eV, 3.446*eV, 3.545*eV, 3.649*eV,
+          3.760*eV, 3.877*eV, 4.002*eV, 4.136*eV }; 
+    G4double rindexScin[ENTRIES] =
+        { 1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59,
+          1.59, 1.59, 1.59, 1.59 };
+    G4double absorptionScin[ENTRIES] =
+        { 400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm,
+          400*cm, 400*cm, 400*cm, 400*cm };
 
+    G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
+    MPTScin -> AddProperty("RINDEX", 
+        photonEnergy, rindexScin, ENTRIES)->SetSpline(true);
+    /*MPTScin -> AddProperty("ABSLENGTH",
+         photonEnergy, absorptionScin, ENTRIES)->SetSpline(true);*/
 
-  // Geometry parameters of world, module, fibers, SiPM
+    G4double rindexCher[ENTRIES] =
+        { 1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49,
+          1.49, 1.49, 1.49, 1.49 };
+    G4double absorptionCher[ENTRIES] = 
+        { 890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm,
+          890*cm, 890*cm, 890*cm, 890*cm };
 
-  // Geometry parameters of the module
+    G4MaterialPropertiesTable *MPTCher = new G4MaterialPropertiesTable();
+    MPTCher -> AddProperty("RINDEX",
+            photonEnergy, rindexCher, ENTRIES)->SetSpline(true);
+    /*MPTCher -> AddProperty("ABSLENGTH", 
+            photonEnergy, absorptionCher, ENTRIES)->SetSpline(true);*/
+    CherMaterial -> SetMaterialPropertiesTable(MPTCher);
+
+    G4double rindexCherclad[ENTRIES] =
+        { 1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42,
+          1.42, 1.42, 1.42, 1.42 };
+
+    G4MaterialPropertiesTable *MPTCherclad = new G4MaterialPropertiesTable();
+    MPTCherclad -> AddProperty("RINDEX", 
+        photonEnergy, rindexCherclad, ENTRIES)->SetSpline(true);
+    CladCherMaterial -> SetMaterialPropertiesTable(MPTCherclad);
+
+    G4double rindexglass[ENTRIES] =
+        { 1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51,
+          1.51, 1.51, 1.51, 1.51 };
+
+    G4MaterialPropertiesTable *MPTglass = new G4MaterialPropertiesTable();
+    MPTglass -> AddProperty("RINDEX", 
+            photonEnergy, rindexglass, ENTRIES)->SetSpline(true);
+    GlassMaterial -> SetMaterialPropertiesTable(MPTglass);
+
+    G4double rindexSi[ENTRIES] =
+        { 3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42,
+          3.42, 3.42, 3.42, 3.42 };
+
+    G4double absorptionSi[ENTRIES] = 
+        { 0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
+          0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm };
+
+    G4MaterialPropertiesTable *MPTSi = new G4MaterialPropertiesTable();
+    MPTSi -> AddProperty("RINDEX", photonEnergy, rindexSi, ENTRIES)->SetSpline(true);
+    MPTSi -> AddProperty("ABSLENGHT", 
+        photonEnergy, absorptionSi, ENTRIES)->SetSpline(true);
+    SiMaterial -> SetMaterialPropertiesTable(MPTSi); 
+  
+    // Scintillating proprieties of the scintillating fiber material
+    // Birks constant of the polystyrene
+    //
+    G4double Scin_FAST[ENTRIES] = // Emission spectrum for the fast component 
+        { 0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.1,
+          0.2, 0.4, 0.6, 0.8,
+          1., 0.8, 0.6, 0.1,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0. };
+    G4double Scin_SLOW[ENTRIES] = // Emission spectrum for the slow component
+        { 0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0.,
+          0., 0., 0., 0. };
+
+    ScinMaterial->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
+
+    MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES);
+    MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES);
+    MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); 
+    // Typical is 10000./MeV (this is what makes full simulations long as hell)
+    MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); 
+    // Broad the fluctuation of photons produced
+    MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);
+    MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns);
+    MPTScin -> AddConstProperty("YIELDRATIO", 1.0); 
+    // I don't want a slow component, if you want it must change
+    ScinMaterial -> SetMaterialPropertiesTable(MPTScin);
+
+    //--------------------------------------------------
+    //Define Volumes
+    //--------------------------------------------------
+    
+    //Geometry parameters
+    //
+    // Geometry parameters of the module
+    //
   G4int Nofmodules = 1; //the actual number of modules is Nofmodules^2, choose 3,5,7,9
   G4int NofFibers = 16*20; // 32 of each type
   G4int NofScinFibers = NofFibers/2;
@@ -199,180 +365,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
   G4double moduleequippedX = moduleX; 
   G4double moduleequippedY = moduleY;
 
-
-
-  // I need to specify the optical properties of the scintillating fiber material,
-  // optical proprieties are different from scintillating proprieties and 
-  // scintillating proprieties will be defined later.
-  // We don't have to add WLS proprieties to scintillating fibers
-  const G4int ENTRIES = 32;
   
-  G4double photonEnergy[ENTRIES] =                    // Use Energy(eV)=1.24/waevelenght(um)
-            { 2.034*eV, 2.068*eV, 2.103*eV, 2.139*eV, // 2.034eV is 610nm RED  
-              2.177*eV, 2.216*eV, 2.256*eV, 2.298*eV,     
-              2.341*eV, 2.386*eV, 2.433*eV, 2.481*eV,
-              2.532*eV, 2.585*eV, 2.640*eV, 2.697*eV,
-              2.757*eV, 2.820*eV, 2.885*eV, 2.954*eV, // 2.75eV is 450nm BLUE (peak of scintillating fibers)
-              3.026*eV, 3.102*eV, 3.181*eV, 3.265*eV, // 3.09eV is 400nm VIOLET (end of visible)
-              3.353*eV, 3.446*eV, 3.545*eV, 3.649*eV,
-              3.760*eV, 3.877*eV, 4.002*eV, 4.136*eV }; //4.1eV is 300nm UV (cherenkov peak is 310-350nm)
 
-  G4double rindexScin[ENTRIES] =
-            { 1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59,
-              1.59, 1.59, 1.59, 1.59 };
-
-  G4double absorptionScin[ENTRIES] =
-             { 400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm,
-               400*cm, 400*cm, 400*cm, 400*cm };
-
-  // I don't want any ABSLENGTH for the scintillating and cherenkov fibers
-  // I take into account in parameterization of photon transportation
-  // if you want uncomment it             
-  G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
-  MPTScin -> AddProperty("RINDEX", photonEnergy, rindexScin, ENTRIES)->SetSpline(true);
-  //MPTScin -> AddProperty("ABSLENGTH", photonEnergy, absorptionScin, ENTRIES)->SetSpline(true);
-
-  // I need to specify the optical proprieties of the cherenkov fiber material
-  // there are no scintillating proprieties for PMMA (clear fibres)
-  // we don't have to add WLS proprieties
-
-  G4double rindexCher[ENTRIES] =
-            { 1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49,
-              1.49, 1.49, 1.49, 1.49 };
-
- G4double absorptionCher[ENTRIES] = 
-            { 890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm,
-              890*cm, 890*cm, 890*cm, 890*cm };
-
-  G4MaterialPropertiesTable *MPTCher = new G4MaterialPropertiesTable();
-  MPTCher -> AddProperty("RINDEX", photonEnergy, rindexCher, ENTRIES)->SetSpline(true);
-  //MPTCher -> AddProperty("ABSLENGTH", photonEnergy, absorptionCher, ENTRIES)->SetSpline(true);
-  CherMaterial -> SetMaterialPropertiesTable(MPTCher);
-
-  // I need to specify the optical proprieties of the cherenkov cladding material
-
-  G4double rindexCherclad[ENTRIES] =
-            { 1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42,
-              1.42, 1.42, 1.42, 1.42 };
-
-  G4MaterialPropertiesTable *MPTCherclad = new G4MaterialPropertiesTable();
-  MPTCherclad -> AddProperty("RINDEX", photonEnergy, rindexCherclad, ENTRIES)->SetSpline(true);
-  CladCherMaterial -> SetMaterialPropertiesTable(MPTCherclad);
-
-  // I need to specify the optical proprieties of the glass material
-
-  G4double rindexglass[ENTRIES] =
-            { 1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51,
-              1.51, 1.51, 1.51, 1.51 };
-
-  G4MaterialPropertiesTable *MPTglass = new G4MaterialPropertiesTable();
-  MPTglass -> AddProperty("RINDEX", photonEnergy, rindexglass, ENTRIES)->SetSpline(true);
-  GlassMaterial -> SetMaterialPropertiesTable(MPTglass);
-
-  // I need to specify the optical proprieties of the Si material
-
-  G4double rindexSi[ENTRIES] =
-            { 3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42,
-              3.42, 3.42, 3.42, 3.42 };
-
-  G4double absorptionSi[ENTRIES] = 
-            { 0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm,
-              0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm };
-
-  G4MaterialPropertiesTable *MPTSi = new G4MaterialPropertiesTable();
-  MPTSi -> AddProperty("RINDEX", photonEnergy, rindexSi, ENTRIES)->SetSpline(true);
-  MPTSi -> AddProperty("ABSLENGHT", photonEnergy, absorptionSi, ENTRIES)->SetSpline(true);
-  SiMaterial -> SetMaterialPropertiesTable(MPTSi); 
-  
-  // I need to specify the SCINTILLATING proprieties of the scintillating fiber material
-  // I specify also the Birk Constant of the polystyrene
-
-  G4double Scin_FAST[ENTRIES] = // Emission spectrum for the fast component 
-            { 0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.1,
-              0.2, 0.4, 0.6, 0.8,
-              1., 0.8, 0.6, 0.1,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0. };
-
-  G4double Scin_SLOW[ENTRIES] = // Emission spectrum for the slow component
-            { 0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0.,
-              0., 0., 0., 0. };
-
-  // Set Briks Constant for scintillator
-  ScinMaterial->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
-
-  MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES);
-  MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES);
-  MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); // Typical is 10000./MeV (this is what makes full simulations long as hell)
-  MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); // Broad the fluctuation of photons produced
-  MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);
-  MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns);
-  MPTScin -> AddConstProperty("YIELDRATIO", 1.0); // I don't want a slow component, if you want it must change
-  ScinMaterial -> SetMaterialPropertiesTable(MPTScin);
-  
-  if ( ! defaultMaterial || ! absorberMaterial || ! ScinMaterial || ! CherMaterial || ! GlassMaterial || ! CladCherMaterial ) {
-    G4ExceptionDescription msg;
-    msg << "Cannot retrieve materials already defined."; 
-    G4Exception("B4DetectorConstruction::DefineVolumes()",
-      "MyCode0001", FatalException, msg);
-  }
    
   // Building the calorimeter
 
