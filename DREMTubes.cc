@@ -8,7 +8,7 @@
 // Includers from project files
 //
 #include "DREMTubesDetectorConstruction.hh"
-#include "B4aActionInitialization.hh"
+#include "DREMTubesActionInitialization.hh"
 #include "DREMTubesPhysicsList.hh"
 
 // Includers from Geant4
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 
     runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl));
   
-    auto actionInitialization = new B4aActionInitialization(DetConstruction);
+    auto actionInitialization = new DREMTubesActionInitialization();
     runManager->SetUserInitialization(actionInitialization);
   
     // Initialize visualization

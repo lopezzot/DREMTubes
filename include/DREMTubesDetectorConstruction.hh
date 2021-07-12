@@ -57,30 +57,16 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
                                             G4double claddingZ,
                                             G4Material* CladCherMaterial);
 
-        //Getters
-        //
-        const G4VPhysicalVolume* GetmodulePV() const;
-     
     private:
         
         // methods
         //
         G4VPhysicalVolume* DefineVolumes();
   
-        // data members
-        //
-        G4VPhysicalVolume*   modulePV; 
-    
         G4bool  fCheckOverlaps; // option for checking volumes overlaps
 
 };
 
-// inline functions
-//
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetmodulePV() const { 
-    return modulePV; 
-}
-     
 #endif
 
 //**************************************************
