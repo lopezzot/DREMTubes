@@ -168,7 +168,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           1.59, 1.59, 1.59, 1.59,
           1.59, 1.59, 1.59, 1.59,
           1.59, 1.59, 1.59, 1.59 };
-    G4double absorptionScin[ENTRIES] =
+    /*G4double absorptionScin[ENTRIES] =
         { 400*cm, 400*cm, 400*cm, 400*cm,
           400*cm, 400*cm, 400*cm, 400*cm,
           400*cm, 400*cm, 400*cm, 400*cm,
@@ -176,7 +176,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           400*cm, 400*cm, 400*cm, 400*cm,
           400*cm, 400*cm, 400*cm, 400*cm,
           400*cm, 400*cm, 400*cm, 400*cm,
-          400*cm, 400*cm, 400*cm, 400*cm };
+          400*cm, 400*cm, 400*cm, 400*cm };*/
 
     G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
     MPTScin -> AddProperty("RINDEX", 
@@ -193,7 +193,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           1.49, 1.49, 1.49, 1.49,
           1.49, 1.49, 1.49, 1.49,
           1.49, 1.49, 1.49, 1.49 };
-    G4double absorptionCher[ENTRIES] = 
+    /*G4double absorptionCher[ENTRIES] = 
         { 890*cm, 890*cm, 890*cm, 890*cm,
           890*cm, 890*cm, 890*cm, 890*cm,
           890*cm, 890*cm, 890*cm, 890*cm,
@@ -201,7 +201,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           890*cm, 890*cm, 890*cm, 890*cm,
           890*cm, 890*cm, 890*cm, 890*cm,
           890*cm, 890*cm, 890*cm, 890*cm,
-          890*cm, 890*cm, 890*cm, 890*cm };
+          890*cm, 890*cm, 890*cm, 890*cm };*/
 
     G4MaterialPropertiesTable *MPTCher = new G4MaterialPropertiesTable();
     MPTCher -> AddProperty("RINDEX",
@@ -311,9 +311,9 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     // Geometry parameters of the module
     //
     G4int Nofmodules = 1; 
-    G4int NofFibers = 16*20; 
-    G4int NofScinFibers = NofFibers/2;
-    G4int NofCherFibers = NofFibers/2;
+    //G4int NofFibers = 16*20; 
+    //G4int NofScinFibers = NofFibers/2;
+    //G4int NofCherFibers = NofFibers/2;
     G4int NofFibersrow = 3*16;
     G4int NofFiberscolumn = 60;
     G4double moduleZ = (1000.)*mm;
@@ -329,7 +329,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     // Geometry parameters of the fiber
     //
-    G4double fiberradius = 0.5*mm;
+    //G4double fiberradius = 0.5*mm;
     G4double fiberZ = moduleZ;
     
     // Geometry parameters of the core
@@ -346,7 +346,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     // Geometry parameters of the tube
     //
     G4double tuberadius = 1.0*mm;
-    G4double tubeZ = fiberZ;
+    //G4double tubeZ = fiberZ;
 
     // Geometry parameters of the SiPM
     //
@@ -427,7 +427,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4int copynumbermodule = 0;
     G4double m_x, m_y;
     G4ThreeVector vec_m;
-    G4VPhysicalVolume* physi_moduleequipped[Nofmodules][Nofmodules];
+    //G4VPhysicalVolume* physi_moduleequipped[Nofmodules][Nofmodules];
     for(int row=0; row<Nofmodules; row++){ 
         for(int column=0; column<Nofmodules; column++){
 
@@ -440,7 +440,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
         
             copynumbermodule = (1+row)+(column*Nofmodules);
 
-            physi_moduleequipped[row][column] = new G4PVPlacement(0,
+            /*physi_moduleequipped[row][column] =*/ new G4PVPlacement(0,
                                                 vec_m,              
                                                 moduleequippedLV,     
                                                 "moduleequipped",                        
@@ -461,7 +461,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     position.setZ(0.);
     G4Transform3D transform = G4Transform3D(rotm,position); 
 
-    G4VPhysicalVolume* CalorimeterPV = new G4PVPlacement(transform,
+    /*G4VPhysicalVolume* CalorimeterPV =*/ new G4PVPlacement(transform,
                                                          CalorimeterLV,
                                                          "Calorimeter",
                                                          worldLV,
@@ -542,7 +542,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     vec_Si.setY(0.);
     vec_Si.setZ(SiPMZ/2-SiZ/2); // Si at the end of SiPM
                              
-    G4VPhysicalVolume* SiPV = new G4PVPlacement(0,
+    /*G4VPhysicalVolume* SiPV =*/ new G4PVPlacement(0,
                                                 vec_Si,  
                                                 SiLV,
                                                 "Si",
@@ -559,8 +559,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     // Logical Skin Surface placement around the silicon of the SiPM
     //
-    G4LogicalSkinSurface* OpsurfaceSi = new G4LogicalSkinSurface("OpsurfaceSi", 
-        SiLV, OpSurfaceGlassSi);
+    /*G4LogicalSkinSurface* OpsurfaceSi = new G4LogicalSkinSurface("OpsurfaceSi", 
+        SiLV, OpSurfaceGlassSi);*/
 
     // Optical Surface properties between the scintillating fibers
     // and the default material
@@ -579,9 +579,9 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     // Attention: I place an optical surface painted (blacked) from the moduleequippedPV 
     // to the SiPMPV, in so doing I completly avoid any cross talk between SiPMs
     //
-    G4VPhysicalVolume* physi_S_fiber[NofFibersrow][NofFiberscolumn];
-    G4VPhysicalVolume* physi_SiPM[NofFibersrow][NofFiberscolumn];  
-    G4LogicalBorderSurface* logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn];
+    //G4VPhysicalVolume* physi_S_fiber[NofFibersrow][NofFiberscolumn];
+    //G4VPhysicalVolume* physi_SiPM[NofFibersrow][NofFiberscolumn];  
+    //G4LogicalBorderSurface* logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn];
 
     G4int copynumber=0;
 
@@ -601,7 +601,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             SiPM_name = 
                 "SiPMS_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str();
 
-            G4double S_x, S_y, S_z;
+            G4double S_x, S_y;
             G4ThreeVector vec_S_fiber;
             G4ThreeVector vec_SiPM;
 
@@ -632,7 +632,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                         CherMaterial);
                 // Tubes with scintillating fiber placement
                 //
-                physi_S_fiber[row][column] = new G4PVPlacement(0,
+                /*physi_S_fiber[row][column] =*/ new G4PVPlacement(0,
                                                                vec_S_fiber,
                                                                logic_S_fiber,
                                                                S_name,
@@ -642,7 +642,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
                 // SiPM placement
                 //
-                physi_SiPM[row][column] = new G4PVPlacement(0,
+                /*physi_SiPM[row][column] =*/ new G4PVPlacement(0,
                                                             vec_SiPM,
                                                             SiPMLV,
                                                             SiPM_name,
@@ -650,18 +650,18 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                             false,
                                                             0); 
           
-                logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] =
+                /*logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] =
                     new G4LogicalBorderSurface("logic_OpSurface_defaultAir",
                                                CalorimeterPV, 
                                                physi_SiPM[row][column],
-                                               OpSurfacedefault);
+                                               OpSurfacedefault);*/
             }
         };
     };
 
     // Tubes with Cherenkov fibers and SiPM next to them
     //
-    G4VPhysicalVolume* physi_C_fiber[NofFibersrow][NofFiberscolumn];
+    //G4VPhysicalVolume* physi_C_fiber[NofFibersrow][NofFiberscolumn];
   
     for(int row=0; row<NofFibersrow; row++){
         
@@ -679,7 +679,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             SiPM_name = 
                 "SiPMC_row" + C_fiber_row.str() + "_column_" + C_fiber_column.str();
 
-            G4double C_x, C_y, C_z;
+            G4double C_x, C_y;
             G4ThreeVector vec_C_fiber;
             G4ThreeVector vec_SiPM;
 
@@ -710,7 +710,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                         claddingradiusmax,
                                                         claddingZ,
                                                         CladCherMaterial);
-                physi_C_fiber[row][column] = new G4PVPlacement(0,
+                /*physi_C_fiber[row][column] =*/ new G4PVPlacement(0,
                                                          vec_C_fiber,
                                                          logic_C_fiber,
                                                          C_name,
@@ -718,7 +718,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                          false,
                                                          copynumber);
 
-                physi_SiPM[row][column] = new G4PVPlacement(0,
+                /*physi_SiPM[row][column] =*/ new G4PVPlacement(0,
                                                         vec_SiPM,
                                                         SiPMLV,
                                                         SiPM_name,
@@ -726,11 +726,11 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                         false,
                                                         0); 
 
-                logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] =
+                /*logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] =
                     new G4LogicalBorderSurface("logic_OpSurface_defaultAir",
                                                CalorimeterPV, 
                                                physi_SiPM[row][column],
-                                               OpSurfacedefault);
+                                               OpSurfacedefault);*/
             }      
         };
     };
