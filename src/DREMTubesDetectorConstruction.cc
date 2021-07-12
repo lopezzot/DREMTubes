@@ -743,7 +743,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
   return worldPV;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
   G4Material* ScinMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CherMaterial){
