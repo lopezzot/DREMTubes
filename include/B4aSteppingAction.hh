@@ -33,7 +33,7 @@
 
 #include "G4UserSteppingAction.hh"
 
-class B4DetectorConstruction;
+class DREMTubesDetectorConstruction;
 class B4aEventAction;
 
 class G4OpBoundaryProcess;
@@ -43,14 +43,14 @@ class G4OpBoundaryProcess;
 class B4aSteppingAction : public G4UserSteppingAction
 {
 public:
-  B4aSteppingAction(const B4DetectorConstruction* detectorConstruction,
+  B4aSteppingAction(const DREMTubesDetectorConstruction* detectorConstruction,
                     B4aEventAction* eventAction);
   virtual ~B4aSteppingAction();
 
   virtual void UserSteppingAction(const G4Step* step);
     
 private:
-  const B4DetectorConstruction* fDetConstruction;
+  const DREMTubesDetectorConstruction* fDetConstruction;
   B4aEventAction*  fEventAction;  
 
   G4OpBoundaryProcess* fOpProcess;

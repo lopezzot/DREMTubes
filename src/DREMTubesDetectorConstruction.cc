@@ -1,34 +1,13 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-// $Id: B4DetectorConstruction.cc 87359 2014-12-01 16:04:27Z gcosmo $
-// 
-/// \file B4DetectorConstruction.cc
-/// \brief Implementation of the B4DetectorConstruction class
+//**************************************************
+// \file DREMTubesDetectorConstruction.cc
+// \brief: Implementation of DREMTubesDetectorConstruction class
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \start date: 7 July 2021
+//**************************************************
 
-#include "B4DetectorConstruction.hh"
+//Includers from project files
+//
+#include "DREMTubesDetectorConstruction.hh"
 
 #include <random>
 #include <iostream>
@@ -64,11 +43,11 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 G4ThreadLocal 
-G4GlobalMagFieldMessenger* B4DetectorConstruction::fMagFieldMessenger = 0; 
+G4GlobalMagFieldMessenger* DREMTubesDetectorConstruction::fMagFieldMessenger = 0; 
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B4DetectorConstruction::B4DetectorConstruction()
+DREMTubesDetectorConstruction::DREMTubesDetectorConstruction()
  : G4VUserDetectorConstruction(),
    modulePV(0),
    fCheckOverlaps(true)
@@ -77,13 +56,13 @@ B4DetectorConstruction::B4DetectorConstruction()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-B4DetectorConstruction::~B4DetectorConstruction()
+DREMTubesDetectorConstruction::~DREMTubesDetectorConstruction()
 { 
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VPhysicalVolume* B4DetectorConstruction::Construct()
+G4VPhysicalVolume* DREMTubesDetectorConstruction::Construct()
 {
   // Define materials 
   DefineMaterials();
@@ -94,7 +73,7 @@ G4VPhysicalVolume* B4DetectorConstruction::Construct()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-void B4DetectorConstruction::DefineMaterials()
+void DREMTubesDetectorConstruction::DefineMaterials()
 { 
   // Copper material defined using NIST Manager
   // I use Cu as default absorber material but you can switch to lead
@@ -204,7 +183,7 @@ void B4DetectorConstruction::DefineMaterials()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
+G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes()
 {
   // Geometry parameters of world, module, fibers, SiPM
 
@@ -822,7 +801,7 @@ G4VPhysicalVolume* B4DetectorConstruction::DefineVolumes()
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
-G4LogicalVolume* B4DetectorConstruction::constructscinfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
+G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
   G4Material* ScinMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CherMaterial){
   // Here I build the Scintillating fiber with its core and cladding
   // I will put the fibers later inside the module
@@ -912,7 +891,7 @@ G4LogicalVolume* B4DetectorConstruction::constructscinfiber(double tolerance, G4
 return logic_S_fiber;
 }
 
-G4LogicalVolume* B4DetectorConstruction::constructcherfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
+G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolerance, G4double tuberadius, G4double fiberZ, G4Material* absorberMaterial, G4double coreradius, G4double coreZ, 
   G4Material* CherMaterial, G4double claddingradiusmin, G4double claddingradiusmax, G4double claddingZ, G4Material* CladCherMaterial){ 
 // Here I build the Cherenkov fiber with its cladding
 // I will put the fibers later inside the module
@@ -1004,7 +983,7 @@ return logic_C_fiber;
 }
 
 
-void B4DetectorConstruction::ConstructSDandField()
+void DREMTubesDetectorConstruction::ConstructSDandField()
 { 
   // Create global magnetic field messenger,
   // Uniform magnetic field is then created automatically if
@@ -1017,4 +996,4 @@ void B4DetectorConstruction::ConstructSDandField()
   G4AutoDelete::Register(fMagFieldMessenger);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+//**************************************************

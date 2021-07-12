@@ -30,7 +30,7 @@
 
 #include "B4aSteppingAction.hh"
 #include "B4aEventAction.hh"
-#include "B4DetectorConstruction.hh"
+#include "DREMTubesDetectorConstruction.hh"
 #include "G4Material.hh"
 
 #include "G4Step.hh"
@@ -44,7 +44,7 @@
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4aSteppingAction::B4aSteppingAction(
-                      const B4DetectorConstruction* detectorConstruction,
+                      const DREMTubesDetectorConstruction* detectorConstruction,
                       B4aEventAction* eventAction)
   : G4UserSteppingAction(),
     fDetConstruction(detectorConstruction),

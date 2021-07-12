@@ -33,12 +33,12 @@
 #include "B4RunAction.hh"
 #include "B4aEventAction.hh"
 #include "B4aSteppingAction.hh"
-#include "B4DetectorConstruction.hh"
+#include "DREMTubesDetectorConstruction.hh"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 
 B4aActionInitialization::B4aActionInitialization
-                            (B4DetectorConstruction* detConstruction)
+                            (DREMTubesDetectorConstruction* detConstruction)
  : G4VUserActionInitialization(),
    fDetConstruction(detConstruction)
 {}

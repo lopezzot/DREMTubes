@@ -7,7 +7,7 @@
 
 // Includers from project files
 //
-#include "B4DetectorConstruction.hh"
+#include "DREMTubesDetectorConstruction.hh"
 #include "B4aActionInitialization.hh"
 #include "DREMTubesPhysicsList.hh"
 
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 
     // Set mandatory initialization classes
     //
-    auto DetConstruction = new B4DetectorConstruction();
+    auto DetConstruction = new DREMTubesDetectorConstruction();
     runManager->SetUserInitialization(DetConstruction);
 
     runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl));
