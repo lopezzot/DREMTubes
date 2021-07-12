@@ -414,112 +414,98 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                               0,               
                                                               fCheckOverlaps); 
    
-   // Here I build the module equipped with SiPM
-
-   G4VSolid* moduleequippedS
-    = new G4Box("moduleequipped",                                          // its name
-                 moduleequippedX/2, moduleequippedY/2, moduleequippedZ/2); // its size
+    // Module equipped (with SiPM)
+    //
+    G4VSolid* moduleequippedS = new G4Box("moduleequipped",
+        moduleequippedX/2, moduleequippedY/2, moduleequippedZ/2); 
                          
-  G4LogicalVolume* moduleequippedLV
-    = new G4LogicalVolume(
-                 moduleequippedS,           // its solid
-                 defaultMaterial,           // its material
-                 "moduleequipped");         // its name
+    G4LogicalVolume* moduleequippedLV = new G4LogicalVolume(moduleequippedS,
+                                                            defaultMaterial,
+                                                            "moduleequipped"); 
 
-  // Here I build the calorimeter itself. As calorimeter I mean the matrix of
-  // modules equipped. Uncomment it only if you want more than one module.
-  
-    G4VSolid* CalorimeterS 
-    = new G4Box("CalorimeterS",                                                                  // its name
-                 moduleequippedX*Nofmodules/2, moduleequippedY*Nofmodules/2, moduleequippedZ/2); // its size                     
-    G4LogicalVolume* CalorimeterLV
-    = new G4LogicalVolume(
-                 CalorimeterS,           // its solid
-                 defaultMaterial,        // its material 
-                 "CalorimeterLV");       // its name
+    // Calorimeter (matrix of modules equipped)
+    // 
+    G4VSolid* CalorimeterS = new G4Box("CalorimeterS",
+        moduleequippedX*Nofmodules/2, moduleequippedY*Nofmodules/2, moduleequippedZ/2);                     
+    G4LogicalVolume* CalorimeterLV = new G4LogicalVolume( CalorimeterS,
+                                                          defaultMaterial,
+                                                          "CalorimeterLV");
 
-  // Here I place the modules equipped inside the calorimeter
-  // There is no rotation of the modules, I will later rotate the entire calorimeter
-  G4int copynumbermodule = 0;
-  G4double m_x, m_y;
-  G4ThreeVector vec_m;
-  G4VPhysicalVolume* physi_moduleequipped[Nofmodules][Nofmodules];
-  for(int row=0; row<Nofmodules; row++){
-     for(int column=0; column<Nofmodules; column++){
-        m_x = -(((Nofmodules-1)/2)*moduleX - moduleX*row);
-        m_y = -(((Nofmodules-1)/2)*moduleY - moduleY*column);
+    // Modules equipped placement
+    //
+    G4int copynumbermodule = 0;
+    G4double m_x, m_y;
+    G4ThreeVector vec_m;
+    G4VPhysicalVolume* physi_moduleequipped[Nofmodules][Nofmodules];
+    for(int row=0; row<Nofmodules; row++){ 
+        for(int column=0; column<Nofmodules; column++){
+
+            m_x = -(((Nofmodules-1)/2)*moduleX - moduleX*row);
+            m_y = -(((Nofmodules-1)/2)*moduleY - moduleY*column);
            
-        vec_m.setX(m_x);
-        vec_m.setY(m_y);
-        vec_m.setZ(0.);
+            vec_m.setX(m_x);
+            vec_m.setY(m_y);
+            vec_m.setZ(0.);
         
-        copynumbermodule = (1+row)+(column*Nofmodules);
+            copynumbermodule = (1+row)+(column*Nofmodules);
 
-        physi_moduleequipped[row][column] = new G4PVPlacement(0,
-                                                        vec_m,              
-                                                        moduleequippedLV,     
-                                                        "moduleequipped",                        
-                                                        CalorimeterLV,                      
-                                                        false,                          
-                                                        copynumbermodule); 
-      };
-   }; 
+            physi_moduleequipped[row][column] = new G4PVPlacement(0,
+                                                vec_m,              
+                                                moduleequippedLV,     
+                                                "moduleequipped",                        
+                                                CalorimeterLV,                      
+                                                false,                          
+                                                copynumbermodule); 
+        };
+    }; 
  
-  // Here I place and rotate the entire calorimeter
-  G4RotationMatrix rotm  = G4RotationMatrix();
-  rotm.rotateY(1.0*deg);  // Set the rotation angles //0.75
-  rotm.rotateX(1.0*deg);  //0.75
-  G4ThreeVector position;
-  position.setX(0.);
-  position.setY(0.);
-  position.setZ(0.);
-  G4Transform3D transform = G4Transform3D(rotm,position); 
+    // Calorimeter placement (with rotation wrt beam axis)
+    //
+    G4RotationMatrix rotm  = G4RotationMatrix();
+    rotm.rotateY(1.0*deg);  
+    rotm.rotateX(1.0*deg);  
+    G4ThreeVector position;
+    position.setX(0.);
+    position.setY(0.);
+    position.setZ(0.);
+    G4Transform3D transform = G4Transform3D(rotm,position); 
 
-  G4VPhysicalVolume* CalorimeterPV = new G4PVPlacement(
-                                                transform,        // its position and rotation
-                                                CalorimeterLV,    // its logical volume                         
-                                                "Calorimeter",    // its name
-                                                worldLV,          // its mother  volume
-                                                false,            // no boolean operation
-                                                0,                // copy number
-                                                fCheckOverlaps);  // checking overlaps 
+    G4VPhysicalVolume* CalorimeterPV = new G4PVPlacement(transform,
+                                                         CalorimeterLV,
+                                                         "Calorimeter",
+                                                         worldLV,
+                                                         false,
+                                                         0,
+                                                         fCheckOverlaps);
 
-  // Here I build the module: to do that I build the rectangular absorber
-  // I will later put fibers into it  
-  G4VSolid* moduleS
-    = new G4Box("module",                          // its name
-                 moduleX/2, moduleY/2, moduleZ/2); // its size
+    // Module
+    //
+    G4VSolid* moduleS = new G4Box("module", moduleX/2, moduleY/2, moduleZ/2);
                          
-  G4LogicalVolume* moduleLV
-    = new G4LogicalVolume(
-                 moduleS,           // its solid
-                 defaultMaterial,  // its material
-                 "module");         // its name
+    G4LogicalVolume* moduleLV = new G4LogicalVolume(moduleS,
+                                                    defaultMaterial,
+                                                    "module");
 
-  G4ThreeVector pos_module;
-  pos_module.setX(0.);
-  pos_module.setY(0.);
-  pos_module.setZ(-0.18);
+    G4ThreeVector pos_module;
+    pos_module.setX(0.);
+    pos_module.setY(0.);
+    pos_module.setZ(-0.18);
                               
-  G4VPhysicalVolume* modulePV = new G4PVPlacement(
-                                                0,                // no rotation
-                                                pos_module,       // at (0,0,-0.18)
-                                                moduleLV,         // its logical volume                         
-                                                "module",         // its name
-                                                moduleequippedLV, // its mother  volume
-                                                false,            // no boolean operation
-                                                0,                // copy number
-                                                fCheckOverlaps);  // checking overlaps 
+    G4VPhysicalVolume* modulePV = new G4PVPlacement(0,
+                                                    pos_module,
+                                                    moduleLV,
+                                                    "module",
+                                                     moduleequippedLV,
+                                                     false,
+                                                     0,
+                                                     fCheckOverlaps);
 
-
-  // Here I define the Optical Surface PROPRIETIES between the glass and the Si of the SiPM
-  G4OpticalSurface* OpSurfaceGlassSi = new G4OpticalSurface("OpSurfaceGlassSi");
-  
-  OpSurfaceGlassSi -> SetType(dielectric_metal);
-  OpSurfaceGlassSi -> SetModel(glisur);
-  OpSurfaceGlassSi -> SetFinish(polished);
-
-  G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     // detection efficiency 
+    // Optical Surface properties between the glass and the Si of the SiPM
+    G4OpticalSurface* OpSurfaceGlassSi = new G4OpticalSurface("OpSurfaceGlassSi");
+    OpSurfaceGlassSi -> SetType(dielectric_metal);
+    OpSurfaceGlassSi -> SetModel(glisur);
+    OpSurfaceGlassSi -> SetFinish(polished);
+    G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     // detection efficiency 
                                     { 0.4, 0.4, 0.4, 0.4,
                                       0.4, 0.4, 0.4, 0.4,
                                       0.4, 0.4, 0.4, 0.4,
@@ -528,9 +514,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                       0.4, 0.4, 0.4, 0.4,
                                       0.4, 0.4, 0.4, 0.4,
                                       0.4, 0.4, 0.4, 0.4};
-                                      
 
-   G4double reflectivityOpSurfaceGlassSi[ENTRIES] =  // 0% reflection
+    G4double reflectivityOpSurfaceGlassSi[ENTRIES] =  // 0% reflection
                                     { 0., 0., 0., 0.,
                                       0., 0., 0., 0.,
                                       0., 0., 0., 0.,
@@ -540,80 +525,70 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                       0., 0., 0., 0.,
                                       0., 0., 0., 0. };
 
-  G4MaterialPropertiesTable* MPTOpSurfaceGlassSi = new G4MaterialPropertiesTable();
-  MPTOpSurfaceGlassSi -> AddProperty("EFFICIENCY", photonEnergy, efficiencyOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
-  MPTOpSurfaceGlassSi -> AddProperty("REFLECTIVITY", photonEnergy, reflectivityOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
-  OpSurfaceGlassSi -> SetMaterialPropertiesTable(MPTOpSurfaceGlassSi);
+    G4MaterialPropertiesTable* MPTOpSurfaceGlassSi = new G4MaterialPropertiesTable();
+    MPTOpSurfaceGlassSi -> AddProperty("EFFICIENCY", 
+        photonEnergy, efficiencyOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
+    MPTOpSurfaceGlassSi -> AddProperty("REFLECTIVITY", 
+            photonEnergy, reflectivityOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
+    OpSurfaceGlassSi -> SetMaterialPropertiesTable(MPTOpSurfaceGlassSi);
 
-  // Here I build the SiPM
-
-  G4VSolid* SiPMS
-    = new G4Box("SiPM",                      // its name
-                 SiPMX/2, SiPMY/2, SiPMZ/2); // its size
+    // SiPM
+    //
+    G4VSolid* SiPMS = new G4Box("SiPM", SiPMX/2, SiPMY/2, SiPMZ/2);
                          
-  G4LogicalVolume* SiPMLV
-    = new G4LogicalVolume(
-                 SiPMS,             // its solid
-                 GlassMaterial,     // its material
-                 "SiPM");           // its name
+    G4LogicalVolume* SiPMLV = new G4LogicalVolume(SiPMS, GlassMaterial,"SiPM");
 
- // Here I build the Si of the SiPM
- 
- G4VSolid* SiS
-   = new G4Box("Si",                     // its name
-                SiX/2, SiY/2, SiZ/2);       // its size
+    // Here I build the Si of the SiPM
+    // 
+    G4VSolid* SiS = new G4Box("Si", SiX/2, SiY/2, SiZ/2);
                          
- G4LogicalVolume* SiLV
-   = new G4LogicalVolume(
-                 SiS,            // its solid
-                 SiMaterial,     // its material
-                 "Si");          // its name
+    G4LogicalVolume* SiLV = new G4LogicalVolume( SiS, SiMaterial, "Si");
 
- // I put the Si inside the SiPM, I will put the SiPMs next to fibers later
-
- G4ThreeVector vec_Si;
- vec_Si.setX(0.);
- vec_Si.setY(0.);
- vec_Si.setZ(SiPMZ/2-SiZ/2); // Si at the end of SiPM
+    // Si placement inside SiPM
+    //
+    G4ThreeVector vec_Si;
+    vec_Si.setX(0.);
+    vec_Si.setY(0.);
+    vec_Si.setZ(SiPMZ/2-SiZ/2); // Si at the end of SiPM
                              
- G4VPhysicalVolume* SiPV = new G4PVPlacement(
-                                             0,                 // no rotation
-                                             vec_Si,  
-                                             SiLV,              // its logical volume                         
-                                             "Si",              // its name
-                                             SiPMLV,            // its mother  volume
-                                             false,             // no boolean operation
-                                             0,                 // copy number
-                                             fCheckOverlaps);   // checking overlaps 
+    G4VPhysicalVolume* SiPV = new G4PVPlacement(0,
+                                                vec_Si,  
+                                                SiLV,
+                                                "Si",
+                                                SiPMLV,
+                                                false,
+                                                0,
+                                                fCheckOverlaps);
  
-  // I set the visualization attributes of the Si of the SiPM
-  G4VisAttributes* SiVisAtt = new G4VisAttributes(G4Colour(0.0,0.8,0.0)); //green
-  SiVisAtt->SetVisibility(true);
-  SiVisAtt->SetForceWireframe(true);
-  SiVisAtt->SetForceSolid(true);
-  SiLV->SetVisAttributes(SiVisAtt); //end of visualization attributes
+    G4VisAttributes* SiVisAtt = new G4VisAttributes(G4Colour(0.0,0.8,0.0)); //green
+    SiVisAtt->SetVisibility(true);
+    SiVisAtt->SetForceWireframe(true);
+    SiVisAtt->SetForceSolid(true);
+    SiLV->SetVisAttributes(SiVisAtt);
 
-  // Here I place the Logical Skin Surface around the silicon of the SiPM
-  G4LogicalSkinSurface* OpsurfaceSi = new G4LogicalSkinSurface("OpsurfaceSi", SiLV, OpSurfaceGlassSi);
+    // Logical Skin Surface placement around the silicon of the SiPM
+    //
+    G4LogicalSkinSurface* OpsurfaceSi = new G4LogicalSkinSurface("OpsurfaceSi", 
+        SiLV, OpSurfaceGlassSi);
 
-  // Here I define the Optical Surface PROPRIETIES between the scintillating fibers and the default material
-  // air or vacuum
-  // I'm trying to define an optical surface completly blacked because we absorb the light at one end of fibers
+    // Optical Surface properties between the scintillating fibers
+    // and the default material
+    // I'm trying to define an optical surface completly blacked 
+    // as if we absorb the light at one end of fibers
+    //
+    G4OpticalSurface* OpSurfacedefault = new G4OpticalSurface("OpSurfacedefault");
+    OpSurfacedefault -> SetType(dielectric_dielectric);
+    OpSurfacedefault -> SetModel(unified);
+    OpSurfacedefault -> SetFinish(polishedbackpainted); 
+    // Painted from inside the fibers, light is absorbed
 
-  G4OpticalSurface* OpSurfacedefault = new G4OpticalSurface("OpSurfacedefault");
-  
-  OpSurfacedefault -> SetType(dielectric_dielectric);
-  OpSurfacedefault -> SetModel(unified);
-  OpSurfacedefault -> SetFinish(polishedbackpainted); // Painted from inside the fibers, light is absorbed
 
-
-  // Here I place the Scintillating fibers and the SiPM next to them
-  // Attention: I place an optical surface painted (blacked) from the moduleequippedPV 
-  // to the SiPMPV, in so doing I completly avoid any cross talk between SiPMs
- 
-  G4VPhysicalVolume* physi_S_fiber[NofFibersrow][NofFiberscolumn];
-  G4VPhysicalVolume* physi_SiPM[NofFibersrow][NofFiberscolumn];  
-  G4LogicalBorderSurface* logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn];
+    // Here I place the Scintillating fibers and the SiPM next to them
+    // Attention: I place an optical surface painted (blacked) from the moduleequippedPV 
+    // to the SiPMPV, in so doing I completly avoid any cross talk between SiPMs
+    G4VPhysicalVolume* physi_S_fiber[NofFibersrow][NofFiberscolumn];
+    G4VPhysicalVolume* physi_SiPM[NofFibersrow][NofFiberscolumn];  
+    G4LogicalBorderSurface* logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn];
 
   G4int copynumber=0;
 
