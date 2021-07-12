@@ -32,7 +32,6 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
 
     public:
         virtual G4VPhysicalVolume* Construct();
-        virtual void ConstructSDandField();
 
         G4LogicalVolume* constructscinfiber(double tolerance,
                                             G4double tuberadius,
@@ -66,16 +65,13 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
         
         // methods
         //
-        void DefineMaterials();
         G4VPhysicalVolume* DefineVolumes();
   
         // data members
         //
-        static G4ThreadLocal G4GlobalMagFieldMessenger*  fMagFieldMessenger; 
-     
-        G4VPhysicalVolume*   modulePV; // the module physical volume
+        G4VPhysicalVolume*   modulePV; 
     
-        G4bool  fCheckOverlaps; // option to activate checking of volumes overlaps
+        G4bool  fCheckOverlaps; // option for checking volumes overlaps
 
 };
 

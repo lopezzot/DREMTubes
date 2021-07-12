@@ -9,12 +9,12 @@
 //
 #include "DREMTubesDetectorConstruction.hh"
 
+//Includers from Geant4
+//
 #include <random>
 #include <iostream>
-
 #include "G4Material.hh"
 #include "G4NistManager.hh"
-
 #include "G4Box.hh"
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
@@ -22,169 +22,126 @@
 #include "G4PVReplica.hh"
 #include "G4GlobalMagFieldMessenger.hh"
 #include "G4AutoDelete.hh"
-
 #include "G4GeometryManager.hh"
 #include "G4PhysicalVolumeStore.hh"
 #include "G4LogicalVolumeStore.hh"
 #include "G4SolidStore.hh"
-
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
-
 #include "G4PhysicalConstants.hh"
 #include "G4SystemOfUnits.hh"
-
 #include "G4OpBoundaryProcess.hh"
 #include "G4LogicalSkinSurface.hh"
 #include <G4GeometryTolerance.hh>
 #include "G4LogicalBorderSurface.hh"
 #include "G4Sphere.hh"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4ThreadLocal 
-G4GlobalMagFieldMessenger* DREMTubesDetectorConstruction::fMagFieldMessenger = 0; 
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
+//Constructor
+//
 DREMTubesDetectorConstruction::DREMTubesDetectorConstruction()
- : G4VUserDetectorConstruction(),
-   modulePV(0),
-   fCheckOverlaps(true)
-{
+    : G4VUserDetectorConstruction(),
+    modulePV(0),
+    fCheckOverlaps(true){
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+//De-constructor
+//
+DREMTubesDetectorConstruction::~DREMTubesDetectorConstruction() {}
 
-DREMTubesDetectorConstruction::~DREMTubesDetectorConstruction()
-{ 
+//Define Construct() method
+G4VPhysicalVolume* DREMTubesDetectorConstruction::Construct() {
+  
+    // Define volumes
+    return DefineVolumes();
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
-G4VPhysicalVolume* DREMTubesDetectorConstruction::Construct()
-{
-  // Define materials 
-  DefineMaterials();
+    //--------------------------------------------------
+    //Define Elements, Mixtures and Materials
+    //--------------------------------------------------
+    //Elements
+    //
+    G4String name, symbol;    
+    G4double a, z;            // a=mass of a mole, z=mean number of protons;  
   
-  // Define volumes
-  return DefineVolumes();
-}
+    a = 1.01*g/mole;
+    G4Element* elH  = new G4Element(name="Hydrogen",symbol="H" , z= 1., a); //Hidrogen
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+    a = 12.01*g/mole;
+    G4Element* elC  = new G4Element(name="Carbon"  ,symbol="C" , z= 6., a); //Carbon
 
-void DREMTubesDetectorConstruction::DefineMaterials()
-{ 
-  // Copper material defined using NIST Manager
-  // I use Cu as default absorber material but you can switch to lead
-  //G4NistManager* CunistManager = G4NistManager::Instance();
-  //CunistManager->FindOrBuildMaterial("G4_Cu");
+    a = 16.00*g/mole;
+    G4Element* elO  = new G4Element(name="Oxygen"  ,symbol="O" , z= 8., a); //Oxygen
+
+    a = 28.09*g/mole;
+    G4Element* elSi = new G4Element(name="Silicon", symbol="Si", z=14., a); //Silicon
   
-  //G4NistManager* FenistManager = G4NistManager::Instance();
-  //FenistManager->FindOrBuildMaterial("G4_Fe");
+    a = 18.9984*g/mole;
+    G4Element* elF  = new G4Element("Fluorine",symbol="F" , z= 9., a); //Fluorine
 
-  //G4NistManager* WnistManager = G4NistManager::Instance();
-  //WnistManager->FindOrBuildMaterial("G4_W");
+    a = 63.546*g/mole;
+    G4Element* elCu = new G4Element("Copper", symbol="Cu", z=29., a); //Copper
 
-  // Lead material defined using NIST Manager
-   G4NistManager* PbnistManager = G4NistManager::Instance();
-   PbnistManager->FindOrBuildMaterial("G4_Cu");
+    a = 65.38*g/mole;
+    G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
 
-  // Platinum material defined using NIST Manager
-  // G4NistManager* PtnistManager = G4NistManager::Instance();
-  // PtnistManager->FindOrBuildMaterial("G4_Pt");
+    //Materials 
+    //
+    auto nistManager = G4NistManager::Instance();
+    nistManager->FindOrBuildMaterial("G4_Cu");
+    //nistManager->FindOrBuildMaterial("G4_Fe");
+    //nistManager->FindOrBuildMaterial("G4_Pb");
+    nistManager->FindOrBuildMaterial("G4_Si");
+    //nistManager->FindOrBuildMaterial("G4_Galactic");
+    nistManager->FindOrBuildMaterial("G4_AIR");
 
-  // Alluminium material defined using NIST Manager
-  // G4NistManager* AlnistManager = G4NistManager::Instance();
-  // AlnistManager->FindOrBuildMaterial("G4_Al");
+    // Polystyrene from elements (C5H5)
+    G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
+    Polystyrene->AddElement(elC, 8);
+    Polystyrene->AddElement(elH, 8); 
 
-  // Polystyrene material defined using NIST Manager
-  // I use this material for the core of plastic scintillating fibers
-  // cannot find any G4_Polystyrene, I build it later
-  //G4NistManager* PynistManager = G4NistManager::Instance();
-  //PynistManager->FindOrBuildMaterial("G4_Polystyrene");
+    // PMMA material from elements (C502H8)
+    // 
+    auto PMMA = new G4Material("PMMA", 1.19*g/cm3, 3); 
+    PMMA->AddElement(elC, 5);
+    PMMA->AddElement(elO, 2);
+    PMMA->AddElement(elH, 8); 
+    
+    // Fluorinated Polymer material from elements (C2F2)
+    // material for the cladding of the Cherenkov fibers
+    auto fluorinatedPolymer = new G4Material("Fluorinated_Polymer", 1.43*g/cm3, 2);
+    fluorinatedPolymer->AddElement(elC,2);
+    fluorinatedPolymer->AddElement(elF,2);
 
-  // PMMA material, there's no default G4_PMMA, I build it (C502H8)
-  G4String name, symbol;    // a=mass of a mole;
-  G4double a, z;            // z=mean number of protons;  
-  
-  // create elements
-  a = 1.01*g/mole;
-  G4Element* elH  = new G4Element(name="Hydrogen",symbol="H" , z= 1., a); //Hidrogen
+    // Glass material from elements (SiO2)
+    //
+    auto Glass = new G4Material("Glass", 2.4*g/cm3, 2);
+    Glass -> AddElement(elSi, 1);
+    Glass -> AddElement(elO, 2); 
 
-  a = 12.01*g/mole;
-  G4Element* elC  = new G4Element(name="Carbon"  ,symbol="C" , z= 6., a); //Carbon
+    // Mixtures
+    //
+    // Cu260 (Brass)
+    //
+    const double BrassDensity = 8.53*g/cm3;
+    auto Cu260 = new G4Material(name="Brass", BrassDensity, 2);
+    Cu260->AddElement(elCu, 70*perCent);
+    Cu260->AddElement(elZn, 30*perCent);
 
-  a = 16.00*g/mole;
-  G4Element* elO  = new G4Element(name="Oxygen"  ,symbol="O" , z= 8., a); //Oxygen
+    // Assign material to the calorimeter volumes
+    //
+    G4Material* defaultMaterial = G4Material::GetMaterial("G4_AIR"); 
+    G4Material* absorberMaterial = G4Material::GetMaterial("G4_Cu"); 
+    G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
+    G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
+    G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
+    G4Material* SiMaterial = G4Material::GetMaterial("G4_Si");
+    G4Material* CladCherMaterial = G4Material::GetMaterial("Fluorinated_Polymer");
 
-  a = 28.09*g/mole;
-  G4Element* elSi = new G4Element(name="Silicon", symbol="Si", z=14., a); //Silicon
-  
-  a = 18.9984*g/mole;
-  G4Element* elF  = new G4Element("Fluorine",symbol="F" , z= 9., a); //Fluorine
 
-  a = 63.546*g/mole;
-  G4Element* elCu = new G4Element("Copper", symbol="Cu", z=29., a); //Copper
 
-  a = 65.38*g/mole;
-  G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
-  
-  // create PMMA
-  G4Material* PMMA = new G4Material("PMMA", 1.19*g/cm3, 3); //name, density and number of elements
-  PMMA -> AddElement(elC, 5);
-  PMMA -> AddElement(elO, 2);
-  PMMA -> AddElement(elH, 8); //PMMA building complete
 
-  // create Polystyrene (C5H5)
-  G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
-  Polystyrene -> AddElement(elC, 8);
-  Polystyrene -> AddElement(elH, 8); //Polystyrene building complete
-
-  // create Fluorinated Polymer (C2F2)
-  // I use it for the cladding of the Cherenkov fibers
-  G4Material* fluorinatedPolymer =
-  new G4Material("Fluorinated_Polymer", 1.43*g/cm3, 2);
-  fluorinatedPolymer->AddElement(elC,2);
-  fluorinatedPolymer->AddElement(elF,2);
-  //fluorinatedPolymer->AddElement(H,2); //Fluorinated Polymer building complete
-
-  // create Glass (SiO2)
-  G4Material* Glass = new G4Material("Glass", 2.4*g/cm3, 2);
-  Glass -> AddElement(elSi, 1);
-  Glass -> AddElement(elO, 2); //Glass building complete
-
-  // Vacuum material defined using NIST Manager
-  G4NistManager* VanistManager = G4NistManager::Instance();
-  VanistManager->FindOrBuildMaterial("G4_Galactic");
-
-  // Silicon material defined using NIST Manager
-  G4NistManager* SinistManager = G4NistManager::Instance();
-  SinistManager->FindOrBuildMaterial("G4_Si");
-
-  // create Cu260 (Brass)
-  // I use it for the absorber of the real small beam tested module
-  double density = 8.53*g/cm3;
-  int ncomponentsbrass = 2;
-  G4Material* Cu260 = new G4Material(name="Brass", density, ncomponentsbrass);
-  Cu260->AddElement(elCu, 70*perCent);
-  Cu260->AddElement(elZn, 30*perCent);
-
-  // Air material defined using NIST Manager
-  // You can use Air instead of vacuum
-  G4NistManager* AinistManager = G4NistManager::Instance();
-  AinistManager->FindOrBuildMaterial("G4_AIR");
-
-  // Print materials 
-  // I don't want to print materials all the times,
-  // if you want uncomment it
-  //G4cout << *(G4Material::GetMaterialTable()) << G4endl;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
-
-G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes()
-{
   // Geometry parameters of world, module, fibers, SiPM
 
   // Geometry parameters of the module
@@ -242,14 +199,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes()
   G4double moduleequippedX = moduleX; 
   G4double moduleequippedY = moduleY;
 
-  // Get materials for vacuum, absorber, scintillating and cherenkov fibers, SiPM
-  G4Material* defaultMaterial = G4Material::GetMaterial("G4_AIR"); // G4_AIR or G4_Galactic 
-  G4Material* absorberMaterial = G4Material::GetMaterial("G4_Cu"); // or Brass or G4_Cu or G4_Pb
-  G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
-  G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
-  G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
-  G4Material* SiMaterial = G4Material::GetMaterial("G4_Si");
-  G4Material* CladCherMaterial = G4Material::GetMaterial("Fluorinated_Polymer");
+
 
   // I need to specify the optical properties of the scintillating fiber material,
   // optical proprieties are different from scintillating proprieties and 
@@ -982,18 +932,5 @@ logic_Core_C_fiber->SetVisAttributes(ChercoreVisAtt); //end of visualization att
 return logic_C_fiber;
 }
 
-
-void DREMTubesDetectorConstruction::ConstructSDandField()
-{ 
-  // Create global magnetic field messenger,
-  // Uniform magnetic field is then created automatically if
-  // the field value is not zero
-  G4ThreeVector fieldValue = G4ThreeVector();
-  fMagFieldMessenger = new G4GlobalMagFieldMessenger(fieldValue);
-  fMagFieldMessenger->SetVerboseLevel(1);
-  
-  // Register the field messenger for deleting
-  G4AutoDelete::Register(fMagFieldMessenger);
-}
 
 //**************************************************
