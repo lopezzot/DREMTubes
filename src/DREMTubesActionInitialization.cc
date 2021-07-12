@@ -8,7 +8,7 @@
 //Includers from project files
 //
 #include "DREMTubesActionInitialization.hh"
-#include "B4PrimaryGeneratorAction.hh"
+#include "DREMTubesPrimaryGeneratorAction.hh"
 #include "B4RunAction.hh"
 #include "B4aEventAction.hh"
 #include "B4aSteppingAction.hh"
@@ -32,7 +32,7 @@ void DREMTubesActionInitialization::BuildForMaster() const {
 //Build() method
 //
 void DREMTubesActionInitialization::Build() const {
-  SetUserAction(new B4PrimaryGeneratorAction);
+  SetUserAction(new DREMTubesPrimaryGeneratorAction);
   SetUserAction(new B4RunAction);
   B4aEventAction* eventAction = new B4aEventAction;
   SetUserAction(eventAction);

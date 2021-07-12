@@ -25,8 +25,6 @@ class DREMTubesActionInitialization : public G4VUserActionInitialization {
         virtual void BuildForMaster() const;
         virtual void Build() const;
 
-    private:
-
 };
 
 #endif
