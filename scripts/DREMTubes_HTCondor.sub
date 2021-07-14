@@ -1,0 +1,9 @@
+universe = vanilla 
+output = output/job.$(ClusterId).$(ProcId).output 
+error = error/job.$(ClusterId).$(ProcId).error 
+log =  log/job.$(ClusterId).$(ProcId).log 
+RequestCpus = 10
+stream_output = True 
+stream_error = True 
++JobFlavour = "testmatch" 
+queue
