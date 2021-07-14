@@ -8,7 +8,7 @@
 //Includers from project files
 //
 #include "DREMTubesRunAction.hh"
-#include "B4aEventAction.hh"
+#include "DREMTubesEventAction.hh"
 
 //Includers from Geant4
 //
@@ -24,7 +24,7 @@
 
 //Define constructor
 //
-DREMTubesRunAction::DREMTubesRunAction( B4aEventAction* eventAction )
+DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     : G4UserRunAction(),
       fEventAction( eventAction ){ 
   

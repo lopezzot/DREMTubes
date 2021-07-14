@@ -15,7 +15,7 @@
 #include "G4UserRunAction.hh"
 #include "globals.hh"
 
-class B4aEventAction;
+class DREMTubesEventAction;
 class G4Run;
 
 class DREMTubesRunAction : public G4UserRunAction {
@@ -23,7 +23,7 @@ class DREMTubesRunAction : public G4UserRunAction {
     public:
         //Constructor
         //
-        DREMTubesRunAction( B4aEventAction* eventAction );
+        DREMTubesRunAction( DREMTubesEventAction* eventAction );
         //De-constructor
         //
         virtual ~DREMTubesRunAction();
@@ -34,7 +34,7 @@ class DREMTubesRunAction : public G4UserRunAction {
         virtual void EndOfRunAction(const G4Run*);
 
     private:
-        B4aEventAction* fEventAction;
+        DREMTubesEventAction* fEventAction;
 
 };
 

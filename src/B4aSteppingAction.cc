@@ -29,7 +29,7 @@
 /// \brief Implementation of the B4aSteppingAction class
 
 #include "B4aSteppingAction.hh"
-#include "B4aEventAction.hh"
+#include "DREMTubesEventAction.hh"
 #include "DREMTubesDetectorConstruction.hh"
 #include "G4Material.hh"
 
@@ -45,7 +45,7 @@
 
 B4aSteppingAction::B4aSteppingAction(
                       const DREMTubesDetectorConstruction* detectorConstruction,
-                      B4aEventAction* eventAction)
+                      DREMTubesEventAction* eventAction)
   : G4UserSteppingAction(),
     fDetConstruction(detectorConstruction),
     fEventAction(eventAction)

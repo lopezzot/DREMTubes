@@ -10,7 +10,7 @@
 #include "DREMTubesActionInitialization.hh"
 #include "DREMTubesPrimaryGeneratorAction.hh"
 #include "DREMTubesRunAction.hh"
-#include "B4aEventAction.hh"
+#include "DREMTubesEventAction.hh"
 #include "B4aSteppingAction.hh"
 #include "DREMTubesDetectorConstruction.hh"
 
@@ -27,7 +27,7 @@ DREMTubesActionInitialization::~DREMTubesActionInitialization() {}
 //
 void DREMTubesActionInitialization::BuildForMaster() const {
     
-    auto eventAction = new B4aEventAction;
+    auto eventAction = new DREMTubesEventAction;
     SetUserAction( new DREMTubesRunAction( eventAction ) );
 
 }
@@ -37,7 +37,7 @@ void DREMTubesActionInitialization::BuildForMaster() const {
 void DREMTubesActionInitialization::Build() const {
   
     SetUserAction(new DREMTubesPrimaryGeneratorAction);
-    auto eventAction = new B4aEventAction;
+    auto eventAction = new DREMTubesEventAction;
     SetUserAction(new DREMTubesRunAction( eventAction ));
     SetUserAction(eventAction);
     auto detConstruction = new DREMTubesDetectorConstruction;
