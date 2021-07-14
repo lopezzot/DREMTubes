@@ -54,9 +54,9 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtupleSColumn("PrimaryParticleName");
     analysisManager->CreateNtupleDColumn("EscapedEnergy");
     analysisManager->CreateNtupleDColumn
-        ("VectorSignals",eventAction->GetVectorSignals());
+        ("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn
-        ("VectorSignalsCher",eventAction->GetVectorSignalsCher());
+        ("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
     analysisManager->FinishNtuple();
   
 }

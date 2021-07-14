@@ -23,9 +23,7 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
     public:
         //Constructor
         //
-        DREMTubesSteppingAction
-            (const DREMTubesDetectorConstruction* detectorConstruction,
-             DREMTubesEventAction* eventAction);
+        DREMTubesSteppingAction(DREMTubesEventAction* eventAction);
         //De-constructor
         //
         virtual ~DREMTubesSteppingAction();
@@ -37,8 +35,6 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
     private:
         //Data members
         //
-        const DREMTubesDetectorConstruction* fDetConstruction;
-
         DREMTubesEventAction*  fEventAction;  
 
         G4OpBoundaryProcess* fOpProcess;

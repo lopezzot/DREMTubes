@@ -696,7 +696,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                 vec_SiPM.setY(C_y);
                 vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
 
-                std::cout<< row << " " << column << std::endl;
                 copynumber = (NofFiberscolumn*row+column);
                         
                 auto logic_C_fiber = constructcherfiber(tolerance,

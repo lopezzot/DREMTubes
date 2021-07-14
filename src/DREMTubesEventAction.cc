@@ -61,10 +61,10 @@ void DREMTubesEventAction::BeginOfEventAction(const G4Event*) {
     /*for(int i=0;i<64;i++){
         Signalfibre[i]=0;
     }*///only if you want to use SignalFibre[64]
-    for (int i=0;i<VectorSignals.size();i++){
+    for (unsigned int i=0;i<VectorSignals.size();i++){
         VectorSignals.at(i)=0.;
     }
-    for (int i=0;i<VectorSignalsCher.size();i++){
+    for (unsigned int i=0;i<VectorSignalsCher.size();i++){
         VectorSignalsCher.at(i)=0.;
     }
     PrimaryParticleEnergy = 0;  

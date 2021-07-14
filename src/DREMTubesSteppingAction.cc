@@ -26,10 +26,8 @@
 //Define constructor
 //
 DREMTubesSteppingAction::DREMTubesSteppingAction(
-    const DREMTubesDetectorConstruction* detectorConstruction,
     DREMTubesEventAction* eventAction)
     : G4UserSteppingAction(),
-    fDetConstruction(detectorConstruction),
     fEventAction(eventAction)
 {}
 
