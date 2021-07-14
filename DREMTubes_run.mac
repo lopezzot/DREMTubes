@@ -6,17 +6,13 @@
 #
 # Kinematics: 
 #
-/run/printProgress 500
+#/run/printProgress 500
 /gps/particle e-
-/gps/energy 0.2 GeV
-/gps/position 0 0 -160 cm
-/gps/pos/type Plane
+/gps/energy 0.5 GeV
+/gps/direction 0 0 1
+/gps/position 0 0 -55
 /gps/pos/shape Circle
-/gps/pos/radius 1.0 cm
-/gps/ang/type beam1d
-/gps/ang/sigma_r 0.1 deg
-/gps/ang/rot1 0 1 0
-/gps/ang/rot2 1 0 0
+/gps/pos/radius 0.01 cm
 /random/setSeeds 1.2 2.5
 #
 /run/beamOn 6000
