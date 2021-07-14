@@ -11,7 +11,7 @@
 #include "DREMTubesPrimaryGeneratorAction.hh"
 #include "DREMTubesRunAction.hh"
 #include "DREMTubesEventAction.hh"
-#include "B4aSteppingAction.hh"
+#include "DREMTubesSteppingAction.hh"
 #include "DREMTubesDetectorConstruction.hh"
 
 //Constructor
@@ -41,7 +41,7 @@ void DREMTubesActionInitialization::Build() const {
     SetUserAction(new DREMTubesRunAction( eventAction ));
     SetUserAction(eventAction);
     auto detConstruction = new DREMTubesDetectorConstruction;
-    SetUserAction(new B4aSteppingAction(detConstruction,eventAction));
+    SetUserAction(new DREMTubesSteppingAction(detConstruction,eventAction));
 
 }  
 
