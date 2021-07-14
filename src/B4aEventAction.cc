@@ -29,8 +29,8 @@
 /// \brief Implementation of the B4aEventAction class
 
 #include "B4aEventAction.hh"
-#include "B4RunAction.hh"
-#include "B4Analysis.hh"
+#include "DREMTubesRunAction.hh"
+#include "g4root.hh"
 
 #include "G4RunManager.hh"
 #include "G4Event.hh"

@@ -9,7 +9,7 @@
 //
 #include "DREMTubesActionInitialization.hh"
 #include "DREMTubesPrimaryGeneratorAction.hh"
-#include "B4RunAction.hh"
+#include "DREMTubesRunAction.hh"
 #include "B4aEventAction.hh"
 #include "B4aSteppingAction.hh"
 #include "DREMTubesDetectorConstruction.hh"
@@ -17,7 +17,7 @@
 //Constructor
 //
 DREMTubesActionInitialization::DREMTubesActionInitialization()
- : G4VUserActionInitialization() {}
+    : G4VUserActionInitialization() {}
 
 //De-constructor
 //
@@ -26,18 +26,23 @@ DREMTubesActionInitialization::~DREMTubesActionInitialization() {}
 //BuildForMaster() method
 //
 void DREMTubesActionInitialization::BuildForMaster() const {
-  SetUserAction(new B4RunAction);
+    
+    auto eventAction = new B4aEventAction;
+    SetUserAction( new DREMTubesRunAction( eventAction ) );
+
 }
 
 //Build() method
 //
 void DREMTubesActionInitialization::Build() const {
-  SetUserAction(new DREMTubesPrimaryGeneratorAction);
-  SetUserAction(new B4RunAction);
-  B4aEventAction* eventAction = new B4aEventAction;
-  SetUserAction(eventAction);
-  auto detConstruction = new DREMTubesDetectorConstruction;
-  SetUserAction(new B4aSteppingAction(detConstruction,eventAction));
+  
+    SetUserAction(new DREMTubesPrimaryGeneratorAction);
+    auto eventAction = new B4aEventAction;
+    SetUserAction(new DREMTubesRunAction( eventAction ));
+    SetUserAction(eventAction);
+    auto detConstruction = new DREMTubesDetectorConstruction;
+    SetUserAction(new B4aSteppingAction(detConstruction,eventAction));
+
 }  
 
 //**************************************************
