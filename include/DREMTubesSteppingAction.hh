@@ -13,6 +13,7 @@
 //Includers from Geant4
 //
 #include "G4UserSteppingAction.hh"
+#include "G4Types.hh"
 class G4OpBoundaryProcess;
 
 class DREMTubesDetectorConstruction;
@@ -23,14 +24,15 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
     public:
         //Constructor
         //
-        DREMTubesSteppingAction(DREMTubesEventAction* eventAction);
+        DREMTubesSteppingAction(DREMTubesEventAction* eventAction,
+                                const G4bool FullOptic );
         //De-constructor
         //
         virtual ~DREMTubesSteppingAction();
         
         //User impementation of SteppingAction
         //
-        virtual void UserSteppingAction( const G4Step* step );
+        virtual void UserSteppingAction( const G4Step* step);
     
     private:
         //Data members
@@ -38,7 +40,8 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
         DREMTubesEventAction*  fEventAction;  
 
         G4OpBoundaryProcess* fOpProcess;
-
+        
+        G4bool fFullOptic;
 };
 
 #endif

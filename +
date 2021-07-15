@@ -76,7 +76,9 @@ int main(int argc, char** argv) {
 
     //Print if FullOptic option is on
     //
-    if (FullOptic){ G4cout<<"DREMTubes-> Run with full optical description"<<G4endl; } 
+    if (FullOptic){
+        G4cout<<"DREMTubes-> Run with full optical description"<<G4endl;
+    } 
   
     // Detect interactive mode (if no macro provided) and define UI session
     //
@@ -103,7 +105,7 @@ int main(int argc, char** argv) {
 
     runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl));
   
-    auto actionInitialization = new DREMTubesActionInitialization( FullOptic );
+    auto actionInitialization = new DREMTubesActionInitialization();
     runManager->SetUserInitialization(actionInitialization);
   
     // Initialize visualization
