@@ -32,7 +32,21 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
         
         //User impementation of SteppingAction
         //
-        virtual void UserSteppingAction( const G4Step* step);
+        virtual void UserSteppingAction( const G4Step* step );
+
+        //Retrieve auxialiry info from Step
+        //
+        void AuxSteppingAction( const G4Step* step );
+
+        //Fast signal simulation (no optical photon propagation)
+        //fFullOptic == false
+        //
+        void FastSteppingAction( const G4Step* step ); 
+
+        //Slow signal simulation (optical photon propagation)
+        //fFullOptic == true
+        //
+        void SlowSteppingAction( const G4Step* step );
     
     private:
         //Data members
