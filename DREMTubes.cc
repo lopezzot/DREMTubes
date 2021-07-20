@@ -32,6 +32,7 @@ namespace PrintUsageError {
     G4cerr << "->DREMTubes usage: " << G4endl;
     G4cerr << "DREMTubes [-m macro ] [-u UIsession] [-t nThreads] [-pl PhysicsList]" 
         << G4endl;
+    G4cerr << "          [-opt FullOptic]" << G4endl;
     }
 }
 
@@ -41,7 +42,7 @@ int main(int argc, char** argv) {
     
     // Error in argument numbers
     //
-    if ( argc > 9 ) {
+    if ( argc > 11 ) {
         PrintUsageError::UsageError();
         return 1;
     }
@@ -51,6 +52,7 @@ int main(int argc, char** argv) {
     G4String macro;
     G4String session;
     G4String custom_pl = "FTFP_BERT"; //default physics list
+    G4bool FullOptic = false;
     #ifdef G4MULTITHREADED
     G4int nThreads = 0;
     #endif
@@ -59,6 +61,8 @@ int main(int argc, char** argv) {
         if      ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
         else if ( G4String(argv[i]) == "-u" ) session = argv[i+1];
         else if ( G4String(argv[i]) == "-pl") custom_pl = argv[i+1];
+        else if ( G4String(argv[i]) == "-opt") FullOptic =  
+                                            G4UIcommand::ConvertToBool(argv[i+1]);
         #ifdef G4MULTITHREADED
         else if ( G4String(argv[i]) == "-t" ) {
             nThreads = G4UIcommand::ConvertToInt(argv[i+1]);
@@ -68,7 +72,11 @@ int main(int argc, char** argv) {
             PrintUsageError::UsageError();
         return 1;
         }
-    }  
+    } 
+
+    //Print if FullOptic option is on
+    //
+    if (FullOptic){ G4cout<<"DREMTubes-> Run with full optical description"<<G4endl; } 
   
     // Detect interactive mode (if no macro provided) and define UI session
     //
@@ -93,9 +101,9 @@ int main(int argc, char** argv) {
     auto DetConstruction = new DREMTubesDetectorConstruction();
     runManager->SetUserInitialization(DetConstruction);
 
-    runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl));
+    runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl, FullOptic ));
   
-    auto actionInitialization = new DREMTubesActionInitialization();
+    auto actionInitialization = new DREMTubesActionInitialization( FullOptic );
     runManager->SetUserInitialization(actionInitialization);
   
     // Initialize visualization

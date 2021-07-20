@@ -1,6 +1,6 @@
 //**************************************************
 // \file DREMTubesRunAction.hh 
-// \brief: Definition of DREMTUbesBRunAction class 
+// \brief: Definition of DREMTubesBRunAction class 
 // \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
 // \start date: 7 July 2021
 //**************************************************

@@ -23,7 +23,9 @@
 
 //Define constructor
 //
-DREMTubesPhysicsList::DREMTubesPhysicsList(G4String physName):G4VModularPhysicsList(){
+DREMTubesPhysicsList::DREMTubesPhysicsList(G4String physName, const G4bool FullOptic )
+    :G4VModularPhysicsList(),
+    fFullOptic( FullOptic ) {
     
     //Define physics list factor and modular physics list
     //
@@ -58,7 +60,7 @@ DREMTubesPhysicsList::DREMTubesPhysicsList(G4String physName):G4VModularPhysicsL
     // Turn on and off the absorption of optical photons in materials
     // 
     AbsorptionOn = true;
-    RegisterPhysics( OpPhysics = new DREMTubesOpticalPhysics(AbsorptionOn) );
+    RegisterPhysics( OpPhysics = new DREMTubesOpticalPhysics(fFullOptic, AbsorptionOn) );
     
 }
 

@@ -18,8 +18,9 @@
 
 // Constructor
 //
-DREMTubesOpticalPhysics::DREMTubesOpticalPhysics(G4bool toggle) 
-    : G4VPhysicsConstructor("Optical") {
+DREMTubesOpticalPhysics::DREMTubesOpticalPhysics(const G4bool FullOptic, G4bool toggle) 
+    : G4VPhysicsConstructor("Optical"),
+      fFullOptic( FullOptic ) {
     
     // Initialize private members
     //
@@ -126,16 +127,17 @@ void DREMTubesOpticalPhysics::ConstructProcess() {
             pManager->SetProcessOrdering(theCerenkovProcess,idxPostStep);
         }
         // Add Scintillation process to each candidate
+        // Adding Scintillation process only if fFullOptic == true
         //
         if(theScintProcess->IsApplicable(*particle)){
-            // If uncommented simulations gets reeeeeeeeeeally time consuming
-            // (your time-life could not be sufficient)
-            //
-            //pManager->AddProcess(theScintProcess);
-            //pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
-            //pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
+            if (fFullOptic) {
+                pManager->AddProcess(theScintProcess);
+                pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
+                pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
+            }
+            else {}
         } 
-    }
+    }//end while
 }
 
 //**************************************************
