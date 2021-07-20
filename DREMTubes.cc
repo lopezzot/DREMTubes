@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     auto DetConstruction = new DREMTubesDetectorConstruction();
     runManager->SetUserInitialization(DetConstruction);
 
-    runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl));
+    runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl, FullOptic ));
   
     auto actionInitialization = new DREMTubesActionInitialization( FullOptic );
     runManager->SetUserInitialization(actionInitialization);

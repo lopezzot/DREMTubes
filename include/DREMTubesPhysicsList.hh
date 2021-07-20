@@ -23,7 +23,7 @@ class DREMTubesPhysicsList : public G4VModularPhysicsList{
     public:
         //Constructor
         //
-        DREMTubesPhysicsList(G4String);
+        DREMTubesPhysicsList(G4String, const G4bool FullOptic );
         //De-constructor
         //
         virtual ~DREMTubesPhysicsList();
@@ -31,6 +31,11 @@ class DREMTubesPhysicsList : public G4VModularPhysicsList{
         DREMTubesOpticalPhysics* OpPhysics;
     
         G4bool AbsorptionOn;
+    
+    private:
+        
+        G4bool fFullOptic;   
+
 };
 
 #endif

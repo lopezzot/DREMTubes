@@ -27,7 +27,7 @@ class DREMTubesOpticalPhysics : public G4VPhysicsConstructor {
     public: 
         // Constructor
         //
-        DREMTubesOpticalPhysics(G4bool toggle=true);
+        DREMTubesOpticalPhysics( const G4bool FullOptic, G4bool toggle=true);
         // Deconstructor
         //
         virtual ~DREMTubesOpticalPhysics();
@@ -56,6 +56,8 @@ class DREMTubesOpticalPhysics : public G4VPhysicsConstructor {
         G4OpBoundaryProcess* theBoundaryProcess;
     
         G4bool AbsorptionOn;
+
+        G4bool fFullOptic;
     
 };
 
