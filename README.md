@@ -47,14 +47,15 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
    cmake -DGeant4_DIR=/absolute_path_to/geant4.10.07_p01-install/lib/Geant4-10.7.1/ relative_path_to/DREMTubes/
    make
    ```
-4. execute (example with DREMTubes_run.mac macro card, 2 threads and FTFP_BERT physics list)
+4. execute (example with DREMTubes_run.mac macro card, 2 thread, FTFP_BERT physics list and no optical propagation)
    ```sh
-   ./DREMTubes -m DREMTubes_run.mac -t 2 -pl FTFP_BERT
+   ./DREMTubes -m DREMTubes_run.mac -t 2 -pl FTFP_BERT -opt false
    ```
 Parser options
    * -m macro.mac: pass a Geant4 macro card (example -m DREMTubes_run.mac available in source directory and automatically copied in build directory) 
    * -t integer: pass number of threads for multi-thread execution (example -t 3, default t=2)
    * -pl Physics_List: select Geant4 physics list (example -pl FTFP_BERT)
+   * -opt FullOptic: boolean variable to switch on (true) the optical photon propagation in fibers (example -opt true, default false)
 
 ### Build, compile and execute on lxplus
 1. git clone the repo
