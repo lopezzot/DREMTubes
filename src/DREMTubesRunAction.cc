@@ -51,7 +51,7 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtupleDColumn("NofCherenkovDetected"); 
     analysisManager->CreateNtupleDColumn("EnergyTot");
     analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");
-    analysisManager->CreateNtupleSColumn("PrimaryParticleName");
+    analysisManager->CreateNtupleIColumn("PrimaryPDGID");
     analysisManager->CreateNtupleDColumn("EscapedEnergy");
     analysisManager->CreateNtupleDColumn
         ("VectorSignals", fEventAction->GetVectorSignals());

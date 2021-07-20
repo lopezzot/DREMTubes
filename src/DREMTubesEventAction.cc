@@ -34,6 +34,7 @@ DREMTubesEventAction::DREMTubesEventAction()
     NofCherenkovDetected(0),
     //NofScintillationDetected(0),
     EnergyTot(0.),
+    PrimaryPDGID(0),
     PrimaryParticleEnergy(0.),
     EscapedEnergy(0.),
     VectorSignals(0.),
@@ -96,7 +97,7 @@ void DREMTubesEventAction::EndOfEventAction(const G4Event* ) {
     analysisManager->FillNtupleDColumn(3, NofCherenkovDetected);
     analysisManager->FillNtupleDColumn(4, EnergyTot);
     analysisManager->FillNtupleDColumn(5, PrimaryParticleEnergy);
-    analysisManager->FillNtupleSColumn(6, PrimaryParticleName);
+    analysisManager->FillNtupleIColumn(6, PrimaryPDGID);
     //analysisManager->FillNtupleSColumn(7, AbsorberMaterial);
     analysisManager->FillNtupleDColumn(7, EscapedEnergy);
     //analysisManager->FillNtupleDColumn(9, Energyem2);

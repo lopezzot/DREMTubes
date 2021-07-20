@@ -61,6 +61,8 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
 //Define SlowSteppingAction() method
 //
 void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
+   
+   //step->GetTrack()->SetTrackStatus(fStopAndKill); 
 
 }
 
@@ -76,7 +78,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     //= step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
     G4double energydeposited = step->GetTotalEnergyDeposit();
     G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
-
+    G4int particlepdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
     //--------------------------------------------------
     //Store auxiliary information from event steps
     //--------------------------------------------------
@@ -102,7 +104,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     if ( step->GetTrack()->GetTrackID() == 1 &&
          step->GetTrack()->GetCurrentStepNumber() == 1){
         //Save primary particle energy and name
-        fEventAction->SavePrimaryParticle(particlename);
+        fEventAction->SavePrimaryPDGID(particlepdg);
         fEventAction->SavePrimaryEnergy(step->GetTrack()->GetKineticEnergy());
     }
 

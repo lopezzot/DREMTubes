@@ -41,7 +41,7 @@ class DREMTubesEventAction : public G4UserEventAction {
         void Addenergy(G4double de);//Add all energy deposited
         //void AddEnergyfibre(G4double de, G4int number);//Add energy in fiber cpn
         //void AddSignalfibre(G4int number);
-        void SavePrimaryParticle(G4String name);
+        void SavePrimaryPDGID(G4int pdgid);
         void SaveAbsorberMaterial(G4String AbsorberMaterialName);
         void SavePrimaryEnergy(G4double primaryparticleenergy);
         void AddEscapedEnergy(G4double escapedenergy);
@@ -66,7 +66,7 @@ class DREMTubesEventAction : public G4UserEventAction {
         G4double  EnergyTot;//Total energy deposited (does not count invisibile energy)
         //G4double  Signalfibre[64];
         ////Signal in 64 single module fibers, to be used with AddEnergyfibre
-        G4String PrimaryParticleName; //Name of primary particle
+        G4int PrimaryPDGID; //PDGID of primary particle
         G4String AbsorberMaterial; //Name of absorber material
         G4double PrimaryParticleEnergy;//Primary particle energy
         G4double EscapedEnergy;
@@ -84,8 +84,8 @@ inline void DREMTubesEventAction::AddEscapedEnergy(G4double escapedenergy){
   EscapedEnergy += escapedenergy;
 }
 
-inline void DREMTubesEventAction::SavePrimaryParticle(G4String name){
-  PrimaryParticleName = name;
+inline void DREMTubesEventAction::SavePrimaryPDGID(G4int pdgid){
+  PrimaryPDGID = pdgid;
 }
 
 inline void DREMTubesEventAction::SaveAbsorberMaterial(G4String AbsorberMaterialName){
