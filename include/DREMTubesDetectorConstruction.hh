@@ -8,7 +8,7 @@
 //Prevent including header multplie times
 //
 #ifndef DREMTubesDetectorConstruction_h
-#define DREMTUbesDetectorConstruction_h 1
+#define DREMTubesDetectorConstruction_h 1
 
 //Includers from Geant4
 //

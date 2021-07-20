@@ -61,8 +61,91 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
 //Define SlowSteppingAction() method
 //
 void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
-   
-   //step->GetTrack()->SetTrackStatus(fStopAndKill); 
+    
+    //Random seed and random number generator
+    //
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    
+    std::poisson_distribution<int> scin_distribution(0.008); 
+    std::poisson_distribution<int> cher_distribution(0.25);
+    
+    G4double energydeposited = step->GetTotalEnergyDeposit();
+    G4VPhysicalVolume* PreStepVolume 
+        = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+
+    std::string Fiber;
+    std::string S_fiber = "S_fiber";
+    std::string C_fiber = "C_fiber";
+    Fiber = PreStepVolume->GetName(); //name of current step fiber
+
+    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber
+        fEventAction->AddScin(energydeposited); 
+    }
+
+    if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber
+        fEventAction->AddCher(energydeposited);
+    }
+
+    G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
+
+    G4OpBoundaryProcessStatus theStatus = Undefined;
+
+    G4ProcessManager* OpManager =
+        G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+
+    if (OpManager) {
+        G4int MAXofPostStepLoops =
+              OpManager->GetPostStepProcessVector()->entries();
+        G4ProcessVector* fPostStepDoItVector =
+              OpManager->GetPostStepProcessVector(typeDoIt);
+
+        for ( G4int i=0; i<MAXofPostStepLoops; i++) {
+            G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+            fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+            if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break;}
+        }
+    }
+
+    if( particlename == "opticalphoton" ) { //optical photons
+        switch ( theStatus ){
+
+            case TotalInternalReflection:
+                if(strstr(Fiber.c_str(),S_fiber.c_str())){ //scintillating fibre
+                    if (scin_distribution(generator)==0 && step->GetTrack()->GetCurrentStepNumber() == 1){
+                        step->GetTrack()->SetTrackStatus(fStopAndKill);
+                    }
+                }
+                else if( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fibre
+                    if (cher_distribution(generator)==0 && step->GetTrack()->GetCurrentStepNumber() == 1){
+                        step->GetTrack()->SetTrackStatus(fStopAndKill);
+                    }
+                }
+
+            case Detection:
+
+                if (step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() == "C_SiPM"){
+                    fEventAction->AddCherenkov(1); 
+                    fEventAction->AddVectorCherPE(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(), 1);
+                }
+                if (step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName() == "S_SiPM"){
+                    fEventAction->AddVectorScinEnergy(1, step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber());
+                }
+                   
+                //Print info on Detection position and volumes
+                //
+                /*G4cout<<"Detection "<<step->GetPreStepPoint()->GetMaterial()->GetName()<<
+                    " "<<step->GetPostStepPoint()->GetMaterial()->GetName()<<
+                    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName()<<
+                    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber()<<G4endl;*/
+            break;
+           
+            default: 
+            break;
+
+        } //end of switch cases
+
+    }//end of optical photon loop
 
 }
 
@@ -79,6 +162,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     G4double energydeposited = step->GetTotalEnergyDeposit();
     G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
     G4int particlepdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
+
     //--------------------------------------------------
     //Store auxiliary information from event steps
     //--------------------------------------------------
@@ -182,7 +266,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
         for ( G4int i=0; i<MAXofPostStepLoops; i++) {
             G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
             fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-            if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break;}
+            if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
         }
     }
 

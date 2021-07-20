@@ -496,15 +496,25 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     OpSurfaceGlassSi -> SetType(dielectric_metal);
     OpSurfaceGlassSi -> SetModel(glisur);
     OpSurfaceGlassSi -> SetFinish(polished);
-    G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     // detection efficiency 
-                                    { 0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4,
-                                      0.4, 0.4, 0.4, 0.4};
+    G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     //100% detection efficiency 
+                                    { 1, 1, 1, 1,
+                                      1, 1, 1, 1,
+                                      1, 1, 1, 1,
+                                      1, 1, 1, 1,
+                                      1, 1, 1, 1,
+                                      1, 1, 1, 1,
+                                      1, 1, 1, 1,
+                                      1, 1, 1, 1 };
+
+    /*G4double efficiencyOpSurfaceGlassSi[ENTRIES] =     //0% detection efficiency 
+                                    { 0, 0, 0, 0,
+                                      0, 0, 0, 0,
+                                      0, 0, 0, 0,
+                                      0, 0, 0, 0,
+                                      0, 0, 0, 0,
+                                      0, 0, 0, 0,
+                                      0, 0, 0, 0,
+                                      0, 0, 0, 0 };*/
 
     G4double reflectivityOpSurfaceGlassSi[ENTRIES] =  // 0% reflection
                                     { 0., 0., 0., 0.,
@@ -559,8 +569,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     // Logical Skin Surface placement around the silicon of the SiPM
     //
-    /*G4LogicalSkinSurface* OpsurfaceSi = new G4LogicalSkinSurface("OpsurfaceSi", 
-        SiLV, OpSurfaceGlassSi);*/
+    /*G4LogicalSkinSurface* OpsurfaceSi =*/ new G4LogicalSkinSurface("OpsurfaceSi", 
+        SiLV, OpSurfaceGlassSi);
 
     // Optical Surface properties between the scintillating fibers
     // and the default material
@@ -598,8 +608,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             std::string S_name;
             std::string SiPM_name;
             S_name = "S_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str(); 
-            SiPM_name = 
-                "SiPMS_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str();
+            SiPM_name = "S_SiPM"; 
+            //SiPM_name =    "SiPMS_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str();
 
             G4double S_x, S_y;
             G4ThreeVector vec_S_fiber;
@@ -648,7 +658,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                             SiPM_name,
                                                             moduleequippedLV,
                                                             false,
-                                                            0); 
+                                                            copynumber); //same copynumber of fibers 
           
                 /*logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] =
                     new G4LogicalBorderSurface("logic_OpSurface_defaultAir",
@@ -676,8 +686,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             std::string C_name;
             std::string SiPM_name;
             C_name = "C_row" + C_fiber_row.str() + "_column_" + C_fiber_column.str(); 
-            SiPM_name = 
-                "SiPMC_row" + C_fiber_row.str() + "_column_" + C_fiber_column.str();
+            SiPM_name = "C_SiPM"; 
+            //SiPM_name = "SiPMC_row" + C_fiber_row.str() + "_column_" + C_fiber_column.str();
 
             G4double C_x, C_y;
             G4ThreeVector vec_C_fiber;
@@ -723,7 +733,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                         SiPM_name,
                                                         moduleequippedLV,
                                                         false,
-                                                        0); 
+                                                        copynumber); //same copynumber of fiber 
 
                 /*logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn] =
                     new G4LogicalBorderSurface("logic_OpSurface_defaultAir",
