@@ -7,6 +7,12 @@
   <ol>
     <li><a href="#project-description">Project description</a></li>
     <li><a href="#authors-and-contacts">Authors and contacts</a></li>
+     <li>
+      <a href="#documentation-and-results">Documentation and results</a>
+      <ul>
+        <li><a href="#selected-presentations">Selected presentations</a></li>
+      </ul>
+    </li>
     <li>
       <a href="#how-to">How to</a>
       <ul>
@@ -28,6 +34,12 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 ## Authors and contacts
 - (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon (Supervisor)
 - (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio
+
+<!--Documentation and results-->
+## Documentation and results
+
+### Selected presentations
+- Dual-Readout Calorimetry Meeting 21/7/2021, **DREMTubes: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
 
 <!--How to:-->
 ## How to
