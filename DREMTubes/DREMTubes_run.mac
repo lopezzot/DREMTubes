@@ -1,0 +1,20 @@
+# Change the default number of workers (in multi-threading mode) 
+#/run/numberOfWorkers 4
+#
+# Initialize kernel
+/run/initialize
+#
+# Kinematics: 
+#
+#/run/printProgress 500
+/gps/particle e-
+/gps/energy 0.5 GeV
+/gps/direction 0 0 1
+/gps/position 0 0 -55
+/gps/pos/shape Circle
+/gps/pos/radius 0.01 cm
+/random/setSeeds 1.2 2.5
+#
+/run/beamOn 6000
+
+
