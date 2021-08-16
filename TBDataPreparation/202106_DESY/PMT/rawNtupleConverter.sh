@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 filename.bz2"
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 filename.bz2 TDC/noTDC"
   exit 7
 fi
 
@@ -12,8 +12,13 @@ echo $OUTFILE
 bunzip2 -k $XPATH/$1
 ls -l $XPATH/$OUTFILE
 
-echo "CHIAMA QUI IL TUO PROGRAMMA DANDOGLI \$OUTFILE"
-./rawToNtuple $OUTFILE
-#rawToNtuple_TDC $OUTFILE
+echo $2
+if [ "$2" = "TDC" ]; then
+   echo "using ./rawToNtuple_TDC $OUTFILE"
+   ./rawToNtuple_TDC $OUTFILE
+else
+   echo "using ./rawToNtuple $OUTFILE"
+   ./rawToNtuple $OUTFILE
+fi
 
 rm $XPATH/$OUTFILE

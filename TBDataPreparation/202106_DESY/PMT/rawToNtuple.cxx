@@ -1,3 +1,10 @@
+//**********************************************************
+// \file DrawToNtuple.cxx 
+// \brief: Conversion of raw data txt file to raw Ntuple
+// \author: Gabriella Gaudio  @gaudio74
+// \start date: July 2021
+//**********************************************************
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -10,9 +17,9 @@
 #include <TMath.h>
 
 
-#define DATADIR "/Users/gabriella/cernbox/DualReadout/Desy/Data/"
-#define OUTDIR "/Users/gabriella/cernbox/DualReadout/Desy/Ntuple/"
-#define TXTDIR "/Users/gabriella/cernbox/DualReadout/Desy/TXT/"
+//#define TXTDIR "/Users/gabriella/cernbox/DualReadout/Desy/TXT/"
+#define DATADIR "/eos/user/i/ideadr/TB2021_Desy/rawData/"
+#define OUTDIR "/eos/user/i/ideadr/TB2021_Desy/rawNtuple/"
 
 
 int main(int argc, char **argv){
@@ -21,14 +28,20 @@ int main(int argc, char **argv){
 		std::cout << "filename expected" << std::endl;
 	}
 
-	std::cout << "run name : "<< argv[1] << std::endl;
+	std::string fname(argv[1]); 
+	std::string fn; 	
+
+	fn=fname.substr(0, fname.find(".txt"));
+        std::cout << "Run name " << fn << std::endl; 
 
 	// root file for the ntuple
 	std::ostringstream rootout; 
-	rootout << OUTDIR << argv[1] << ".root"; 
+	rootout << OUTDIR << fn << ".root"; 
 	TFile *file = new TFile(rootout.str().c_str(),"RECREATE");
 	//file = TFile::Open(rootout.str().c_str());
 
+
+	// branch for the Ntuple
 	unsigned int Nevtda = 0 ;
 	unsigned int TowerCts[3]={0};
 	unsigned int TowerMask =0; 
@@ -54,12 +67,9 @@ int main(int argc, char **argv){
         //Ped.open(mypedfile.str().c_str(), std::ofstream::out | std::ofstream::app);
 	//std::cout << "Text output file: " << std::endl << mypedfile.str() << std::endl;
 
-
-	
 	std::ostringstream rawinput; 
-	rawinput << DATADIR << argv[1] << ".txt"; 
+	rawinput << DATADIR << argv[1] ; 
 	std::cout << rawinput.str().c_str() << " " << rootout.str().c_str() << std::endl; 
-
 
 	//GG: uncomment for SiPM alignment check
 	/*
@@ -96,6 +106,8 @@ int main(int argc, char **argv){
 	unsigned int ct3 = 0; 
 	unsigned int mask =0; 	
 
+
+	// parsing data file
 	std::ifstream in1(rawinput.str());
    	if (!in1 || in1.bad()) return 0; // sanity check
 
@@ -103,11 +115,9 @@ int main(int argc, char **argv){
      		getline (in1,line);
      		if (!in1.good()) break;
 		size_t pos=0; 
-	    	//std::cout << "j = " << j << " " <<  line  << std::endl;
 		// processing header part
      		pos = line.find("values:");
 		head = line.substr(4,pos-4);
-	       	//std::cout << "**** " << head << std::endl;
                 std::stringstream hh(head);
                 std::string mys;
                 

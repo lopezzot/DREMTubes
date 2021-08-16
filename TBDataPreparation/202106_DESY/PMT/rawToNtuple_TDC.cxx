@@ -1,6 +1,14 @@
+//**********************************************************
+// \file DrawToNtuple.cxx 
+// \brief: Conversion of raw data txt file to raw Ntuple (for file with TDC included)
+// \author: Gabriella Gaudio  @gaudio74
+// \start date: July 2021
+// **********************************************************
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <TTree.h>
 #include <TBranch.h>
@@ -9,9 +17,9 @@
 #include <TMath.h>
 
 
-#define DATADIR "/Users/gabriella/cernbox/DualReadout/Desy/Data/"
-#define OUTDIR "/Users/gabriella/cernbox/DualReadout/Desy/Ntuple/"
-#define TXTDIR "/Users/gabriella/cernbox/DualReadout/Desy/TXT/"
+#define DATADIR "/eos/user/i/ideadr/TB2021_Desy/rawData/"
+#define OUTDIR "/eos/user/i/ideadr/TB2021_Desy/rawNtuple/"
+//#define TXTDIR "/Users/gabriella/cernbox/DualReadout/Desy/TXT/"
 
 
 int main(int argc, char **argv){
@@ -20,15 +28,21 @@ int main(int argc, char **argv){
 		std::cout << "filename expected" << std::endl;
 	}
 
-	std::cout << "run name : "<< argv[1] << std::endl;
+	std::string fname(argv[1]);
+        std::string fn;
 
-	// root file for the ntuple
-	std::ostringstream rootout; 
-	rootout << OUTDIR << argv[1] << ".root"; 
-	TFile *file = new TFile(rootout.str().c_str(),"RECREATE");
-	//file = TFile::Open(rootout.str().c_str());
+        fn=fname.substr(0, fname.find(".txt"));
+        std::cout << "Run name " << fn << std::endl;
 
-	unsigned int Nevtda = 0 ;
+        // root file for the ntuple
+        std::ostringstream rootout;
+        rootout << OUTDIR << fn << ".root";
+        TFile *file = new TFile(rootout.str().c_str(),"RECREATE");
+        //file = TFile::Open(rootout.str().c_str());
+
+
+        // branch for the Ntuple
+	unsigned int Nevtda = 0;
 	unsigned int TowerCts[3]={0};
 	unsigned int TowerMask =0; 
 
@@ -47,7 +61,7 @@ int main(int argc, char **argv){
 
 	
 	std::ostringstream rawinput; 
-	rawinput << DATADIR << argv[1] << ".txt"; 
+	rawinput << DATADIR << argv[1] ; 
 	std::cout << rawinput.str().c_str() << " " << rootout.str().c_str() << std::endl; 
 
 	Int_t j=0;
@@ -71,22 +85,22 @@ int main(int argc, char **argv){
      		if (!in1.good()) break;
 		size_t pos=0;
 	        size_t pos_tdc=0; 
-	    	std::cout << "j = " << j << " " <<  line  << std::endl;
+	    	//std::cout << "j = " << j << " " <<  line  << std::endl;
      		
 		// selecting parts of the events
 		pos = line.find("values:");
 		pos_tdc = line.find("TDC");
-		std::cout << "pos " << pos << " pos_tdc " <<  pos_tdc <<std::endl;	
+		//std::cout << "pos " << pos << " pos_tdc " <<  pos_tdc <<std::endl;	
 
 		head = line.substr(4,pos-4);
-	       	std::cout << "**** head:  " << head << std::endl;
+	       	//std::cout << "**** head:  " << head << std::endl;
 
 		size_t posTDC=pos_tdc-pos-8;
      		data  = line.substr(pos+8, posTDC);
-		std::cout << "**** adc data:  " << data << std::endl;
+		//std::cout << "**** adc data:  " << data << std::endl;
 
 		mytdc=line.substr(pos_tdc);
-		std::cout << "**** tdc "<< mytdc <<std::endl;  	
+		//std::cout << "**** tdc "<< mytdc <<std::endl;  	
                 
 	 			
 		// processing header part
