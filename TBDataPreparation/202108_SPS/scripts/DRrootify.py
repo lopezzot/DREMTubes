@@ -91,4 +91,9 @@ for fl in newfls:
     os.system("rm "+fl)
     os.system("mv "+str(fl[0:-4])+".root rawNtuple") 
 
+#If no new files found
+#
+if !newfls:
+    print "->No new files found"
+
 ##**************************************************
