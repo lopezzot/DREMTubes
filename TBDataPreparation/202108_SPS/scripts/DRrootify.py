@@ -44,7 +44,7 @@ class DRrootify:
         '''Read ASCII files line by line and rootify'''
         print "--->Start rootification of "+self.drfname
         for i, line in enumerate(open(self.drfname)):
-            if i%5000 == 0 : print "->At line "+str(i)+" of "+str(self.drfname)
+            if i%5000 == 0 : print "------>At line "+str(i)+" of "+str(self.drfname)
             evt = DREvent.DRdecode(line) 
             self.EventNumber[0] = evt.EventNumber
             self.NumOfPhysEv[0] = evt.NumOfPhysEv
@@ -72,28 +72,33 @@ class DRrootify:
 
 #Get list of files on rawData and rawNtuple
 #
+datapath = "rawData/"
+ntuplepath = "rawNtuple/"
 #datafls = [x.split(".bz2")[0] for x in glob.glob("/eos/user/i/ideadr/TB2021_H8/rawData/")]
 datafls = [x.split(".bz2")[0] for x in glob.glob("rawData/*.bz2")]
+datafls = [x.split("/")[-1] for x in datafls]
 #ntuplfls = [x.split(".root")[0] for x in glob.glob("/eos/user/i/ideadr/TB2021_H8/rawNtuple/")]
-ntuplfls = [x.split(".root")[0] for x in glob.glob("rawNtuple/*.root")]
+ntuplfls = [x.split(".root")[0]+".txt" for x in glob.glob("rawNtuple/*.root")]
+ntuplfls = [(x.split(".root")[0]).split("/")[-1]+".txt" for x in glob.glob("rawNtuple/*.root")]
 newfls = list(set(datafls)-set(ntuplfls))
 
 #Rootify those data
 #
+print "Hi!"
 for fl in newfls:
     print "->Found new file to be rootified: "+str(fl)
-    os.system("bzip2 -d -k "+str(fl)+".bz2")
+    os.system("bzip2 -d -k "+datapath+str(fl)+".bz2")
     print "--->"+str(fl)+".bz2 decompressed"
     fname = fl[0:-4]
-    dr = DRrootify(fname)
+    dr = DRrootify(datapath+fname)
     dr.ReadandRoot()
     dr.Write()
-    os.system("rm "+fl)
-    os.system("mv "+str(fl[0:-4])+".root rawNtuple") 
+    os.system("rm "+datapath+fl)
+    os.system("mv "+datapath+str(fl[0:-4])+".root "+ntuplepath) 
 
 #If no new files found
 #
 if not newfls:
     print "->No new files found"
-
+print "Bye!"
 ##**************************************************
