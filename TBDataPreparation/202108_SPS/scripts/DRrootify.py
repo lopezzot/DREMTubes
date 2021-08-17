@@ -37,8 +37,8 @@ class DRrootify:
         self.tbtree.Branch("NumOfSpilEv",self.NumOfSpilEv,'NumOfSpilEv/I')
         self.tbtree.Branch("TriggerMask",self.TriggerMask,'TriggerMask/I')
         self.tbtree.Branch("ADCs",self.ADCs,'ADCs[96]/I')
-        self.tbtree.Branch("TDCsval",self.TDCsval,'TDCsval[96]/I')
-        self.tbtree.Branch("TDCscheck",self.TDCscheck,'TDCscheck[96]/I')
+        self.tbtree.Branch("TDCsval",self.TDCsval,'TDCsval[48]/I')
+        self.tbtree.Branch("TDCscheck",self.TDCscheck,'TDCscheck[48]/I')
 
     def ReadandRoot(self):
         '''Read ASCII files line by line and rootify'''
@@ -75,7 +75,7 @@ class DRrootify:
 datapath = "/eos/user/i/ideadr/TB2021_H8/rawData/"
 ntuplepath = "/eos/user/i/ideadr/TB2021_H8/rawNtuple/"
 #datafls = [x.split(".bz2")[0] for x in glob.glob("/eos/user/i/ideadr/TB2021_H8/rawData/")]
-datafls = [x.split(".bz2")[0] for x in glob.glob(datapath+"*.bz2")]
+datafls = [x.split(".bz2")[0] for x in glob.glob(datapath+"sps*.bz2")]
 datafls = [x.split("/")[-1] for x in datafls]
 #ntuplfls = [x.split(".root")[0] for x in glob.glob("/eos/user/i/ideadr/TB2021_H8/rawNtuple/")]
 ntuplfls = [x.split(".root")[0]+".txt" for x in glob.glob(ntuplepath+"*.root")]
@@ -85,7 +85,7 @@ newfls = list(set(datafls)-set(ntuplfls))
 #Rootify those data
 #
 print "Hi!"
-for fl in newfls:
+for fl in newfls[0:100]:
     print "->Found new file to be rootified: "+str(fl)
     os.system("bzip2 -d -k "+datapath+str(fl)+".bz2")
     print "--->"+str(fl)+".bz2 decompressed"
