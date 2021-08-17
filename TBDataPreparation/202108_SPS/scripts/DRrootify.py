@@ -72,13 +72,13 @@ class DRrootify:
 
 #Get list of files on rawData and rawNtuple
 #
-datapath = "rawData/"
-ntuplepath = "rawNtuple/"
+datapath = "/eos/user/i/ideadr/TB2021_H8/rawData/"
+ntuplepath = "/eos/user/i/ideadr/TB2021_H8/rawNtuple/"
 #datafls = [x.split(".bz2")[0] for x in glob.glob("/eos/user/i/ideadr/TB2021_H8/rawData/")]
-datafls = [x.split(".bz2")[0] for x in glob.glob("rawData/*.bz2")]
+datafls = [x.split(".bz2")[0] for x in glob.glob(datapath+"*.bz2")]
 datafls = [x.split("/")[-1] for x in datafls]
 #ntuplfls = [x.split(".root")[0] for x in glob.glob("/eos/user/i/ideadr/TB2021_H8/rawNtuple/")]
-ntuplfls = [x.split(".root")[0]+".txt" for x in glob.glob("rawNtuple/*.root")]
+ntuplfls = [x.split(".root")[0]+".txt" for x in glob.glob(ntuplepath+"*.root")]
 ntuplfls = [(x.split(".root")[0]).split("/")[-1]+".txt" for x in glob.glob("rawNtuple/*.root")]
 newfls = list(set(datafls)-set(ntuplfls))
 
