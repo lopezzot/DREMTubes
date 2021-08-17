@@ -5,7 +5,7 @@
 * Converter from raw .txt data file to raw Ntuple
 * Processing of raw Ntuple to get calibration constant and produces calibrated Ntuple. 
 
-## 202106_SPS: Testbeam at H8 line in NA at CERN. 
+## 202108_SPS: Testbeam at H8 line in NA at CERN. 
 * Converter from raw .txt data file to raw Ntuple
 * Processing of raw Ntuple to get calibration constant and produces calibrated Ntuple. 
 
