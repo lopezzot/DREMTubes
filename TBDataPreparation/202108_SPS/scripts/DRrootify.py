@@ -93,7 +93,7 @@ for fl in newfls:
 
 #If no new files found
 #
-if !newfls:
+if not newfls:
     print "->No new files found"
 
 ##**************************************************
