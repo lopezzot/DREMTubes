@@ -26,7 +26,7 @@ class DRrootify:
         self.NumOfPhysEv = array('i',[0])
         self.NumOfPedeEv = array('i',[0])
         self.NumOfSpilEv = array('i',[0])
-        self.TriggerMask = array('i',[0])
+        self.TriggerMask = array('l',[0])
         self.ADCs = array('i',[-1]*96)
         self.TDCsval = array('i',[-1]*48)
         self.TDCscheck = array('i',[-1]*48)
@@ -35,7 +35,7 @@ class DRrootify:
         self.tbtree.Branch("NumOfPhysEv",self.NumOfPhysEv,'NumOfPhysEv/I')
         self.tbtree.Branch("NumOfPedeEv",self.NumOfPedeEv,'NumOfPedeEv/I')
         self.tbtree.Branch("NumOfSpilEv",self.NumOfSpilEv,'NumOfSpilEv/I')
-        self.tbtree.Branch("TriggerMask",self.TriggerMask,'TriggerMask/I')
+        self.tbtree.Branch("TriggerMask",self.TriggerMask,'TriggerMask/L')
         self.tbtree.Branch("ADCs",self.ADCs,'ADCs[96]/I')
         self.tbtree.Branch("TDCsval",self.TDCsval,'TDCsval[48]/I')
         self.tbtree.Branch("TDCscheck",self.TDCscheck,'TDCscheck[48]/I')
@@ -85,7 +85,8 @@ newfls = list(set(datafls)-set(ntuplfls))
 #Rootify those data
 #
 print "Hi!"
-for fl in newfls[0:100]:
+for fl in newfls:
+    print str(len(newfls))+" new files found"
     print "->Found new file to be rootified: "+str(fl)
     os.system("bzip2 -d -k "+datapath+str(fl)+".bz2")
     print "--->"+str(fl)+".bz2 decompressed"
