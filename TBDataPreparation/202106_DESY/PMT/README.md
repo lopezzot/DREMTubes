@@ -6,9 +6,9 @@ This code can be used with data taken in Desy TB in June 2021, which are current
 ## Raw (.txt file ) data to raw Ntuple code
 
  * rawToNtuple.cxx
-  * to be used for the first part of data taking, when TDC was non included in the DAQ
+    * to be used for the first part of data taking, when TDC was non included in the DAQ
  * rawToNtuple\_TDC.cxx 
-  * to be used for the first part of data taking    
+    * to be used for the first part of data taking    
 
 ### Usage
  * compile the rawToNtuple.cxx (rawToNtuple\_TDC.cxx) with _g++ -o rawToNtuple rawToNtuple.cxx `root-config --cflags --libs`_
