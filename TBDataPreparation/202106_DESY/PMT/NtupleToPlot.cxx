@@ -1,7 +1,16 @@
+//**********************************************************
+//// \file NtupleToPlot.cxx 
+//// \brief: Analysis of raw Ntuple txt and Histo Creation
+//// \author: Gabriella Gaudio  @gaudio74
+//// \start date: July 2021
+////**********************************************************
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <TTree.h>
 #include <TBranch.h>
 #include <TFile.h>
@@ -9,8 +18,10 @@
 #include <TMath.h>
 
 
-#define DATADIR "/Users/gabriella/cernbox/DualReadout/Desy/Ntuple/"
-#define OUTDIR "/Users/gabriella/cernbox/DualReadout/Desy/Plot/"
+#define DATADIR "/eos/user/i/ideadr/TB2021_Desy/rawNtuple/"
+#define OUTDIR "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/"
+#define CALIBDIR "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/CalibFiles/"
+
 
 void NtupleToPlot(string run, int calib, int myt){
 
@@ -51,7 +62,7 @@ void NtupleToPlot(string run, int calib, int myt){
         ostringstream myfit;
 	// Open fit data file only if tower in less then 8 (doing a scan).
 	if(calib==1){
-        	myfit << OUTDIR <<  "PMT_calib.txt" ;
+        	myfit << CALIBDIR <<  "PMT_calib.txt" ;
         	FitData.open(myfit.str().c_str(), ofstream::out | ofstream::app);
         	cout << "Text output file: " << endl << myfit.str() << endl;
 	}
@@ -323,9 +334,9 @@ void NtupleToPlot(string run, int calib, int myt){
         ostringstream mean;
 
 	// this is before step 2
-	if(calib==2) mean << OUTDIR <<  "equalization.txt";
+	if(calib==2) mean << CALIBDIR <<  "equalization.txt";
 	// this is for final calib
-	if(calib==0) mean << OUTDIR <<  "calib_constant_filter.txt";
+	if(calib==0) mean << CALIBDIR <<  "calib_constant_filter.txt";
         cout << mean.str().c_str() << std::endl;
 
         double c,s;

@@ -29,14 +29,18 @@ int main(int argc, char **argv){
 	}
 
 	std::string fname(argv[1]);
-        std::string fn;
+        std::string fn1;
+        std::string fn2;
+	
 
-        fn=fname.substr(0, fname.find(".txt"));
-        std::cout << "Run name " << fn << std::endl;
+        fn1=fname.substr(0, fname.find(".txt"));
+	std::cout << "fn1 " << fn1 << std::endl;
+        fn2=fn1.substr(fn1.find("/tmp/")+5);
+        std::cout << "Run name " << fn2 << std::endl;
 
         // root file for the ntuple
         std::ostringstream rootout;
-        rootout << OUTDIR << fn << ".root";
+        rootout << OUTDIR << fn2 << ".root";
         TFile *file = new TFile(rootout.str().c_str(),"RECREATE");
         //file = TFile::Open(rootout.str().c_str());
 
@@ -61,7 +65,7 @@ int main(int argc, char **argv){
 
 	
 	std::ostringstream rawinput; 
-	rawinput << DATADIR << argv[1] ; 
+	rawinput  << argv[1] ; 
 	std::cout << rawinput.str().c_str() << " " << rootout.str().c_str() << std::endl; 
 
 	Int_t j=0;
