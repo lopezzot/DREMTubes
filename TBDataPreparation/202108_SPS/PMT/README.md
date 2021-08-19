@@ -18,6 +18,7 @@ S5 | ADC-0 | ch12 | 12
 S6 | ADC-0 | ch13 | 13
 S7 | ADC-0 | ch14 | 14
 S8 | ADC-0 | ch15 | 15
+PS | ADC-0 | ch16 | 16
 muon | ADC-1 | ch0 | 32
 Cherenkov 1 | ADC-2 | ch0 | 64
 Cherenkov 2 | ADC-2 | ch1 | 65
