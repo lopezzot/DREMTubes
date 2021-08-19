@@ -9,8 +9,8 @@ SiPMTreeName = "SiPMData"
 SiPMMetaDataTreeName = "EventInfo"
 DaqTreeName = "CERNSPS2021"
 SiPMNewTreeName = "SiPMSPS2021"
-EvtOffset = -1
 verbose = False
+EvtOffset = -1000
 
 def main():
     import argparse                                                                      
@@ -18,10 +18,14 @@ def main():
     parser.add_argument('--inputSiPM', dest='inputSiPM',required=True,help='Input SiPM file')
     parser.add_argument('--inputPMT', dest='inputPMT',required=True,help='Input PMT file')
     parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')           
-    parser.add_argument('--verbose',dest='verbose',action='store_false',help='Increase verbosity')
+    parser.add_argument('--verbose',dest='verbose',action='store_true',help='Increase verbosity')
     par  = parser.parse_args()
+    global verbose
     verbose = par.verbose
     CreateBlendedFile(par.inputSiPM,par.inputPMT,par.outputFileName)
+
+
+####### main function to merge SiPM and PMT root files with names specified as arguments
     
 def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
     SiPMinfile = None
@@ -50,6 +54,8 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
 
     ### Check the alignment
 
+
+
     if not (DaqTreeName in Daqinfile.GetListOfKeys()):
         print "Cannot find tree with name " + DaqTreeName + " in file " + DaqInfile.GetName()
         return -1
@@ -57,8 +63,11 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
     DaqInputTree = Daqinfile.Get(DaqTreeName)
     SiPMInputTree = SiPMinfile.Get(SiPMTreeName)
 
-    ###### Do something to understand the offset 
-    
+    ###### Do something to understand the offset
+
+    global EvtOffset
+    EvtOffset = DetermineOffset(SiPMInputTree,DaqInputTree)
+
     newDaqInputTree = DaqInputTree.CloneTree()
     OutputFile.cd()
     newDaqInputTree.Write()
@@ -86,7 +95,10 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
                   
     newSiPMTree.Write()
     OutputFile.Close()    
-    
+
+
+# main function to reorder and merge the SiPM file
+
 def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
     newTree = OutputFile.Get(SiPMNewTreeName)
     TriggerTimeStampUs = array('d',[0])
@@ -122,6 +134,8 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
     totalNumberOfEvents = DaqInputTree.GetEntries()
 
     print "Total Number of Events from DAQ " + str(totalNumberOfEvents)
+    print "Merging with an offset of " + str(EvtOffset)
+    print "Is the output Verbose? " + str(verbose)
 
     for daq_ev in range(0,totalNumberOfEvents):
         if verbose:
@@ -144,6 +158,57 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
         EventNumber = daq_ev
         
         newTree.Fill()
+
+
+def DetermineOffset(SiPMTree,DAQTree):
+    ##### build a list of entries of pedestal events in the DAQ Tree
+    DAQTree.SetBranchStatus("*",0)
+    DAQTree.SetBranchStatus("TriggerMask",1)
+    pedList = set()
+    evList = set()
+    for iev,ev in enumerate(DAQTree):
+        if ev.TriggerMask == 6:
+            pedList.add(iev)
+        evList.add(iev)
+#    print pedList
+    DAQTree.SetBranchStatus("*",1)
+    ##### Now build a list of missing TriggerId in the SiPM tree
+    SiPMTree.SetBranchStatus("*",0)
+    SiPMTree.SetBranchStatus("TriggerId",1)
+    TriggerIdList = set()
+    for ev in SiPMTree:
+        TriggerIdList.add(ev.TriggerId)
+    SiPMTree.SetBranchStatus("*",1)
+    ### Find the missing TriggerId
+    TrigIdComplement = evList - TriggerIdList
+    ### Scan possible offsets to find out for which one we get the best match between the pedList and the missing TriggerId
+
+    minOffset = -1000
+    minLen = 10000000
     
+    diffLen = {}
+
+    
+    for offset in range(-3,3):
+        offset_set = {x+offset for x in pedList}
+        diffSet =  offset_set - TrigIdComplement
+        diffLen[offset] = len(diffSet)
+        if len(diffSet) < minLen:
+            minLen = len(diffSet)
+            minOffset = offset
+        print "Offset " + str(offset) + ": " + str(diffLen[offset]) + " ped triggers where SiPM fired"
+    print "Minimum value " + str(minLen) + " occurring for " + str(minOffset) + " offset"
+
+    return minOffset
+
+
+
+        
+
+
+        
+    
+
+
 if __name__ == "__main__":    
     main()

@@ -7,3 +7,4 @@ class DR_metadata:
         self.DaqTreeName = "CERNSPS2021"
         self.SiPMNewTreeName = "SiPMSPS2021"
         self.EvtOffset = 0
+        self.verbose = False
