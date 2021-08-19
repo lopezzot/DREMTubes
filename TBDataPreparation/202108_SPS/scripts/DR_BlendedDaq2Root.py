@@ -11,17 +11,21 @@ DaqTreeName = "CERNSPS2021"
 SiPMNewTreeName = "SiPMSPS2021"
 verbose = False
 EvtOffset = -1000
+doNotMerge = False
 
 def main():
     import argparse                                                                      
     parser = argparse.ArgumentParser(description='This script runs the merging of the "SiPM" and the "PMT" daq events')
     parser.add_argument('--inputSiPM', dest='inputSiPM',required=True,help='Input SiPM file')
     parser.add_argument('--inputPMT', dest='inputPMT',required=True,help='Input PMT file')
-    parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')           
+    parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')
+    parser.add_argument('--no_merge', dest='no_merge',action='store_true',help='Do not do the merging step')           
     parser.add_argument('--verbose',dest='verbose',action='store_true',help='Increase verbosity')
     par  = parser.parse_args()
     global verbose
     verbose = par.verbose
+    global doNotMerge
+    doNotMerge = par.no_merge
     CreateBlendedFile(par.inputSiPM,par.inputPMT,par.outputFileName)
 
 
@@ -68,6 +72,9 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
     global EvtOffset
     EvtOffset = DetermineOffset(SiPMInputTree,DaqInputTree)
 
+    if doNotMerge:
+        return 
+    
     newDaqInputTree = DaqInputTree.CloneTree()
     OutputFile.cd()
     newDaqInputTree.Write()
@@ -189,7 +196,7 @@ def DetermineOffset(SiPMTree,DAQTree):
     diffLen = {}
 
     
-    for offset in range(-3,3):
+    for offset in range(-4,5):
         offset_set = {x+offset for x in pedList}
         diffSet =  offset_set - TrigIdComplement
         diffLen[offset] = len(diffSet)
