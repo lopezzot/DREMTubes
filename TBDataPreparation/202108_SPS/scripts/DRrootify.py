@@ -51,6 +51,8 @@ class DRrootify:
             self.NumOfPedeEv[0] = evt.NumOfPedeEv
             self.NumOfSpilEv[0] = evt.NumOfSpilEv
             self.TriggerMask[0] = evt.TriggerMask
+	    #if evt.TriggerMask > 10:
+	    #	print evt.TriggerMask
             for counter, l in enumerate(evt.ADCs.items()):
                 self.ADCs[counter] = l[1]
             for counter, l in enumerate(evt.TDCs.items()):
@@ -86,6 +88,7 @@ newfls = list(set(datafls)-set(ntuplfls))
 #Rootify those data
 #
 print "Hi!"
+#newfls = ["sps2021data.run627.txt"]
 for fl in newfls:
     print str(len(newfls))+" new files found"
     print "->Found new file to be rootified: "+str(fl)
