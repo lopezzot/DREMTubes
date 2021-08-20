@@ -3,6 +3,7 @@
 import ROOT
 import os
 from array import array
+import numpy as np
 
 ####### Hard coded information - change as you want
 SiPMTreeName = "SiPMData"
@@ -168,6 +169,10 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
 
 
 def DetermineOffset(SiPMTree,DAQTree):
+    x = array('i')
+    y = array('i')
+    xsipm = array('i')
+    ysipm = array('i')
     ##### build a list of entries of pedestal events in the DAQ Tree
     DAQTree.SetBranchStatus("*",0)
     DAQTree.SetBranchStatus("TriggerMask",1)
@@ -177,7 +182,6 @@ def DetermineOffset(SiPMTree,DAQTree):
         if ev.TriggerMask == 6:
             pedList.add(iev)
         evList.add(iev)
-#    print pedList
     DAQTree.SetBranchStatus("*",1)
     ##### Now build a list of missing TriggerId in the SiPM tree
     SiPMTree.SetBranchStatus("*",0)
@@ -188,6 +192,29 @@ def DetermineOffset(SiPMTree,DAQTree):
     SiPMTree.SetBranchStatus("*",1)
     ### Find the missing TriggerId
     TrigIdComplement = evList - TriggerIdList
+    print "from PMT file: events "+str(len(evList))+" pedestals: "+str(len(pedList))
+    print "from SiPM file: events with no trigger "+str(len(TrigIdComplement))
+    for p in pedList:
+	    x.append(p)
+	    y.append(2)
+    for p2 in TrigIdComplement:
+	    xsipm.append(p2)
+	    ysipm.append(1)
+    hist = ROOT.TH1I("histo","histo",100, 0, 100)
+    for i in np.diff(sorted(list(pedList))):
+	    hist.Fill(i)
+    hist.Write()
+    hist2 = ROOT.TH1I("histo2","histo2",100,0,100)
+    for i in np.diff(sorted(list(TrigIdComplement))):
+	    hist2.Fill(i)
+    hist2.Write()
+    graph = ROOT.TGraph(len(x),x,y)
+    graph2 = ROOT.TGraph(len(xsipm),xsipm,ysipm)
+    graph2.SetMarkerStyle(6)
+    graph2.SetMarkerColor(ROOT.kRed)
+    graph.SetMarkerStyle(6)
+    graph.Write()
+    graph2.Write()
     ### Scan possible offsets to find out for which one we get the best match between the pedList and the missing TriggerId
 
     minOffset = -1000
@@ -195,7 +222,6 @@ def DetermineOffset(SiPMTree,DAQTree):
     
     diffLen = {}
 
-    
     for offset in range(-4,5):
         offset_set = {x+offset for x in pedList}
         diffSet =  offset_set - TrigIdComplement
