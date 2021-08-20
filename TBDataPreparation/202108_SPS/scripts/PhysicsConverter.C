@@ -3,6 +3,9 @@
 #include <TTree.h>
 #include <TFile.h>
 #include <iostream>
+#include <array>
+#include <stdint.h>
+
 
 class Event{ 
   	  
@@ -14,12 +17,34 @@ class Event{
 
     //Data members
     //
-    int EventID;
+    uint32_t EventID;
     int SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
     int CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
     int PShower, MCounter, C1, C2;
-       
+    std::array<uint16_t,320> SiPMHighGain;
+    std::array<uint16_t,320> SiPMLowGain;
+    std::array<double,320> SiPMphe = {0}; // Needs to be initialized at 0.
+
+    void calibrate();
 };
+
+Event::calibrate(){
+
+    // >>> SIPM CALIBRATION <<< //
+    // TODO: Read json file. SIPM:Supposing to store high/low gain pede/dpp in std::array or plain c array;
+    std::array<double,320> highGainPedestal, highGainDpp, lowGainPedestal, lowGainDpp;
+    for(uint16_t i=0;i<320;++i){
+        // If SiPM is 0 do not subtract pede and leave 0! (board was not triggered)
+        if (SiPMHighGain[i] > 0){
+            double highGainPe = (SiPMHighGain[i] - highGainPedestal[i]) / highGainDpp[i];
+            double lowGainPe = (SiPMLowGain[i] - lowGainPedestal[i]) / lowGainDpp[i];
+            // use HG if pe < 140 else use LG. Use bool casting to avoid if/else branching
+            SiPMPhe[i] = highGainPe * (int)(highGainPe < 140.) + lowGainPe * (int)(highGainPe > 140.);
+        }
+    }
+
+    // >>> PMT CALIBRATION <<< //
+}
 
 ClassImp(Event)
 
