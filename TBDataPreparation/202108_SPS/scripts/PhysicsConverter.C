@@ -6,8 +6,8 @@
 #include <array>
 #include <stdint.h>
 #include <string>
-#include <nlohmann/json.hpp>
-#include <iostream>
+#include "json.hpp"
+#include <fstream>
 
 using json = nlohmann::json;
 
@@ -30,9 +30,11 @@ class Event{
     int SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
     int CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
     int PShower, MCounter, C1, C2;
+    
     uint16_t SiPMHighGain[320];
     uint16_t SiPMLowGain[320];
-    double SiPMPhe[320] = {0}; // Needs to be initialized at 0.
+    double SiPMPheC[160] = {0};
+    double SiPMPheS[160] = {0};
 
     void calibrate(const SiPMCalibration&);
 };
@@ -40,13 +42,25 @@ class Event{
 void Event::calibrate(const SiPMCalibration& calibration){
 
     // >>> SIPM CALIBRATION <<< //
-    for(uint16_t i=0;i<320;++i){
+    int ccount = 0;
+    int scount = 0;
+    // TODO: please find a way to avoid theese counters :)
+    for(uint16_t i=0;i<320;++i){      
         // If SiPM is 0 do not subtract pede and leave 0! (board was not triggered)
         if (SiPMHighGain[i] > 0){
             double highGainPe = (SiPMHighGain[i] - calibration.highGainPedestal[i]) / calibration.highGainDpp[i];
             double lowGainPe = (SiPMLowGain[i] - calibration.lowGainPedestal[i]) / calibration.lowGainDpp[i];
+            double SiPMPhe = highGainPe * (int)(highGainPe < 140.) + lowGainPe * (int)(highGainPe > 140.);
             // use HG if pe < 140 else use LG. Use bool casting to avoid if/else branching
-            SiPMPhe[i] = highGainPe * (int)(highGainPe < 140.) + lowGainPe * (int)(highGainPe > 140.);
+            if((i / 16) % 2 == 0){
+                // Cher
+                SiPMPheC[ccount] = SiPMPhe;
+                ccount++;
+            } else {
+                // Scin
+            	SiPMPheS[scount] = SiPMPhe;
+            	scount++;
+            }
         }
     }
 
@@ -54,7 +68,7 @@ void Event::calibrate(const SiPMCalibration& calibration){
 }
 
 SiPMCalibration::SiPMCalibration(const std::string& fname){
-    std::ifstream inFile(fname);
+    std::ifstream inFile(fname,std::ifstream::in);
     json jFile;
     inFile >> jFile;
     highGainPedestal = jFile["Calibrations"]["SiPM"]["highGainPedestal"];
@@ -69,7 +83,7 @@ void PhysicsConverter(){
 
   //Open merge ntuples
   //
-  auto Mergfile = new TFile("merged_sps2021_run631.root", "READ");
+  auto Mergfile = new TFile("merged_sps2021_run646.root", "READ");
   auto Outfile = new TFile("file.root","RECREATE");
   auto *PMTtree = (TTree*) Mergfile->Get("CERNSPS2021");
   auto *SiPMtree = (TTree*) Mergfile->Get("SiPMSPS2021");
