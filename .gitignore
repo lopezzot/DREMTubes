@@ -3,3 +3,8 @@
 *.root
 *.pdf
 *.pyc
+*.pcm
+*.d
+*.so
+*ACLiC*
+*.swp
