@@ -4,30 +4,19 @@ import ROOT
 import os
 from array import array
 import numpy as np
+import glob
 
 ####### Hard coded information - change as you want
+SiPMFileDir="/afs/cern.ch/user/i/ideadr/scratch/TB2021_H8/rawNtupleSiPM"
+DaqFileDir="/afs/cern.ch/user/i/ideadr/scratch/TB2021_H8/rawNtuple"
+MergedFileDir="/afs/cern.ch/user/i/ideadr/scratch/TB2021_H8/mergedNtuple"
 SiPMTreeName = "SiPMData"
 SiPMMetaDataTreeName = "EventInfo"
 DaqTreeName = "CERNSPS2021"
 SiPMNewTreeName = "SiPMSPS2021"
-verbose = False
 EvtOffset = -1000
 doNotMerge = False
 
-def main():
-    import argparse                                                                      
-    parser = argparse.ArgumentParser(description='This script runs the merging of the "SiPM" and the "PMT" daq events')
-    parser.add_argument('--inputSiPM', dest='inputSiPM',required=True,help='Input SiPM file')
-    parser.add_argument('--inputPMT', dest='inputPMT',required=True,help='Input PMT file')
-    parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')
-    parser.add_argument('--no_merge', dest='no_merge',action='store_true',help='Do not do the merging step')           
-    parser.add_argument('--verbose',dest='verbose',action='store_true',help='Increase verbosity')
-    par  = parser.parse_args()
-    global verbose
-    verbose = par.verbose
-    global doNotMerge
-    doNotMerge = par.no_merge
-    CreateBlendedFile(par.inputSiPM,par.inputPMT,par.outputFileName)
 
 
 ####### main function to merge SiPM and PMT root files with names specified as arguments
@@ -35,32 +24,23 @@ def main():
 def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
     SiPMinfile = None
     Daqinfile = None
-    try:
-        SiPMinfile = ROOT.TFile.Open(SiPMFileName)
-        SiPMinfile.IsOpen()
-    except:
-        print "File " + SiPMFileName + " not found. Exiting....."
+
+    if not CheckFileNames(SiPMFileName,DaqFileName):
+        print 'Problems, exiting......'
         return -1
 
-    try:
-        Daqinfile = ROOT.TFile.Open(DaqFileName)
-        Daqinfile.IsOpen()
-    except:
-        print "File " + DaqFileName + " not found. Exiting....."
-        return -1
+    #open input.......
 
+    SiPMinfile = ROOT.TFile.Open(SiPMFileName)
+    Daqinfile = ROOT.TFile.Open(DaqFileName)
 
+    #.... and output files
+    
     OutputFile = ROOT.TFile.Open(outputfilename,"recreate")
-
-    ##### Start by copying everything which is not controversial
 
     if not (SiPMMetaDataTreeName in SiPMinfile.GetListOfKeys()):
         print "Cannot find tree with name " + SiPMMetaDataTreeName + " in file " + SiPMinfile.GetName()
-
-    ### Check the alignment
-
-
-
+        return -1
     if not (DaqTreeName in Daqinfile.GetListOfKeys()):
         print "Cannot find tree with name " + DaqTreeName + " in file " + DaqInfile.GetName()
         return -1
@@ -74,7 +54,9 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
     EvtOffset = DetermineOffset(SiPMInputTree,DaqInputTree)
 
     if doNotMerge:
-        return 
+        return 0 
+
+    ###### Now really start to merge stuff
     
     newDaqInputTree = DaqInputTree.CloneTree()
     OutputFile.cd()
@@ -85,17 +67,6 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
     OutputFile.cd()
     newEventInfoTree.Write()
 
-    ##### This does not work at the moment, we'll then understand why - not the highest priority
-    
-#    SiPMinfile.cd("Histograms")
-#    oldDir = ROOT.gDirectory
-#    print oldDir
-#    oldDir.ReadAll()
-#    OutputFile.cd()
-#    OutputFile.mkdir("Histograms")
-#    OutputFile.cd("Histograms")
-#    oldDir.GetList().Write()
-        
     OutputFile.cd()
     newSiPMTree = ROOT.TTree(SiPMNewTreeName,"SiPM info")
         
@@ -103,7 +74,6 @@ def CreateBlendedFile(SiPMFileName,DaqFileName,outputfilename):
                   
     newSiPMTree.Write()
     OutputFile.Close()    
-
 
 # main function to reorder and merge the SiPM file
 
@@ -143,17 +113,16 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
 
     print "Total Number of Events from DAQ " + str(totalNumberOfEvents)
     print "Merging with an offset of " + str(EvtOffset)
-    print "Is the output Verbose? " + str(verbose)
 
     for daq_ev in range(0,totalNumberOfEvents):
-        if verbose:
-            if (daq_ev%1000 == 0):
-                print str(daq_ev) + " events processed"
-        TriggerTimeStampUs 
+        if (daq_ev%10000 == 0):
+            print str(daq_ev) + " events processed"
+
         for iboard in range(0,5):
             for ch in range(0,64):
                 HG_Board[iboard][ch] = 0
                 LG_Board[iboard][ch] = 0
+
         if (daq_ev + EvtOffset) in entryDict:
             for entryToBeStored in entryDict[daq_ev + EvtOffset]:
                 SiPMInput.GetEntry(entryToBeStored)
@@ -194,6 +163,7 @@ def DetermineOffset(SiPMTree,DAQTree):
     TrigIdComplement = evList - TriggerIdList
     print "from PMT file: events "+str(len(evList))+" pedestals: "+str(len(pedList))
     print "from SiPM file: events with no trigger "+str(len(TrigIdComplement))
+    #### do some diagnostic plot
     for p in pedList:
 	    x.append(p)
 	    y.append(2)
@@ -215,6 +185,7 @@ def DetermineOffset(SiPMTree,DAQTree):
     graph.SetMarkerStyle(6)
     graph.Write()
     graph2.Write()
+
     ### Scan possible offsets to find out for which one we get the best match between the pedList and the missing TriggerId
 
     minOffset = -1000
@@ -234,14 +205,99 @@ def DetermineOffset(SiPMTree,DAQTree):
 
     return minOffset
 
+def CheckFileNames(SiPMFileName,DaqFileName):
+    retval = True
+    if not os.path.isfile(SiPMFileName):
+        print 'Error! File ' + SiPMFileName + ' is not there'  
+        retval = False
+    if not os.path.isfile(DaqFileName):
+        print 'Error! File ' + DaqFileName + ' is not there'  
+        retval = False
+    return retval 
 
 
+
+def doRun(runnumber,outfilename):
+    inputDaqFileName = DaqFileDir + "/sps2021data.run" + str(runnumber) + ".root"
+    inputSiPMFileName = SiPMFileDir + "/Run" + str(runnumber) + "_list.root"
+    return CreateBlendedFile(inputSiPMFileName,inputDaqFileName,outfilename)
+
+def GetNewRuns():
+    retval = []
+    sim_list = glob.glob(SiPMFileDir + '/*')
+    daq_list = glob.glob(DaqFileDir + '/*')
+    merged_list = glob.glob(MergedFileDir + '/*')
+
+    sim_run_list = []
+
+    for filename in sim_list:
+        sim_run_list.append(os.path.basename(filename).split('_')[0].lstrip('Run'))
+
+    daq_run_list = [] 
+
+    for filename in daq_list:
+        daq_run_list.append(os.path.basename(filename).split('.')[1].lstrip('run'))
+
+    already_merged = set()
+
+    for filename in merged_list:
+        already_merged.add(os.path.basename(filename).split('_')[2].split('.')[0].lstrip('run') )
+
+    cand_tomerge = set()
+
+    for runnum in sim_run_list:
+        if (int(runnum) >= 644):
+            if runnum in daq_run_list:
+                cand_tomerge.add(runnum)
+    tobemerged = cand_tomerge - already_merged
+    return sorted(tobemerged)
+
+    return retval 
+
+###############################################################
         
+def main():
+    import argparse                                                                      
+    parser = argparse.ArgumentParser(description='This script runs the merging of the "SiPM" and the "Daq" daq events. The option --newFiles shoudl be used only in TB mode, has the priority on anything else, and tries to guess which new files are there and merge them. \n Otherwise, the user needs to provide either --inputSiPM and --inputDaq, or --runNumber. --runNumber has priority if both sets of options are provided. --runNumber will assume the lxplus default test beam file location.')
+    parser.add_argument('--inputSiPM', dest='inputSiPM',default='0',help='Input SiPM file')
+    parser.add_argument('--inputDaq', dest='inputDaq',default='0',help='Input Daq file')
+    parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')
+    parser.add_argument('--no_merge', dest='no_merge',action='store_true',help='Do not do the merging step')           
+    parser.add_argument('--runNumber',dest='runNumber',default='0', help='Specify run number. The output file name will be merged_sps2021_run[runNumber].root ')
+    parser.add_argument('--newFiles',dest='newFiles',action='store_true', default='False', help='Looks for new runs in ' + SiPMFileDir + ' and ' + DaqFileDir + ', and merges them. To be used ONLY from the ideadr account on lxplus')
 
+    par  = parser.parse_args()
+    global doNotMerge
+    doNotMerge = par.no_merge
 
-        
+    if par.newFiles:
+        ##### build runnumber list
+        rn_list = GetNewRuns()
+        for runNumber in rn_list:
+            outfilename = MergedFileDir + '/merged_sps2021_run' + str(runNumber) + '.root'
+            print '\n\nGoing to merge run ' + runNumber + ' and the output file will be ' + outfilename + '\n\n'  
+            allgood = doRun(runNumber, outfilename)
+        return 
+
+    allGood = 0
+
+    if par.runNumber != '0':
+        print 'Looking for run number ' + par.runNumber
+        outfilename = 'merged_sps2021_run' + str(par.runNumber) + '.root'
+        allGood = doRun(par.runNumber,outfilename)
+    else: 
+        if par.inputSiPM != '0' and par.inputDaq != '0':
+            print 'Running on files ' + par.inputSiPM + ' and ' +  par.inputDaq
+            allGood = CreateBlendedFile(par.inputSiPM,par.inputPMT,par.outputFileName)
+        else:
+            print 'You need to provide either --inputSiPM and --inputDaq, or --runNumber. Exiting graciously.....'
+            parser.print_help()
+            return 
     
+    if allGood != 0:
+        print 'Something went wrong. Please double check your options. If you are absolutely sure that the script should have worked, contact iacopo.vivarelli AT cern.ch'
 
+############################################################################################# 
 
 if __name__ == "__main__":    
     main()
