@@ -17,9 +17,14 @@
 
 ClassImp(Event)
 
-void PhysicsAnalysis(){
+void PhysicsAnalysis(const string run){
 
-  auto file = new TFile("physics_sps2021_run646.root");
+  string infile = "physics_sps2021_run"+run+".root";
+  std::cout<<"Using file: "<<infile<<std::endl;
+  char cinfile[infile.size() + 1];
+  strcpy(cinfile, infile.c_str());
+
+  auto file = new TFile(cinfile);
   auto *tree = (TTree*) file->Get("Ftree");
   auto evt = new Event();
   tree->SetBranchAddress("Events",&evt);
