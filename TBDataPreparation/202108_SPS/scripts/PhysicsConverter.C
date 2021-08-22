@@ -1,4 +1,11 @@
-//usage: root -l .x PhysicsConverter.C++
+//**************************************************
+// \file PhysicsConverter.C
+// \brief: converter from merged trees to Event obj
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+//          Edoardo Proserpio (Uni Insubria)
+// \start date: 20 August 2021
+//**************************************************
+////usage: root -l .x PhysicsConverter.C++
 //
 #include <TTree.h>
 #include <TFile.h>
@@ -15,6 +22,31 @@ struct SiPMCalibration{
     std::array<double,320> highGainPedestal,highGainDpp,lowGainPedestal,lowGainDpp;
     SiPMCalibration(const std::string&);
 };
+
+SiPMCalibration::SiPMCalibration(const std::string& fname){
+    std::ifstream inFile(fname,std::ifstream::in);
+    json jFile;
+    inFile >> jFile;
+    highGainPedestal = jFile["Calibrations"]["SiPM"]["highGainPedestal"];
+    highGainDpp = jFile["Calibrations"]["SiPM"]["highGainDpp"];
+    lowGainPedestal = jFile["Calibrations"]["SiPM"]["lowGainPedestal"];
+    lowGainDpp = jFile["Calibrations"]["SiPM"]["lowGainDpp"];
+}
+
+struct PMTCalibration{
+    std::array<double,8> PMTSpd, PMTSpk, PMTCpd, PMTCpk;
+    PMTCalibration(const std::string&);
+};
+
+PMTCalibration::PMTCalibration(const std::string& fname){
+    std::ifstream inFile(fname,std::ifstream::in);
+    json jFile;
+    inFile >> jFile;
+    PMTSpd = jFile["Calibrations"]["PMT"]["PMTS_pd"];
+    PMTSpk = jFile["Calibrations"]["PMT"]["PMTS_pk"];
+    PMTCpd = jFile["Calibrations"]["PMT"]["PMTC_pd"];
+    PMTCpk = jFile["Calibrations"]["PMT"]["PMTC_pk"];
+}
 
 class Event{
 
@@ -37,6 +69,7 @@ class Event{
     double SiPMPheS[160] = {0};
 
     void calibrate(const SiPMCalibration&);
+    void calibratePMT(const PMTCalibration&);
 };
 
 void Event::calibrate(const SiPMCalibration& calibration){
@@ -63,18 +96,27 @@ void Event::calibrate(const SiPMCalibration& calibration){
             }
         }
     }
-
-    // >>> PMT CALIBRATION <<< //
 }
 
-SiPMCalibration::SiPMCalibration(const std::string& fname){
-    std::ifstream inFile(fname,std::ifstream::in);
-    json jFile;
-    inFile >> jFile;
-    highGainPedestal = jFile["Calibrations"]["SiPM"]["highGainPedestal"];
-    highGainDpp = jFile["Calibrations"]["SiPM"]["highGainDpp"];
-    lowGainPedestal = jFile["Calibrations"]["SiPM"]["lowGainPedestal"];
-    lowGainDpp = jFile["Calibrations"]["SiPM"]["lowGainDpp"];
+void Event::calibratePMT(const PMTCalibration& pmtcalibration){
+	// >>> PMT CALIBRATION <<< //
+	SPMT1 = (SPMT1-pmtcalibration.PMTSpd[0]) / pmtcalibration.PMTSpk[0];
+	SPMT2 = (SPMT2-pmtcalibration.PMTSpd[1]) / pmtcalibration.PMTSpk[1];
+	SPMT3 = (SPMT3-pmtcalibration.PMTSpd[2]) / pmtcalibration.PMTSpk[3];
+	SPMT4 = (SPMT4-pmtcalibration.PMTSpd[3]) / pmtcalibration.PMTSpk[4];
+	SPMT5 = (SPMT5-pmtcalibration.PMTSpd[4]) / pmtcalibration.PMTSpk[5];
+	SPMT6 = (SPMT6-pmtcalibration.PMTSpd[5]) / pmtcalibration.PMTSpk[6];
+	SPMT7 = (SPMT7-pmtcalibration.PMTSpd[6]) / pmtcalibration.PMTSpk[7];
+	SPMT8 = (SPMT8-pmtcalibration.PMTSpd[7]) / pmtcalibration.PMTSpk[8];
+	
+	CPMT1 = (CPMT1-pmtcalibration.PMTCpd[0]) / pmtcalibration.PMTCpk[0];
+	CPMT2 = (CPMT2-pmtcalibration.PMTCpd[1]) / pmtcalibration.PMTCpk[1];
+	CPMT3 = (CPMT3-pmtcalibration.PMTCpd[2]) / pmtcalibration.PMTCpk[3];
+	CPMT4 = (CPMT4-pmtcalibration.PMTCpd[3]) / pmtcalibration.PMTCpk[4];
+	CPMT5 = (CPMT5-pmtcalibration.PMTCpd[4]) / pmtcalibration.PMTCpk[5];
+	CPMT6 = (CPMT6-pmtcalibration.PMTCpd[5]) / pmtcalibration.PMTCpk[6];
+	CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) / pmtcalibration.PMTCpk[7];
+	CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) / pmtcalibration.PMTCpk[8];
 }
 
 ClassImp(Event)
@@ -84,19 +126,26 @@ void PhysicsConverter(){
   //Open merge ntuples
   //
   auto Mergfile = new TFile("merged_sps2021_run646.root", "READ");
-  auto Outfile = new TFile("file.root","RECREATE");
   auto *PMTtree = (TTree*) Mergfile->Get("CERNSPS2021");
   auto *SiPMtree = (TTree*) Mergfile->Get("SiPMSPS2021");
+  //Create new tree and Event object
+  //
+  auto Outfile = new TFile("physics_sps2021_run646.root","RECREATE");
   auto ftree = new TTree("Ftree","Ftree");
-  SiPMCalibration sipmCalibration("RunXXX.json");
   ftree->SetDirectory(Outfile);
   auto ev = new Event();
   ftree->Branch("Events",ev);
+  //Create calibration objects
+  //
+  SiPMCalibration sipmCalibration("RunXXX.json");
+  PMTCalibration pmtCalibration("RunXXX.json");
 
   //Check entries in trees
   //
   std::cout<<"Entries in PMT / SiPM tree "<<PMTtree->GetEntries()<<" / "<<SiPMtree->GetEntries()<<std::endl;
 
+  //Allocate branch pointers
+  //
   int EventID;
   int ADCs[96];
   int HG_b0[64];
@@ -124,11 +173,13 @@ void PhysicsConverter(){
   SiPMtree->SetBranchAddress("LG_Board3",HG_b3);
   SiPMtree->SetBranchAddress("LG_Board4",HG_b4);
 
-
+  //Loop over events 
+  //
   for( unsigned int i=0; i<PMTtree->GetEntries(); i++){
     PMTtree->GetEntry(i);
     SiPMtree->GetEntry(i);
 
+    //Fill HG_all and LG_all
     for(int i=0;i<64;++i){
       HG_all[i] = HG_b0[i];
       HG_all[i+64] = HG_b1[i];
@@ -142,6 +193,8 @@ void PhysicsConverter(){
       LG_all[i+64*4] = LG_b4[i];
     }
 
+    //Fill ev data members
+    //
     ev->EventID = EventID;
     ev->SPMT1 = ADCs[8];
     ev->SPMT2 = ADCs[9];
@@ -167,13 +220,17 @@ void PhysicsConverter(){
       ev->SiPMHighGain[j] = HG_all[j];
       ev->SiPMLowGain[j] = LG_all[j];
     }
+    //Calibrate SiPMs and PMTs
+    //
     ev->calibrate(sipmCalibration);
-
+    ev->calibratePMT(pmtCalibration);
+    //Write event in ftree
+    //
     ftree->Fill();
 
   }
 
-  //Write and close
+  //Write and close Outfile
   //
   Mergfile->Close();
   ftree->Write();
@@ -181,16 +238,16 @@ void PhysicsConverter(){
 
   //example on how to read events
   //
-  auto file = new TFile("file.root");
+  //auto file = new TFile("file.root");
 
-  auto *tree = (TTree*) file->Get("Ftree");
-  auto evento = new Event();
-  tree->SetBranchAddress("Events",&evento);
-  for (unsigned int i=0; i<tree->GetEntries(); i++){
-    tree->GetEntry(i);
+  //auto *tree = (TTree*) file->Get("Ftree");
+  //auto evento = new Event();
+  //tree->SetBranchAddress("Events",&evento);
+  //for (unsigned int i=0; i<tree->GetEntries(); i++){
+    //tree->GetEntry(i);
     // std::cout<<evento->EventID<<std::endl;
-  }
-
-
-
+  //}
+  //end of example on how to read events
 }
+
+//**************************************************
