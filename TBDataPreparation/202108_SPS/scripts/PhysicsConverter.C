@@ -67,6 +67,8 @@ class Event{
     uint16_t SiPMLowGain[320];
     double SiPMPheC[160] = {0};
     double SiPMPheS[160] = {0};
+    double totSiPMPheC = 0.;
+    double totSiPMPheS = 0.;
 
     void calibrate(const SiPMCalibration&);
     void calibratePMT(const PMTCalibration&);
@@ -74,7 +76,8 @@ class Event{
 
 void Event::calibrate(const SiPMCalibration& calibration){
 
-    // >>> SIPM CALIBRATION <<< //
+    //SiPM calibration
+    //
     int ccount = 0;
     int scount = 0;
     // TODO: please find a way to avoid theese counters :)
@@ -88,35 +91,40 @@ void Event::calibrate(const SiPMCalibration& calibration){
             if((i / 16) % 2 == 0){
                 // Cher
                 SiPMPheC[ccount] = SiPMPhe;
+		totSiPMPheC += SiPMPhe;
                 ccount++;
             } else {
                 // Scin
             	SiPMPheS[scount] = SiPMPhe;
+		totSiPMPheS += SiPMPhe;
             	scount++;
             }
         }
     }
+   
 }
 
 void Event::calibratePMT(const PMTCalibration& pmtcalibration){
-	// >>> PMT CALIBRATION <<< //
-	SPMT1 = (SPMT1-pmtcalibration.PMTSpd[0]) / pmtcalibration.PMTSpk[0];
-	SPMT2 = (SPMT2-pmtcalibration.PMTSpd[1]) / pmtcalibration.PMTSpk[1];
-	SPMT3 = (SPMT3-pmtcalibration.PMTSpd[2]) / pmtcalibration.PMTSpk[3];
-	SPMT4 = (SPMT4-pmtcalibration.PMTSpd[3]) / pmtcalibration.PMTSpk[4];
-	SPMT5 = (SPMT5-pmtcalibration.PMTSpd[4]) / pmtcalibration.PMTSpk[5];
-	SPMT6 = (SPMT6-pmtcalibration.PMTSpd[5]) / pmtcalibration.PMTSpk[6];
-	SPMT7 = (SPMT7-pmtcalibration.PMTSpd[6]) / pmtcalibration.PMTSpk[7];
-	SPMT8 = (SPMT8-pmtcalibration.PMTSpd[7]) / pmtcalibration.PMTSpk[8];
+
+    //PMT calibration
+    //
+    SPMT1 = (SPMT1-pmtcalibration.PMTSpd[0]) * 14./(pmtcalibration.PMTSpk[0]-pmtcalibration.PMTSpd[0]);
+    SPMT2 = (SPMT2-pmtcalibration.PMTSpd[1]) * 14./(pmtcalibration.PMTSpk[1]-pmtcalibration.PMTSpd[1]);
+    SPMT3 = (SPMT3-pmtcalibration.PMTSpd[2]) * 14./(pmtcalibration.PMTSpk[3]-pmtcalibration.PMTSpd[0]);
+    SPMT4 = (SPMT4-pmtcalibration.PMTSpd[3]) * 14./(pmtcalibration.PMTSpk[4]-pmtcalibration.PMTSpd[0]);
+    SPMT5 = (SPMT5-pmtcalibration.PMTSpd[4]) * 14./(pmtcalibration.PMTSpk[5]-pmtcalibration.PMTSpd[0]);
+    SPMT6 = (SPMT6-pmtcalibration.PMTSpd[5]) * 14./(pmtcalibration.PMTSpk[6]-pmtcalibration.PMTSpd[0]);
+    SPMT7 = (SPMT7-pmtcalibration.PMTSpd[6]) * 14./(pmtcalibration.PMTSpk[7]-pmtcalibration.PMTSpd[0]);
+    SPMT8 = (SPMT8-pmtcalibration.PMTSpd[7]) * 14./(pmtcalibration.PMTSpk[8]-pmtcalibration.PMTSpd[0]);
 	
-	CPMT1 = (CPMT1-pmtcalibration.PMTCpd[0]) / pmtcalibration.PMTCpk[0];
-	CPMT2 = (CPMT2-pmtcalibration.PMTCpd[1]) / pmtcalibration.PMTCpk[1];
-	CPMT3 = (CPMT3-pmtcalibration.PMTCpd[2]) / pmtcalibration.PMTCpk[3];
-	CPMT4 = (CPMT4-pmtcalibration.PMTCpd[3]) / pmtcalibration.PMTCpk[4];
-	CPMT5 = (CPMT5-pmtcalibration.PMTCpd[4]) / pmtcalibration.PMTCpk[5];
-	CPMT6 = (CPMT6-pmtcalibration.PMTCpd[5]) / pmtcalibration.PMTCpk[6];
-	CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) / pmtcalibration.PMTCpk[7];
-	CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) / pmtcalibration.PMTCpk[8];
+    CPMT1 = (CPMT1-pmtcalibration.PMTCpd[0]) * 14./(pmtcalibration.PMTCpk[0]-pmtcalibration.PMTCpd[0]);
+    CPMT2 = (CPMT2-pmtcalibration.PMTCpd[1]) * 14./(pmtcalibration.PMTCpk[1]-pmtcalibration.PMTCpd[1]);
+    CPMT3 = (CPMT3-pmtcalibration.PMTCpd[2]) * 14./(pmtcalibration.PMTCpk[3]-pmtcalibration.PMTCpd[0]);
+    CPMT4 = (CPMT4-pmtcalibration.PMTCpd[3]) * 14./(pmtcalibration.PMTCpk[4]-pmtcalibration.PMTCpd[0]);
+    CPMT5 = (CPMT5-pmtcalibration.PMTCpd[4]) * 14./(pmtcalibration.PMTCpk[5]-pmtcalibration.PMTCpd[0]);
+    CPMT6 = (CPMT6-pmtcalibration.PMTCpd[5]) * 14./(pmtcalibration.PMTCpk[6]-pmtcalibration.PMTCpd[0]);
+    CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) * 14./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[0]);
+    CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 14./(pmtcalibration.PMTCpk[8]-pmtcalibration.PMTCpd[0]);
 }
 
 ClassImp(Event)
