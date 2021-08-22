@@ -23,7 +23,7 @@
 
 using json = nlohmann::json;
 
-ClassImp(Event)
+ClassImp(EventOut)
 
 void PhysicsConverter(const string run){
 
@@ -45,7 +45,8 @@ void PhysicsConverter(const string run){
   auto ftree = new TTree("Ftree","Ftree");
   ftree->SetDirectory(Outfile);
   auto ev = new Event();
-  ftree->Branch("Events",ev);
+  auto evout = new EventOut();
+  ftree->Branch("Events",evout);
   //Create calibration objects
   //
   SiPMCalibration sipmCalibration("RunXXX.json");
@@ -58,56 +59,29 @@ void PhysicsConverter(const string run){
   //Allocate branch pointers
   //
   int EventID;
+   PMTtree->SetBranchAddress("EventNumber",&EventID);
   int ADCs[96];
-  int HG_b0[64];
-  int HG_b1[64];
-  int HG_b2[64];
-  int HG_b3[64];
-  int HG_b4[64];
-  int LG_b0[64];
-  int LG_b1[64];
-  int LG_b2[64];
-  int LG_b3[64];
-  int LG_b4[64];
-  uint16_t HG_all[320];
-  uint16_t LG_all[320];
-  PMTtree->SetBranchAddress("EventNumber",&EventID);
   PMTtree->SetBranchAddress("ADCs",ADCs);
-  SiPMtree->SetBranchAddress("HG_Board0",HG_b0);
-  SiPMtree->SetBranchAddress("HG_Board1",HG_b1);
-  SiPMtree->SetBranchAddress("HG_Board2",HG_b2);
-  SiPMtree->SetBranchAddress("HG_Board3",HG_b3);
-  SiPMtree->SetBranchAddress("HG_Board4",HG_b4);
-  SiPMtree->SetBranchAddress("LG_Board0",LG_b0);
-  SiPMtree->SetBranchAddress("LG_Board1",LG_b1);
-  SiPMtree->SetBranchAddress("LG_Board2",LG_b2);
-  SiPMtree->SetBranchAddress("LG_Board3",LG_b3);
-  SiPMtree->SetBranchAddress("LG_Board4",LG_b4);
+  SiPMtree->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
+  SiPMtree->SetBranchAddress("HG_Board1",&ev->SiPMHighGain[64]);
+  SiPMtree->SetBranchAddress("HG_Board2",&ev->SiPMHighGain[128]);
+  SiPMtree->SetBranchAddress("HG_Board3",&ev->SiPMHighGain[192]);
+  SiPMtree->SetBranchAddress("HG_Board4",&ev->SiPMHighGain[256]);
+  SiPMtree->SetBranchAddress("LG_Board0",&ev->SiPMLowGain[0]);
+  SiPMtree->SetBranchAddress("LG_Board1",&ev->SiPMLowGain[64]);
+  SiPMtree->SetBranchAddress("LG_Board2",&ev->SiPMLowGain[128]);
+  SiPMtree->SetBranchAddress("LG_Board3",&ev->SiPMLowGain[192]);
+  SiPMtree->SetBranchAddress("LG_Board4",&ev->SiPMLowGain[256]);
 
   //Loop over events 
   //
   for( unsigned int i=0; i<PMTtree->GetEntries(); i++){
     PMTtree->GetEntry(i);
     SiPMtree->GetEntry(i);
+    evout->EventID = EventID;
 
-    //Fill HG_all and LG_all
-    for(int i=0;i<64;++i){
-      HG_all[i] = HG_b0[i];
-      HG_all[i+64] = HG_b1[i];
-      HG_all[i+64*2] = HG_b2[i];
-      HG_all[i+64*3] = HG_b3[i];
-      HG_all[i+64*4] = HG_b4[i];
-      LG_all[i] = LG_b0[i];
-      LG_all[i+64] = LG_b1[i];
-      LG_all[i+64*2] = LG_b2[i];
-      LG_all[i+64*3] = LG_b3[i];
-      LG_all[i+64*4] = LG_b4[i];
-      //std::cout<<HG_b4[i]<<std::endl;
-    }
-   
     //Fill ev data members
     //
-    ev->EventID = EventID;
     ev->SPMT1 = ADCs[8];
     ev->SPMT2 = ADCs[9];
     ev->SPMT3 = ADCs[10];
@@ -124,26 +98,24 @@ void PhysicsConverter(const string run){
     ev->CPMT6 = ADCs[5];
     ev->CPMT7 = ADCs[6];
     ev->CPMT8 = ADCs[7];
-    ev->PShower = ADCs[16];
-    ev->MCounter = ADCs[32];
-    ev->C1 = ADCs[64];
-    ev->C2 = ADCs[65];
-    for(int j=0;j<320;++j){
-      ev->SiPMHighGain[j] = HG_all[j];
-      ev->SiPMLowGain[j] = LG_all[j];
-    }
+    evout->PShower = ADCs[16];
+    evout->MCounter = ADCs[32];
+    evout->C1 = ADCs[64];
+    evout->C2 = ADCs[65];
     //Calibrate SiPMs and PMTs
     //
-    ev->calibrate(sipmCalibration);
-    ev->calibratePMT(pmtCalibration);
+    ev->calibrate(sipmCalibration, evout);
+    ev->calibratePMT(pmtCalibration, evout);
+    evout->CompSPMTene();
+    evout->CompCPMTene();
     //std::cout<<ev->EventID<<" "<<ev->totSiPMPheS<<std::endl;
     //Write event in ftree
     //
     ftree->Fill();
     //Reset totSiPMPheC and totSiPMPheS to 0
     //
-    ev->totSiPMPheC = 0;
-    ev->totSiPMPheS = 0;
+    evout->totSiPMCene = 0;
+    evout->totSiPMSene = 0;
   }
 
   //Write and close Outfile

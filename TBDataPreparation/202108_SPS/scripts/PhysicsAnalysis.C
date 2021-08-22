@@ -15,7 +15,7 @@
 #include <fstream>
 #include "PhysicsEvent.h"
 
-ClassImp(Event)
+ClassImp(EventOut)
 
 void PhysicsAnalysis(const string run){
 
