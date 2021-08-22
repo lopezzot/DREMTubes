@@ -13,6 +13,9 @@
 #include "json.hpp"
 #include <fstream>
 
+#ifndef Event_H
+#define Event_H
+
 using json = nlohmann::json;
 
 struct SiPMCalibration{
@@ -123,5 +126,7 @@ void Event::calibratePMT(const PMTCalibration& pmtcalibration){
     CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) * 14./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[0]);
     CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 14./(pmtcalibration.PMTCpk[8]-pmtcalibration.PMTCpd[0]);
 }
+
+#endif
 
 //**************************************************
