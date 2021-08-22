@@ -18,21 +18,30 @@
 #include "json.hpp"
 #include <fstream>
 #include "PhysicsEvent.h"
+#include <string>
+#include <cstring>
 
 using json = nlohmann::json;
 
 ClassImp(Event)
 
-void PhysicsConverter(){
+void PhysicsConverter(const string run){
 
   //Open merge ntuples
   //
-  auto Mergfile = new TFile("merged_sps2021_run646.root", "READ");
+  string infile = "merged_sps2021_run"+run+".root";
+  std::cout<<"Using file: "<<infile<<std::endl;
+  char cinfile[infile.size() + 1];
+  strcpy(cinfile, infile.c_str());
+  string outfile = "physics_sps2021_run"+run+".root";
+  char coutfile[outfile.size() + 1];
+  strcpy(coutfile, outfile.c_str());
+  auto Mergfile = new TFile(cinfile, "READ");
   auto *PMTtree = (TTree*) Mergfile->Get("CERNSPS2021");
   auto *SiPMtree = (TTree*) Mergfile->Get("SiPMSPS2021");
   //Create new tree and Event object
   //
-  auto Outfile = new TFile("physics_sps2021_run646.root","RECREATE");
+  auto Outfile = new TFile(coutfile,"RECREATE");
   auto ftree = new TTree("Ftree","Ftree");
   ftree->SetDirectory(Outfile);
   auto ev = new Event();
@@ -129,7 +138,10 @@ void PhysicsConverter(){
     //Write event in ftree
     //
     ftree->Fill();
-
+    //Reset totSiPMPheC and totSiPMPheS to 0
+    //
+    ev->totSiPMPheC = 0;
+    ev->totSiPMPheS = 0;
   }
 
   //Write and close Outfile

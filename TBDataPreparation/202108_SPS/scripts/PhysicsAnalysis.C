@@ -21,11 +21,13 @@ void PhysicsAnalysis(){
 
   auto file = new TFile("physics_sps2021_run646.root");
   auto *tree = (TTree*) file->Get("Ftree");
-  auto evento = new Event();
-  tree->SetBranchAddress("Events",&evento);
+  auto evt = new Event();
+  tree->SetBranchAddress("Events",&evt);
+
   for (unsigned int i=0; i<tree->GetEntries(); i++){
       tree->GetEntry(i);
-      std::cout<<evento->EventID<<std::endl;
+      //std::cout<<evt->totSiPMPheC<<std::endl;
+      std::cout<<evt->totSiPMPheS<<std::endl;
   }
 
 }
