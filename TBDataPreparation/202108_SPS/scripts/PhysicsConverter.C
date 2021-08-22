@@ -78,11 +78,11 @@ void PhysicsConverter(const string run){
   SiPMtree->SetBranchAddress("HG_Board2",HG_b2);
   SiPMtree->SetBranchAddress("HG_Board3",HG_b3);
   SiPMtree->SetBranchAddress("HG_Board4",HG_b4);
-  SiPMtree->SetBranchAddress("LG_Board0",HG_b0);
-  SiPMtree->SetBranchAddress("LG_Board1",HG_b1);
-  SiPMtree->SetBranchAddress("LG_Board2",HG_b2);
-  SiPMtree->SetBranchAddress("LG_Board3",HG_b3);
-  SiPMtree->SetBranchAddress("LG_Board4",HG_b4);
+  SiPMtree->SetBranchAddress("LG_Board0",LG_b0);
+  SiPMtree->SetBranchAddress("LG_Board1",LG_b1);
+  SiPMtree->SetBranchAddress("LG_Board2",LG_b2);
+  SiPMtree->SetBranchAddress("LG_Board3",LG_b3);
+  SiPMtree->SetBranchAddress("LG_Board4",LG_b4);
 
   //Loop over events 
   //
@@ -102,8 +102,9 @@ void PhysicsConverter(const string run){
       LG_all[i+64*2] = LG_b2[i];
       LG_all[i+64*3] = LG_b3[i];
       LG_all[i+64*4] = LG_b4[i];
+      //std::cout<<HG_b4[i]<<std::endl;
     }
-
+   
     //Fill ev data members
     //
     ev->EventID = EventID;
@@ -135,6 +136,7 @@ void PhysicsConverter(const string run){
     //
     ev->calibrate(sipmCalibration);
     ev->calibratePMT(pmtCalibration);
+    //std::cout<<ev->EventID<<" "<<ev->totSiPMPheS<<std::endl;
     //Write event in ftree
     //
     ftree->Fill();

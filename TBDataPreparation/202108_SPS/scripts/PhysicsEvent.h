@@ -69,9 +69,14 @@ class Event{
     double SiPMPheS[160] = {0};
     double totSiPMPheC = 0.;
     double totSiPMPheS = 0.;
+    double SPMTenergy = 0.;
+    double CPMTenergy = 0.;
 
     void calibrate(const SiPMCalibration&);
     void calibratePMT(const PMTCalibration&);
+    void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;};
+    void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;};
+    	
 };
 
 void Event::calibrate(const SiPMCalibration& calibration){
@@ -87,6 +92,7 @@ void Event::calibrate(const SiPMCalibration& calibration){
             double highGainPe = (SiPMHighGain[i] - calibration.highGainPedestal[i]) / calibration.highGainDpp[i];
             double lowGainPe = (SiPMLowGain[i] - calibration.lowGainPedestal[i]) / calibration.lowGainDpp[i];
             double SiPMPhe = highGainPe * (int)(highGainPe < 140.) + lowGainPe * (int)(highGainPe > 140.);
+	    //std::cout<<"sipm "<<i<<" hg "<<SiPMHighGain[i]<<" lg "<<SiPMLowGain[i]<<" hgpe "<<highGainPe<<" lgpe "<<lowGainPe<<" phe "<<SiPMPhe<<" hgped "<<calibration.highGainPedestal[i]<<" hgdpp "<<calibration.highGainDpp[i]<<" lgped "<<calibration.lowGainPedestal[i]<<" hgdpp "<<calibration.lowGainDpp[i]<<std::endl;
             // use HG if pe < 140 else use LG. Use bool casting to avoid if/else branching
             if((i / 16) % 2 == 0){
                 // Cher

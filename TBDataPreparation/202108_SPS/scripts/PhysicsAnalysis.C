@@ -28,11 +28,12 @@ void PhysicsAnalysis(const string run){
   auto *tree = (TTree*) file->Get("Ftree");
   auto evt = new Event();
   tree->SetBranchAddress("Events",&evt);
-
+  double ene = 0;
   for (unsigned int i=0; i<tree->GetEntries(); i++){
       tree->GetEntry(i);
-      //std::cout<<evt->totSiPMPheC<<std::endl;
-      std::cout<<evt->totSiPMPheS<<std::endl;
+      evt->CompSPMTene();
+      evt->CompCPMTene();
+      std::cout<<" SPMTenergy "<<evt->SPMTenergy<<" CPMTenergy "<<evt->CPMTenergy<<std::endl;
   }
 
 }
