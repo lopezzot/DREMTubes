@@ -7,6 +7,12 @@
   <ol>
     <li><a href="#project-description">Project description</a></li>
     <li><a href="#authors-and-contacts">Authors and contacts</a></li>
+     <li>
+      <a href="#documentation-and-results">Documentation and results</a>
+      <ul>
+        <li><a href="#selected-presentations">Selected presentations</a></li>
+      </ul>
+    </li>
   </ol>                                           
 </details>
 
@@ -18,10 +24,17 @@ Refer to README.md files in subfolders for instructions and further documentatio
 - DreamDaq/ **The DAQ code used at the 2021 SPS Dual-Readout test beam.**
 - TBDataPreparation/ **Repository for the code to convert raw test-beam-data to ROOT ntuples, and raw test-beam-data monitoring.**
 
-- Start date: 7 July 2021
+Coding began on July 7, 2021.
 
 <!--Authors and contacts-->
 ## Authors and contacts
-- (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon (Supervisor)
-- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri, Roberto Ferrari
-- (University of Insubria and INFN Milano) Romualdo Santoro, Edoardo Proserpio, Simona Cometti, Agnese Giaz
+- (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon
+- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri, Roberto Ferrari (roberto.ferrari@cern.ch)
+- (University of Insubria and INFN Milano) Romualdo Santoro (romualdo.santoro@uninsubria.it), Edoardo Proserpio, Simona Cometti, Agnese Giaz
+- (University of Sussex) Iacopo Vivarelli (iacopo.vivarelli@cern.ch)
+
+<!--Documentation and results-->
+## Documentation and results
+
+### Selected presentations
+- Dual-Readout Calorimetry Meeting 21/7/2021, **DREMTubes: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
