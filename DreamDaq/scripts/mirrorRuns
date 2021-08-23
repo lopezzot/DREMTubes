@@ -1,0 +1,119 @@
+#!/bin/bash
+
+
+D_ONE=/mnt/working/data/
+D_TWO=/mnt/wd/working_bak/data/
+COPY=0
+LIST=0
+LONG=0
+BEGIN="datafile"
+
+
+# PROMPT
+#NO_COL="\[\033[0m\]"
+#REDFG="\[\033[1;31m\]"
+NO_COL="\033[0m"
+REDFG="\033[1;31m"
+
+
+phelp()
+{
+echo
+echo "Mirror data file from source directory to backup directory"
+echo "  NB: the script is supposed to be executed from pcdreamdaq2"
+echo
+echo "Usage: $1 [-clLp] [-s sourceDir] [-d backupDir]
+  -c                Mirror data not present in the backup directory (default = disabled)
+  -l                List data not present in the backup directory (default = disabled)
+  -L                List files with different sizes
+  -s 'Source'       Source directory (default = $D_ONE)
+  -d 'Destination'  Backup directory (default = $D_TWO)
+  -p                Look for pedestal files instead of data ones
+"
+exit
+}
+if [ $# -eq 0 ]; then
+  phelp
+fi
+
+if [ `hostname` == "pcdreamus" ]; then
+  echo -e "$REDFG WARNING: You are executing the script from pcdreamus, "
+  echo -e "      while the disks are usually on pcdreamdaq2 $NO_COL"
+  echo "Press <ctrl>C to abort, <return> to continue"
+  read hh
+fi
+
+
+
+while getopts "clLps:d:" Option
+do
+case $Option in
+   c ) COPY=1            ;;
+   l ) LIST=1            ;;
+   L ) LONG=1            ;;
+   p ) BEGIN="pedestal"  ;;
+   d ) D_TWO="${OPTARG}" ;;
+   s ) D_ONE="${OPTARG}" ;;
+   * ) phelp             ;;
+esac
+done
+
+echo "========================================================="
+echo "Source dir      = $D_ONE"
+echo "Destination dir = $D_TWO"
+echo "Begin           = $BEGIN"
+echo "========================================================="
+
+
+if [ $COPY -eq 1 ]; then
+   echo "----- Mirroring files from $D_ONE to backup directory ($D_TWO) ---"
+else
+   echo "----- Comparing directories ----------------------------------------------" 
+   echo " '.' == The file and the copy in the backup have the same name and size  "
+   echo " 'L' == The file is a symbolic link to the actual data file  "
+   echo "--------------------------------------------------------------------------" 
+fi
+
+
+for i in $D_ONE/${BEGIN}*; do 
+   if [ -h $i ]; then 
+      echo -n "L"
+      continue
+   else
+      echo -n "."
+   fi
+   BASE=`basename $i    ".dat"`
+   BASE=`basename $BASE ".bz2"`
+   BASE=`basename $BASE ".gz"`
+   FILE="${D_TWO}/$BASE*" 
+   ls $FILE  2>/dev/null 1>/dev/null
+   #ls $i $FILE 
+   if [ $? -ne 0 ]; then
+      echo
+      if [ $COPY -eq 1 ]; then
+         cp -v $i $D_TWO
+      elif [ $LIST -eq 1 ]; then
+         echo -n -e "\033[1;31m[MISSING]\033[0m \n"
+         #echo -n "[MISSING] "
+         ls -l -h $i 
+      fi
+      elif [ $LONG -eq 1 ]; then
+      A=`ls -l $i     | awk '{print $5}'`
+      B=`ls -l $FILE  | awk '{print $5}'`
+      if [ $A -ne $B ]; then
+         echo
+         A=`basename $i   `
+         B=`basename $FILE`
+         if [ $A == $B ]; then
+            echo -n -e "\033[1;31m[DIFFER]\033[0m \n"
+         else
+            echo "[One is compressed]"
+         fi
+         ls -l $i $FILE
+      fi
+   fi
+done
+
+echo 
+echo "Done"
+

@@ -1,0 +1,1 @@
+for((i=2425; i<2456; i=$i+1)); do myDaq2Ntu $i pedestal && myDaq2Ntu $i data || echo problems in run $i >> report_100905.txt ; done

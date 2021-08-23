@@ -1,0 +1,23 @@
+# 
+#	general definitions for Makefiles
+#
+C++		= c++
+CC		= gcc
+G++ 		= g++
+
+# at the moment LOCAL_CFLAGS is empty maybe will be useful in the future
+CFLAGS = -O0 -g -Wall $(LOCAL_CFLAGS)
+#CFLAGS = -O3 -Wall $(LOCAL_CFLAGS)
+#LIBS = -lz -lfilar -lcmem_rcc -lio_rcc -lgetinput -lrcc_time_stamp -lpthread
+LIBS = -lz -lpthread 
+
+#  ----->>>   root libraries
+#
+
+#ROOTGLIB =`root-config --glibs` gives error on libGPad.so ?!?
+ROOTVER    =  `root-config --version`
+ROOTLIBS   =  `root-config --libs` -lMinuit -lHistPainter -lThread
+ROOTGLIBS  =  `root-config --glibs` -lThread
+ROOTCFLAGS =  `root-config --cflags`
+
+

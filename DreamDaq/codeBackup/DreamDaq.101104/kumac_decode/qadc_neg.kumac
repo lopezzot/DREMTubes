@@ -1,0 +1,75 @@
+zone 1 2
+
+h/file 52 datafile_histo_run694.hbook 4096
+h/pl 550(0.:2000.)
+h/file 53 datafile_histo_run695.hbook 4096
+set hcol 2
+h/pl 550(0.:2000.) s
+h/file 54 datafile_histo_run696.hbook 4096
+set hcol 3
+h/pl 550(0.:2000.) s
+h/file 55 datafile_histo_run697.hbook 4096
+set hcol 4
+h/pl 550(0.:2000.) s
+h/file 56 datafile_histo_run698.hbook 4096
+set hcol 5
+h/pl 550(0.:2000.) s
+h/file 57 datafile_histo_run699.hbook 4096
+set hcol 6
+h/pl 550(0.:2000.) s
+h/file 58 datafile_histo_run700.hbook 4096
+set hcol 7
+h/pl 550(0.:2000.) s
+h/file 59 datafile_histo_run701.hbook 4096
+set hcol 8
+h/pl 550(0.:2000.) s
+h/file 60 datafile_histo_run702.hbook 4096
+set hcol 9
+h/pl 550(0.:2000.) s
+h/file 61 datafile_histo_run703.hbook 4096
+set hcol 10
+h/pl 550(0.:2000.) s
+h/file 62 datafile_histo_run704.hbook 4096
+set hcol 11
+h/pl 550(0.:2000.) s
+
+
+
+
+
+
+cd //lun52
+h/pl 551(0.:2000.)
+cd //lun53
+set hcol 2
+h/pl 551(0.:2000.) s
+cd //lun54
+set hcol 3
+h/pl 551(0.:2000.) s
+cd //lun55
+set hcol 4
+h/pl 551(0.:2000.) s
+cd //lun56
+set hcol 5
+h/pl 551(0.:2000.) s
+cd //lun57
+set hcol 6
+h/pl 551(0.:2000.) s
+cd //lun58
+set hcol 7
+h/pl 551(0.:2000.) s
+cd //lun59
+set hcol 8
+h/pl 551(0.:2000.) s
+cd //lun60
+set hcol 9
+h/pl 551(0.:2000.) s
+
+
+
+
+
+
+
+
+

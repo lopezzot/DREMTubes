@@ -1,0 +1,364 @@
+set cshi 0.01
+set pass 9
+set asiz 0.4
+set yhti 1.2
+set tsiz 0.4
+set vsiz 0.3
+set ylab 1.2
+set xlab 1.2
+set xval 0.2
+set xmgl 2.5
+set ymgl 2.5
+set yval 0.4
+igset lwid 7.
+set hwid 7.
+opt stat
+set stat 111111111
+opt pto
+
+filecase keep 
+
+*read run_location
+read run
+read run_pedestal
+read setup_type
+read evt_interval_fadc
+
+run_location=$WORKDIR/ntuple
+ped_location=$WORKDIR/ped
+
+
+vec/crea iv(48) i
+vec/crea jv(48) i
+vec/crea pmean(48) r
+vec/crea prms(48) r
+vec/crea ev_max(1) i 
+vec/crea run_pedestalv(1) r
+vec/input run_pedestalv(1) [run_pedestal] 
+vec/read iv,jv,pmean,prms [ped_location]/pedestal_run[run_pedestal].dat FORMAT='(1x,I2,1x,I2,1x,F10.4,1x,F10.4)'
+vec/crea s_pmean(19)  r
+vec/crea q_pmean(19)  r
+vec/copy pmean(1:19) s_pmean(1:19)
+vec/copy pmean(20:38) q_pmean(1:19)
+sigma sspm=vsum(s_pmean)
+sigma qspm=vsum(q_pmean) 
+h/file 1 [run_location]/datafile_ntup_run[run].hbook 4096
+zone  2 1
+CALL HBOOK1(10,' Run Number', 500,0.,500.,0.)
+CALL HBOOK1(11,' Pedestal Run Number', 500,0.,500.,0.)
+nt/pl 1.Nrunnumber ! ! ! ! ! 10
+vec/hfill  run_pedestalv 11
+h/pl 11
+ev_max_f=$hinfo(1,'entries')/[evt_interval_fadc]
+vec/input ev_max(1) [ev_max_f] 
+
+zone 2 2
+ks=0
+kq=0
+kc=0
+kt=0
+k=0
+do i=0,5
+do j=0,7
+k=[k]+1
+num=100+[i]*10+[j]*1
+nump=500+[i]*10+[j]*1
+if (([num].ne.146).and.([num].ne.147).and.([num].ne.157)) then
+CALL HBOOK1([num],' ',300,0.,300.,0.)
+CALL HBOOK1([nump],' ',300,-300.,300.,0.)
+nt/pro [num] 1.CHARGEADC[i] CHADC[i].eq.[j] 
+h/pl [num]
+atitle 'ADC COUNT'  'Nentries'
+text 10. 1000. 'ADC'//[i] 0.2
+text 60. 1000. 'CH'//[j] 0.2
+if (([i].lt.2).or.(([i].eq.2).and.([j].lt.3))) then
+ks=[ks]+1
+text 10. 5000. 'S'//[ks]   0.4
+endif
+if ( (([i].lt.5).and.([i].ge.3)).or.(([i].eq.2).and.([j].ge.3)) ) then 
+kq=[kq]+1
+text 10. 5000. 'Q'//[kq]   0.4
+endif
+if (([i].eq.5).and.([j].le.3 )) then
+kc=[kc]+1
+text 10. 5000. 'C'//[kc] 0.4
+endif
+if (([i].eq.5).and.(([j].eq.4).or.([j].eq.5))) then
+kt=[kt]+1
+text 10. 5000. 'T'//[kt] 0.4
+endif
+if (([i].eq.5).and.([j].eq.6)) then
+text 10. 5000. 'PSD' 0.4
+endif
+nt/pro [nump] 1.(CHARGEADC[i]-pmean([k]))  CHADC[i].eq.[j]
+h/pl [nump]
+atitle 'ADC COUNT'  'Nentries'
+text 10. 1000. 'ADC'//[i] 0.2
+text 60. 1000. 'CH'//[j] 0.2
+if (([i].lt.2).or.(([i].eq.2).and.([j].lt.3))) then
+text 10. 5000. 'S'//[ks]   0.4
+endif
+if ( (([i].lt.5).and.([i].ge.3)).or.(([i].eq.2).and.([j].ge.3)) ) then
+text 10. 5000. 'Q'//[kq]   0.4
+endif
+if (([i].eq.5).and.([j].le.3 )) then
+text 10. 5000. 'C'//[kc] 0.4
+endif
+if (([i].eq.5).and.(([j].eq.4).or.([j].eq.5))) then
+text 10. 5000. 'T'//[kt] 0.4
+endif
+if (([i].eq.5).and.([j].eq.6)) then
+text 10. 5000. 'PSD' 0.4
+endif
+text -300. 7000. ' Ped subtracted ' 0.3 
+endif
+enddo
+enddo
+
+zone 2 2
+num=160
+do i=1,2
+kh=[num]+[i]
+kh2=[kh]+2
+CALL HBOOK1([kh],' ',500,0.,10000.,0.)
+CALL HBOOK1([kh2],' ',500,-1000.,1000.,0.)
+enddo
+nt/pro 161 1.CHARGEADC0(1)+CHARGEADC0(2)+CHARGEADC0(3)+CHARGEADC0(4)+CHARGEADC0(5)+CHARGEADC0(6)+CHARGEADC0(7)+CHARGEADC0(8)+CHARGEADC1(1)+CHARGEADC1(2)+CHARGEADC1(3)+CHARGEADC1(4)+CHARGEADC1(5)+CHARGEADC1(6)+CHARGEADC1(7)+CHARGEADC1(8)+CHARGEADC2(1)+CHARGEADC2(2)+CHARGEADC2(3)
+h/pl 161
+atitle 'ADC counts'  'Nentries'
+text 6000. 4000. 'S TOT' 0.4
+nt/pro 163 1.CHARGEADC0(1)+CHARGEADC0(2)+CHARGEADC0(3)+CHARGEADC0(4)+CHARGEADC0(5)+CHARGEADC0(6)+CHARGEADC0(7)+CHARGEADC0(8)+CHARGEADC1(1)+CHARGEADC1(2)+CHARGEADC1(3)+CHARGEADC1(4)+CHARGEADC1(5)+CHARGEADC1(6)+CHARGEADC1(7)+CHARGEADC1(8)+CHARGEADC2(1)+CHARGEADC2(2)+CHARGEADC2(3)-sspm(1)
+h/pl 163
+atitle 'ADC counts'  'Nentries'
+text 0. 1500. 'S TOT' 0.4
+text 0. 1000. ' Ped subtracted ' 0.3
+nt/pro 162 1.CHARGEADC2(4)+CHARGEADC2(5)+CHARGEADC2(6)+CHARGEADC2(7)+CHARGEADC2(8)+CHARGEADC3(1)+CHARGEADC3(2)+CHARGEADC3(3)+CHARGEADC3(4)+CHARGEADC3(5)+CHARGEADC3(6)+CHARGEADC3(7)+CHARGEADC3(8)+CHARGEADC4(1)+CHARGEADC4(2)+CHARGEADC4(3)+CHARGEADC4(4)+CHARGEADC4(5)+CHARGEADC4(6)
+h/pl 162
+atitle 'ADC counts'  'Nentries'
+text 6000. 4000. 'Q TOT' 0.4
+nt/pro 164 1.CHARGEADC2(4)+CHARGEADC2(5)+CHARGEADC2(6)+CHARGEADC2(7)+CHARGEADC2(8)+CHARGEADC3(1)+CHARGEADC3(2)+CHARGEADC3(3)+CHARGEADC3(4)+CHARGEADC3(5)+CHARGEADC3(6)+CHARGEADC3(7)+CHARGEADC3(8)+CHARGEADC4(1)+CHARGEADC4(2)+CHARGEADC4(3)+CHARGEADC4(4)+CHARGEADC4(5)+CHARGEADC4(6)-qspm(1)
+h/pl 164
+atitle 'ADC counts'  'Nentries'
+text 0. 1500. 'Q TOT' 0.4
+text 0. 1000. ' Ped subtracted ' 0.3 
+CALL HBOOK1(165,' ',600,-.6,.6,0.)
+CALL HBOOK1(166,' ',600,-.6,.6,0.)
+zone 1 2
+nt/pro 165 1.((CHARGEADC5(1)-CHARGEADC5(2))/(CHARGEADC5(1)+CHARGEADC5(2)))
+h/pl 165
+atitle '(L-R)/(L+R)'  'Nentries'
+nt/pro 166 1.((CHARGEADC5(1)-pmean(41)-CHARGEADC5(2)+pmean(42))/(CHARGEADC5(1)-pmean(41)+CHARGEADC5(2)-pmean(42))) (CHARGEADC5(1)-pmean(41)+CHARGEADC5(2)-pmean(42)).ne.0
+h/pl 166
+atitle '(L-R)/(L+R)'  'Nentries'
+text 0.2 100. ' Ped subtracted ' 0.3                                                                                                                      
+kc=0
+k=0
+num= 900
+zone 2 2
+do i=1,2
+do j=1,4
+kc=[num]+[j]+4*([i]-1)
+CALL HBOOK1([kc],' ',5000,0.,5000.,0.)
+CUT $3 (CHFADC.eq.([j]+4*([i]-1)))
+nt/proj [kc] 1.VALUEFADC  $3
+h/pl [kc]
+chpl=[j]+4*([i]-1)
+text 2500. 1500. 'FADC CH='//[chpl] 0.3
+enddo
+enddo
+
+v/crea pmean2(8) r 8*0
+vec/input pmean2(1) $HINFO(901,'MEAN')
+vec/input pmean2(2) $HINFO(902,'MEAN')
+vec/input pmean2(3) $HINFO(903,'MEAN')
+vec/input pmean2(4) $HINFO(904,'MEAN')
+vec/input pmean2(5) $HINFO(905,'MEAN')
+vec/input pmean2(6) $HINFO(906,'MEAN')
+vec/input pmean2(7) $HINFO(907,'MEAN')
+vec/input pmean2(8) $HINFO(908,'MEAN')
+
+if ([setup_type].eq.1) then
+kc=0
+k=0
+set mtyp 23
+do ev=0,ev_max(1)
+num=200
+zone 2 2
+do i=1,2
+t=[ev]*[evt_interval_fadc]+1
+title_gl 'Event number '//[t]
+do j=1,4
+kc=[num]+10+[j]+4*([i]-1)+([ev]*[evt_interval_fadc]+1)*1000
+id=[j]+4*([i]-1)
+h/crea/2d [kc] 'Time Structure' 75 -5. 70. 1000 -500. 500.
+CUT $1 (Nevtda.eq.(([ev]*[evt_interval_fadc])+1))
+if ([j].eq.1) then
+off2=3.75
+endif
+if ([j].eq.2) then
+off2=2.5
+endif
+if ([j].eq.3) then
+off2=1.25
+endif
+if ([j].eq.4) then
+off2=0
+endif
+
+CUT $3 (CHFADC.eq.([j]+4*([i]-1)))
+nt/proj [kc] 1.(VALUEFADC-pmean2([id]))%(5*NUMFADC+[off2]) $1.and.$3
+h/pl [kc]
+chpl=[j]+4*([i]-1)
+text 20. 50. 'FADC CH='//[chpl] 0.3
+h/del [kc]
+enddo
+enddo
+opt nstat
+
+zone 1 2
+num=200
+do i=1,2
+t=[ev]*[evt_interval_fadc]+1
+title_gl 'Event number '//[t]
+CUT $1 (Nevtda.eq.(([ev]*[evt_interval_fadc])+1))
+if ([i].eq.1) then 
+ii=4
+off2=0
+endif
+if ([i].eq.2) then 
+ii=8
+off2=0
+endif
+nt/pl 1.(VALUEFADC-pmean2([ii]))%(5*NUMFADC+[off2]) $1.and.(CHFADC.eq.[ii])
+
+do j=1,3
+if ([j].eq.1) then
+off2=3.75
+endif
+if ([j].eq.2) then
+off2=2.5
+endif
+if ([j].eq.3) then
+off2=1.25
+endif
+nt/pl 1.(VALUEFADC-pmean2([j]+4*([i]-1)))%(5*NUMFADC+[off2]) $1.and.(CHFADC.eq.([j]+4*([i]-1))) ! ! ! 's'
+enddo
+if ([i].eq.1) then
+text 30. -5. 'FADC CH 1 2 3 4' 0.3
+endif
+if ([i].eq.2) then
+text 30. -5. 'FADC CH 5 6 7 8' 0.3
+endif
+h/del [k]
+enddo
+enddo
+title_gl ' '
+endif
+
+if ([setup_type].eq.2) then
+kc=0
+k=0
+set mtyp 23
+do ev=0,ev_max(1)
+num=200
+zone 2 2
+do i=1,4
+t=[ev]*[evt_interval_fadc]+1
+title_gl 'Event number '//[t]
+do j=1,2
+kc=[num]+10+[j]+2*([i]-1)+([ev]*[evt_interval_fadc]+1)*1000
+id=[j]+2*([i]-1)
+h/crea/2d [kc] 'Time Structure' 75 -5. 70. 1000 -500. 500.
+CUT $1 (Nevtda.eq.(([ev]*[evt_interval_fadc])+1))
+if ([j].eq.1) then
+off2=2.5
+endif
+if ([j].eq.2) then
+off2=0
+endif
+
+CUT $3 (CHFADC.eq.([j]+2*([i]-1)))
+nt/proj [kc] 1.(VALUEFADC-pmean2([id]))%(5*NUMFADC+[off2])  $1.and.$3
+h/pl [kc]
+chpl=[j]+2*([i]-1)
+text 20. 50. 'FADC CH='//[chpl] 0.3
+h/del [kc]
+enddo
+enddo
+opt nstat
+
+zone 1 2
+num=200
+do i=1,4
+t=[ev]*[evt_interval_fadc]+1
+title_gl 'Event number '//[t]
+CUT $1 (Nevtda.eq.(([ev]*[evt_interval_fadc])+1))
+
+if ([i].eq.1) then
+ii=2
+off2=0
+endif
+
+if ([i].eq.2) then
+ii=4
+off2=0
+endif
+
+if ([i].eq.3) then
+ii=6
+off2=0
+endif
+
+if ([i].eq.4) then
+ii=8
+off2=0
+endif
+
+                                                                                                      
+nt/pl  1.(VALUEFADC-pmean2([ii]))%(5*NUMFADC+[off2]) $1.and.(CHFADC.eq.[ii])
+                                                                                                      
+j=1
+off2=2.5
+nt/pl 1.(VALUEFADC-pmean2([j]+2*([i]-1)))%(5*NUMFADC+[off2]) $1.and.(CHFADC.eq.([j]+2*([i]-1))) ! ! ! 's'
+                                                                                                      
+
+
+if ([i].eq.1) then
+text 10. -5. 'FADC CH 1 2 ' 0.3
+endif
+if ([i].eq.2) then
+text 10. -5. 'FADC CH 3 4 ' 0.3
+endif
+if ([i].eq.3) then
+text 10. -5. 'FADC CH 5 6 ' 0.3
+endif
+if ([i].eq.4) then
+text 10. -5. 'FADC CH 7 8 ' 0.3
+endif
+h/del [k]
+enddo
+enddo
+title_gl ' '
+endif
+
+zone 2 2
+do i=0,15
+num=300+[i]*1
+CALL HBOOK1([num],' ',100,0.,1000.,0.)
+nt/pro [num] 1.COUNTTDC CHTDC.eq.[i]
+h/pl [num]
+atitle 'TDC COUNT'  'Nentries'
+text 10. 500. 'TDC CH'//[i] 0.6
+enddo
+
+zone 2 2
+do i=0,15
+num=400+[i]*1
+CALL HBOOK1([num],' ',100,0.,1000.,0.)
+nt/pro [num] 1.COUNTKTDC CHKTDC.eq.[i]
+h/pl [num]
+atitle 'KTDC COUNT' 'Nentries'
+text 10. 500. 'KTDC CH'//[i] 0.6
+enddo
+close 1
+vec/del *

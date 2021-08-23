@@ -1,0 +1,20 @@
+MACRO sum4fadc 1=12 2=1
+h1=[1]*100+[2]*4+7
+h2=[1]*100+[2]*4+8
+h3=[1]*100+[2]*4+9
+h4=[1]*100+[2]*4+10
+v/crea uno(60) r 60*0
+v/crea due(60) r 60*0
+v/crea tre(60) r 60*0
+v/crea qua(60) r 60*0
+histo/get/con [h1] uno
+histo/get/con [h2] due
+histo/get/con [h3] tre
+histo/get/con [h4] qua
+sigma tot=uno+due+tre+qua
+v/copy tot(4:60) y
+sigma yav=VSUM(y)/57
+sigma ysq=VSUM(y*y)/57
+sigma ysg=sqrt(ysq-yav*yav)
+sigma y0=y-yav(1)
+return

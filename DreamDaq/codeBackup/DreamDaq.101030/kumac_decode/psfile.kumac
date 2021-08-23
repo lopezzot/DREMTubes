@@ -1,0 +1,9 @@
+MACRO psfile [1]
+fortran/file 66 [1].ps
+meta -66 -111
+mess 'Please wait, translating picture to PS file'
+pic/plot 
+close 66
+clr
+mess File [1].ps ready
+return

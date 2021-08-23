@@ -1,0 +1,133 @@
+set cshi 0.01
+set pass 9
+set asiz 0.4
+set yhti 1.2
+set tsiz 0.4
+set vsiz 0.3
+set ylab 1.2
+set xlab 1.2
+set xval 0.2
+set xmgl 2.5
+set ymgl 2.5
+set yval 0.4
+igset lwid 7.
+set hwid 7.
+opt stat
+set stat 111111111
+opt pto
+
+filecase keep
+*read run_location
+read run 
+
+run_location=$WORKDIR/ntuple
+ped_location=$WORKDIR/ped
+
+h/file 1 [run_location]/datafile_ntup_run[run].hbook 4096 
+
+zone
+CALL HBOOK1(10,' Run Number', 500,0.,500.,0.)
+nt/pl 1.Nrunnumber ! ! ! ! ! 10
+
+zone 2 4
+ks=0
+kq=0
+kc=0
+kt=0
+vec/crea iv(48) i
+vec/crea jv(48) i 
+vec/crea pmean(48) r
+vec/crea prms(48) r
+vec/input iv(39) 0 
+vec/input jv(39) 0
+vec/input pmean(39) 0
+vec/input  prms(39) 0
+vec/input iv(40) 0
+vec/input jv(40) 0
+vec/input pmean(40) 0
+vec/input  prms(40) 0
+vec/input iv(48) 0
+vec/input jv(48) 0
+vec/input pmean(48) 0
+vec/input  prms(48) 0
+k=0
+do i=0,5
+do j=0,7
+k=[k]+1
+num=100+[i]*10+[j]*1
+if (([num].ne.146).and.([num].ne.147).and.([num].ne.157)) then
+CALL HBOOK1([num],' ',400,0.,400.,0.)
+nt/pro [num] 1.CHARGEADC[i] CHADC[i].eq.[j] 
+*h/pl [num]
+vec/input iv([k]) [i]
+vec/input jv([k]) [j]
+vec/input pmean([k]) $HINFO([num],'MEAN')
+vec/input prms([k]) $HINFO([num],'RMS')
+atitle 'ADC COUNT'  'Nentries'
+text 10. 1000. 'ADC'//[i] 0.2
+text 60. 1000. 'CH'//[j] 0.2
+if (([i].lt.2).or.(([i].eq.2).and.([j].lt.3))) then
+ks=[ks]+1
+text 10. 5000. 'S'//[ks]   0.4
+endif
+if ( (([i].lt.5).and.([i].ge.3)).or.(([i].eq.2).and.([j].ge.3)) ) then 
+kq=[kq]+1
+text 10. 5000. 'Q'//[kq]   0.4
+endif
+if (([i].eq.5).and.([j].le.3 )) then
+kc=[kc]+1
+text 10. 5000. 'C'//[kc] 0.4
+endif
+if (([i].eq.5).and.(([j].eq.4).or.([j].eq.5))) then
+kt=[kt]+1
+text 10. 5000. 'T'//[kt] 0.4
+endif
+if (([i].eq.5).and.([j].eq.6)) then
+text 10. 5000. 'PSD' 0.4
+endif
+endif
+enddo
+enddo
+vec/write iv,jv,pmean,prms [ped_location]/pedestal_run[run].dat FORMAT='(1x,I2,1x,I2,1x,F10.4,1x,F10.4)'
+
+
+                                                                          
+kc=0
+k=0
+num= 900
+zone 2 2
+do i=1,2
+do j=1,4
+kc=[num]+[j]+4*([i]-1)
+CALL HBOOK1([kc],' ',1000,0.,5000.,0.)
+CUT $3 (CHFADC.eq.([j]+4*([i]-1)))
+nt/proj [kc] 1.VALUEFADC  $3
+*h/pl [kc]
+chpl=[j]+4*([i]-1)
+text 2500. 1500. 'FADC CH='//[chpl] 0.3
+enddo
+enddo
+
+zone 2 2
+do i=1,15
+num=300+[i]*1
+CALL HBOOK1([num],' ',100,0.,1000.,0.)
+nt/pro [num] 1.COUNTTDC CHTDC.eq.[i]
+*h/pl [num]
+atitle 'TDC COUNT'  'Nentries'
+text 10. 500. 'TDC CH'//[i] 0.6
+enddo
+
+zone 2 2
+do i=1,15
+num=400+[i]*1
+CALL HBOOK1([num],' ',100,0.,1000.,0.)
+nt/pro [num] 1.COUNTKTDC CHKTDC.eq.[i]
+*h/pl [num]
+atitle 'KTDC COUNT'  'Nentries'
+text 10. 500. 'KTDC CH'//[i] 0.6
+enddo
+close 1
+vec/del *
+opt npto
+zone

@@ -1,0 +1,9 @@
+MACRO epostp [1]
+fortran/file 66 [1].eps
+meta -66 -113
+mess 'Please wait, translating picture to EPS'
+pic/plot 
+close 66
+clr
+mess File [1].eps ready
+return

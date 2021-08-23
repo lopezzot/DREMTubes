@@ -1,0 +1,33 @@
+
+all:
+	cd VMElib && make
+	cd FIFOlib && make
+	make
+	@echo "*******************************************************************************"
+	@echo "        all Dream DAQ software updated with g++ version `g++ -dumpversion`"
+	@echo "*******************************************************************************"
+
+clean:
+	cd VMElib && make clean
+	cd FIFOlib && make clean
+	make clean
+	@echo "all Dream DAQ software directory cleaned up"
+
+headers:
+	@echo "nothing to be done here"
+
+install:
+	cd scripts && make install
+	cd VMElib && make install
+	cd FIFOlib && make install
+	make install
+	@echo "all Dream DAQ software installed"
+
+fromscratch: timestamp clean all install
+	@echo "all Dream DAQ software rebuilt from scratch"
+	@date
+	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+
+timestamp:
+	@echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	@date

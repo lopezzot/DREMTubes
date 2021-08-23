@@ -1,0 +1,3 @@
+MACRO leave
+shell rm -f /tmp/datafile_histo_run*.hbook
+return

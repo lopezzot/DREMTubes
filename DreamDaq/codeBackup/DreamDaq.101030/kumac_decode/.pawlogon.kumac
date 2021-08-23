@@ -1,0 +1,36 @@
+option zfl1
+option nbox
+option stat
+option file
+option date
+csel
+*
+*set stat 111111
+MESS 'Preset commands:'
+* MESS '                 laser               Print in Control Room'
+* MESS '                 l2                  Print on 104-nomad-2'
+* MESS '                 l3                  Print on 104-nomad-3'
+* MESS '                 lmah                Print on 104-nomad-mah'
+mess '                 epsfile [fname]       Save an EPS file'
+mess '                 psfile  [fname]       Save an PS file'
+mess '                 newfile [run#] [lun]  Open a new hbook file'
+mess '                 sum4fadc [evt#] [ch]  Add 4 fadc channels'
+mess '                 dreamonl              dream_monitoring_online'
+mess '                 cleantmp              clean /tmp/*hbook'
+host_editor emacs
+set ygti 0.5
+set gsiz 0.75
+* alias/create l2       'exec ~/kumac/104-nomad-2.kumac'  C
+* alias/create l3       'exec ~/kumac/104-nomad-3.kumac'  C
+* alias/create lmah     'exec ~/kumac/104-nomad-mah.kumac'  C
+* alias/create laser    'exec ~/kumac/nomad-cr.kumac'  C
+*
+alias/create epsfile  'exec ~/kumac/epostp.kumac' C
+alias/create psfile   'exec ~/kumac/psfile.kumac' C
+alias/create cleantmp 'exec ~/kumac/cleantmp.kumac' C
+alias/create testo    'exec ~/kumac/testo.kumac' C
+alias/create newfile  'exec ~/kumac/newfile.kumac' C
+alias/create sum4fadc 'exec ~/kumac/sum4fadc.kumac' C
+alias/create dreamonl 'exec ~/DreamDaq/kumac_decode/dream_monitoring_online.kumac' C
+*
+*

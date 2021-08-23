@@ -1,0 +1,3 @@
+DIR="/$1"
+ssh dreamdaq@cli.globusonline.org ls -l TTU-Sigmorgh-DREAM:///lustre/hep/osg/dream/working_bak/$DIR
+

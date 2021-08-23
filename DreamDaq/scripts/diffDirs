@@ -1,0 +1,77 @@
+#!/bin/bash
+
+
+D_ONE=/mnt/working/data/
+D_TWO=/mnt/wd/working_bak/data/
+COPY=0
+LIST=0
+BEGIN="datafile"
+
+
+# PROMPT
+#NO_COL="\[\033[0m\]"
+#REDFG="\[\033[1;31m\]"
+NO_COL="\033[0m"
+REDFG="\033[1;31m"
+
+
+phelp()
+{
+echo
+echo "Mirror data file from source directory to backup directory"
+echo "  NB: the script is supposed to be executed from pcdreamdaq2"
+echo
+echo "Usage: $1 [-c] [-s sourceDir] [-d backupDir]
+  -c 'Copy'         Mirror data not present in the backup directory (default = disabled)
+  -l 'List'         List data not present in the backup directory (default = disabled)
+  -s 'Source'       Source directory (default = $D_ONE)
+  -d 'Destination'  Backup directory (default = $D_TWO)
+"
+exit
+}
+if [ $# -eq 0 ]; then
+  phelp
+fi
+
+if [ `hostname` == "pcdreamus" ]; then
+  echo -e "$REDFG WARNING: You are executing the script from pcdreamus, "
+  echo -e "      while the disks are usually on pcdreamdaq2 $NO_COL"
+  echo "Press <ctrl>C to abort, <return> to continue"
+  read hh
+fi
+
+
+
+while getopts "cls:d:" Option
+do
+case $Option in
+   c ) COPY=1            ;;
+   l ) LIST=1            ;;
+   d ) D_TWO="${OPTARG}" ;;
+   s ) D_ONE="${OPTARG}" ;;
+   * ) phelp             ;;
+esac
+done
+
+if [ $COPY -eq 1 ]; then
+	echo "----- Mirroring files from $D_ONE to backup directory ($D_TWO) ---"
+elif [ $LIST -eq 1 ]; then
+	echo "----- Files not in backup directory ($D_TWO) ---" 
+fi
+
+for i in $D_ONE/${BEGIN}*; do 
+	BASE=`basename $i    ".dat"`
+	BASE=`basename $BASE ".bz2"`
+	BASE=`basename $BASE ".gz"`
+	ls ${D_TWO}/$BASE* 2>/dev/null 1>/dev/null
+	if [ $? -ne 0 ]; then
+ 		if [ $COPY -eq 1 ]; then
+			cp -v $i $D_TWO
+		elif [ $LIST -eq 1 ]; then
+			#echo $i 
+			ls -l -h $i 
+		fi
+	fi
+done
+
+

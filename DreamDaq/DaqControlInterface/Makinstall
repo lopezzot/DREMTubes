@@ -1,0 +1,8 @@
+
+BINDIR = $(HOME)/bin
+APPS   = DaqControlInterface
+
+install:
+	@mkdir -p $(BINDIR)
+	/bin/cp -p $(APPS) $(BINDIR)/
+

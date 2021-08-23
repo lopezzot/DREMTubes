@@ -1,0 +1,5 @@
+
+for ((i=10000; $i<10100; i=$i+1)); do
+	./myDaq2Ntu $i pedestal; 
+	./myDaq2Ntu $i data ; 
+done

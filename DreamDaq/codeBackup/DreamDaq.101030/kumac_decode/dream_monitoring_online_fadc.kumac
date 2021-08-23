@@ -1,0 +1,58 @@
+set cshi 0.01
+set pass 9
+set asiz 0.4
+set yhti 1.2
+set tsiz 0.4
+set vsiz 0.3
+set ylab 1.2
+set xlab 1.2
+set xval 0.2
+set xmgl 2.5
+set ymgl 2.5
+set yval 0.4
+igset lwid 7.
+set hwid 7.
+opt stat
+set stat 111111111
+opt pto
+
+filecase keep
+*read run_location
+read run
+
+
+newfile [run] 1
+* ROBERTO * run_location=$WORKDIR/hbook
+* ROBERTO * h/file 1 [run_location]/datafile_histo_run[run].hbook 4096
+
+
+
+opt pto
+zone 2 2
+h/pl 901(3500.:3800.)
+atitle 'fadc ch 1'
+h/pl 902(3500.:3800.)                                                        
+atitle 'fadc ch 2'
+
+h/pl 903(3500.:3800.)
+atitle 'fadc ch 3'
+h/pl 904(3500.:3800.)
+atitle 'fadc ch 4'
+
+h/pl 905(3500.:3800.)
+atitle 'fadc ch 5'
+h/pl 906(3500.:3800.)
+atitle 'fadc ch 6'
+
+h/pl 907(3500.:3800.)
+atitle 'fadc ch 7'
+h/pl 908(3500.:3800.)
+atitle 'fadc ch 8'
+
+
+opt npto
+close 1
+vec/del *
+h/del *
+zone
+

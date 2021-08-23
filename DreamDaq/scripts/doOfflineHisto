@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#echo on: `hostname`
+
+if [[ `hostname` == *dreamdaq* ]]; then
+export WORKDIR='/mnt/dreamix2';export DATADIR='/mnt/dreamix2';
+/home/dreamtest/bin/doOfflineHistoDrs4 $@
+else 
+ssh pcdreamdaq2 -t "/home/dreamtest/bin/doOfflineHisto $@"
+fi

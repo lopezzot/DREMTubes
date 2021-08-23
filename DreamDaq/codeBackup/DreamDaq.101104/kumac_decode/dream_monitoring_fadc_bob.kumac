@@ -1,0 +1,167 @@
+set cshi 0.01
+set pass 9
+set asiz 0.4
+set yhti 1.2
+set tsiz 0.4
+set vsiz 0.3
+set ylab 1.2
+set xlab 1.2
+set xval 0.2
+set xmgl 2.5
+set ymgl 2.5
+set yval 0.4
+igset lwid 7.
+set hwid 7.
+opt stat
+set stat 111111111
+opt pto
+
+filecase keep
+*read run_location
+read run
+read evt
+read setup_type
+
+run_location=$WORKDIR/ntuple
+
+h/file 1 [run_location]/datafile_ntup_run[run].hbook 4096
+
+if ([setup_type].eq.1) then
+kc=0
+k=0
+set mtyp 23
+
+num=200
+zone 2 2
+do i=1,2
+
+t=[evt]
+title_gl 'Event number '//[t]
+do j=1,4
+kc=[num]+10+[j]+4*([i]-1)+[evt]*1000
+h/crea/2d [kc] 'Time Structure' 75 -5. 70. 100 0. 5000.
+CUT $1 (Nevtda.eq.[evt])
+if ([i].eq.1) then
+CUT $2 CHFADC.le.4
+off=0
+endif
+if ([i].eq.2) then
+CUT $2 (CHFADC.gt.4).and.(CHFADC.le.8)
+off=4
+endif
+CUT $3 (CHFADC.eq.([j]+4*([i]-1)))
+nt/proj [kc] 1.VALUEFADC%(CHFADC+4*NUMFADC-[off]) $1.and.$2.and.$3
+h/pl [kc]
+chpl=[j]+4*([i]-1)
+text 20. 1500. 'FADC CH='//[chpl] 0.3
+enddo
+enddo
+
+zone 1 2
+num=200
+do i=1,2
+t=[evt]
+title_gl 'Event number '//[t]
+k=[num]+[i]+[evt]*1000.
+h/crea/2d [k] 'Time Structure' 750 -5. 70. 100 0. 5000.
+CUT $1 (Nevtda.eq.[evt])
+if ([i].eq.1) then 
+CUT $2 CHFADC.le.4
+off=0
+endif
+if ([i].eq.2) then 
+CUT $2 (CHFADC.gt.4).and.(CHFADC.le.8)
+off=4
+endif
+nt/proj [k] 1.VALUEFADC%(CHFADC+4*NUMFADC-[off]) $1.and.$2
+h/pl [k]
+if ([i].eq.1) then
+text 20. 1500. 'FADC CH 1 2 3 4' 0.3
+endif
+if ([i].eq.2) then
+text 20. 1500. 'FADC CH 5 6 7 8' 0.3
+endif
+enddo
+title_gl ' '
+endif
+
+if ([setup_type].eq.2) then
+kc=0
+k=0
+set mtyp 23
+num=200
+zone 2 2
+do i=1,4
+t=[evt]
+title_gl 'Event number '//[t]
+do j=1,2
+kc=[num]+10+[j]+2*([i]-1)+[evt]*1000
+h/crea/2d [kc] 'Time Structure' 75 -5. 70. 100 0. 5000.
+CUT $1 (Nevtda.eq.[evt])
+if ([i].eq.1) then
+CUT $2 CHFADC.le.2
+off=0
+endif
+if ([i].eq.2) then
+CUT $2 (CHFADC.gt.2).and.(CHFADC.le.4)
+off=2
+endif
+if ([i].eq.3) then
+CUT $2 (CHFADC.gt.4).and.(CHFADC.le.6)
+off=4
+endif
+if ([i].eq.4) then
+CUT $2 (CHFADC.gt.6).and.(CHFADC.le.8)
+off=6
+endif
+
+CUT $3 (CHFADC.eq.([j]+2*([i]-1)))
+nt/proj [kc] 1.VALUEFADC%(CHFADC+2*NUMFADC-[off]) $1.and.$2.and.$3
+h/pl [kc]
+chpl=[j]+2*([i]-1)
+text 20. 1500. 'FADC CH='//[chpl] 0.3
+enddo
+enddo
+
+zone 1 2
+num=200
+do i=1,4
+t=[evt]
+title_gl 'Event number '//[t]
+k=[num]+[i]+[evt]*1000.
+h/crea/2d [k] 'Time Structure' 750 -5. 70. 100 0. 5000.
+CUT $1 (Nevtda.eq.[evt])
+if ([i].eq.1) then
+CUT $2 CHFADC.le.2
+off=0
+endif
+if ([i].eq.2) then
+CUT $2 (CHFADC.gt.2).and.(CHFADC.le.4)
+off=2
+endif
+if ([i].eq.3) then
+CUT $2 (CHFADC.gt.4).and.(CHFADC.le.6)
+off=4
+endif
+if ([i].eq.4) then
+CUT $2 (CHFADC.gt.6).and.(CHFADC.le.8)
+off=6
+endif
+nt/proj [k] 1.VALUEFADC%(CHFADC+2*NUMFADC-[off]) $1.and.$2
+h/pl [k]
+if ([i].eq.1) then
+text 20. 1500. 'FADC CH 1 2 ' 0.3
+endif
+if ([i].eq.2) then
+text 20. 1500. 'FADC CH 3 4 ' 0.3
+endif
+if ([i].eq.3) then
+text 20. 1500. 'FADC CH 5 6 ' 0.3
+endif
+if ([i].eq.4) then
+text 20. 1500. 'FADC CH 7 8 ' 0.3
+endif
+enddo
+title_gl ' '
+endif
+close 1

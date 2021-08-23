@@ -1,0 +1,11 @@
+*** Begin of history file: Tue Aug 20 12:04:40 1996
+file /cern/nomad/old/src/cmz/cal004
+cd calproc
+ls
+edit calmom
+file  /cern/nomad/old/src/cmz/cal003
+cd calproc
+ls
+edit calfil
+exit
+*** End   of history file: Tue Aug 20 12:09:52 1996

@@ -1,0 +1,27 @@
+
+%.d : 
+	@echo " - Generating dependencies" $@
+	@$(CC) -MM $(SOURCES) $(CFLAGS) $(INCDIRS) \
+	| sed 's/^\(.*\).o:/$@ \1.o:/' > $@
+
+%.o : %.C
+	$(CC) $(CFLAGS) $(ROOTCFLAGS) $(INCDIRS) -c -o $@ $<
+
+%.o : %.c
+	$(CC) $(CFLAGS) $(INCDIRS) -c -o $@ $<
+
+%.o : %.cc
+	$(CC) $(CFLAGS) $(INCDIRS) -c -o $@ $<
+
+%.o : %.cpp
+	$(CC) $(CFLAGS) $(INCDIRS) -c -o $@ $< 
+
+
+rmobj:
+	@rm -f *.o
+
+rmbak:
+	@rm -f *~*
+
+rmdep: 
+	@rm -f *.d

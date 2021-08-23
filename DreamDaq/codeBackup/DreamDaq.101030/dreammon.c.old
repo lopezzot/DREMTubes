@@ -1,0 +1,659 @@
+#include <unistd.h>
+#include <signal.h>
+#include <stdio.h>
+#include <string>
+#include <TH1.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TH2.h>
+#include "myhbook.h"
+#include "myRawFile.h"
+#include "dreammon.h"
+
+#define MAX_SINGLE_HISTO 100
+
+
+
+int dreammon_init(char ** argv, unsigned int run_nr)
+{
+  char * myWorkDir;
+
+  if (getenv("WORKDIR") == NULL)
+    myWorkDir = getenv("/home/dreamtest/working/");
+  else
+    myWorkDir = getenv("WORKDIR");
+  
+  // Create Input/Output filenames
+  if (getenv("HISTODIR") == NULL)
+    sprintf(ntdir, "%s/%s", myWorkDir, "hbook");
+  else
+    sprintf(ntdir, "%s", getenv("HISTODIR"));
+  
+  Nrunnumber= run_nr;
+  sprintf(ntfilename, "%s/datafile_histo_run%d.root", ntdir, Nrunnumber);
+
+  if (getenv("PEDDIR") == NULL)
+    sprintf(peddir, "%s/%s", myWorkDir, "ped");
+  else
+    sprintf(peddir, "%s", getenv("PEDDIR"));
+   
+  // ped_run_name -- file name for the pedestal data
+  if (getenv("PED_RUN") == NULL){ 
+    sprintf(ped_run_name, "%s/pedestal_run0.cal",peddir);
+    ped_run_number=0;
+   }else{ 
+    sprintf(ped_run_name, "%s/pedestal_run%s.cal", peddir, getenv("PED_RUN"));
+    ped_run_number=atol(getenv("PED_RUN"));
+   }
+  if (getenv("MAXEVT") == NULL)
+    evt_max= 100000;
+  else
+    evt_max = atol(getenv("MAXEVT"));                                                                                         
+  
+//Read pedestal file
+// Pedestal  file have AT THE MOMENT 66 lines:
+// 32 lines for ADCN0 (32 channels)
+// 32 lines for ADCN1 (32 channels) 
+// 2 lines for ADC0 (channels 0 1) 
+//and 4 columns: Module_number (0 or 1) Channel Mean Rms
+  FILE *peddatafp;
+  peddatafp = fopen(ped_run_name, "r"); 
+  if (!peddatafp) {
+    fprintf(stderr, "Cannot open pedestal data file %s\n", ped_run_name);
+    return -1;
+  }
+  int a,b;
+  float c,d;
+  int il;
+  for(il=0;il<66;il++)  {
+    fscanf(peddatafp,"%d %d %f %f",&a,&b,&c,&d);
+    pmean[il]=c;
+  }
+
+
+
+  // Declare histograms
+  //Histograms with the number of the run and with the number of the pedestal run used
+  
+  // not a useful plot
+  hrn = new TH1F("runnumb","Run Number", 500,0.,500.);
+
+  // not a very useful plot
+  hprn = new TH1F("pedrunnumb","Pedestal Run Number",500,0.,500.); 
+
+  unsigned int i=0,j=0,k=0,l=0;
+  char histo[20],histop[20];
+
+  //Histograms for the ADC LECROY L1182 (used also in  TB 2006)- Module 0 - 8 Channels  
+  // (used only the first 2 channels)
+  // ADC Spectra without pedestal subtraction (histo) and with pedestal substraction (histop)
+  for( j=0;j<2;j++) {
+    if(j==0) {
+      sprintf(histo,"muon_up");
+      sprintf(histop,"muon_up_ped"); 
+    } 
+    if(j==1) {
+      sprintf(histo,"muon_dw");  
+      sprintf(histop,"muon_dw_ped");
+    }
+    hadc[k] = new TH1F (histo," ADC (no ped sub)", 4096,-0.5,4095.5);
+
+    // -100.5 is a good boundary -- seems that all distribution fits
+    hadcp[k] = new TH1F (histop, "ADC (ped sub)",4100,-100.5,3999.5);
+    k++;
+  }
+ 
+
+  // Histograms for the ADC V792AC MODULE 0 (called in the code ADN0) - 32 Channels  
+   // ADC Spectra without pedestal subtraction (histo) and with pedestal substraction (histop)
+
+  k=0;
+  for( j=0;j<32;j++) {
+    if(j<19) {
+        // books s histos from 1 to 19
+      sprintf(histo,"s_%d",j+1);
+      sprintf(histop,"s_ped_%d",j+1);
+    }else{
+        // books q histos from 1 to 13
+      sprintf(histo,"q_%d",j-18);
+      sprintf(histop,"q_ped_%d",j-18);
+    }
+ 
+    hadc0n[k] = new TH1F (histo," ADCN0 (no ped sub)", 4096,-0.5,4095.5);
+    hadc0np[k] = new TH1F (histop, "ADCN0 (ped sub)",4100,-100.5,3999.5);
+    k++;
+  }
+  
+  hadc0ovmap = new TH1F ("adcn0_ov_map", "ADCN0 Overflow Map", 32, -.5,31.5);
+  
+  // Histograms for the ADC V792AC MODULE 1 (called in the code ADN0) - 32 Channels 
+   // used only channels larger than 18 
+   // ADC Spectra without pedestal subtraction (histo) and with pedestal substraction (histop)
+
+  // The channel numbering on the second QDC starts
+  // from 18, not from 0 -- CONFIRM WITH WINER
+  k=0;  
+  for (l=18;l<32;l++) {
+    if(l<24) {
+      // books q histos from 14 to 19
+      sprintf(histo,"q_%d",l-4);
+      sprintf(histop,"q_ped_%d",l-4);
+    }else {
+      // books crystal ADCs. The channel # starts with 18.
+      sprintf(histo,"adcn1_ch%d",l);
+      sprintf(histop,"adcn1_p_ch%d",l);
+    }
+    hadc1n[l] = new TH1F (histo," ADCN1 (no ped sub)", 4096,-0.5,4095.5);
+    hadc1np[l] = new TH1F (histop, "ADCN1 (ped sub)",4100,-100.5,3999.5);
+    k++;
+  }
+
+  hadc1ovmap = new TH1F ("adcn1_ov_map", "ADCN1 Overflow Map", 32, -.5,31.5);
+
+
+  // Higrograms for Dream Total Signal S and Dream Total Signal Q
+  // Units are QDC counts.
+  hs=new TH1F("S_TOT"," DREAM TOTAL S (no ped sub)",500,0.,10000.);
+  hsp= new TH1F("S_TOT_P"," DREAM TOTAL S (ped sub)",500,0.,10000.);
+  hq=new TH1F("Q_TOT"," DREAM TOTAL Q (no ped)",500,0.,10000.);
+  hqp=new TH1F("Q_TOT_P"," DREAM TOTAL Q (ped sub)",500,0.,10000.);
+
+
+  /*
+ /// Histrograms for FLASH ADC  (used in TB 2006)
+ for( i=1;i<9;i++) {
+ hi=900+i;
+ sprintf(histo,"h%d",hi);
+ hfadc[i-1] = new TH1F (histo," FADC ", 1000,0.,5000.);
+ }
+  */
+
+  /// Histograms for TDC MODULE L1176 with 16 channel -used only 8 channel (from 1 to 8) 
+  // TDC Spectra
+
+  // Channel 0 is unused -- it is noisy
+  for ( i=1;i<9;i++) {
+    if (i==1) {sprintf(histo,"tdc_dwc_up_l");}
+    if (i==2) {sprintf(histo,"tdc_dwc_up_r");}
+    if (i==3) {sprintf(histo,"tdc_dwc_up_u");}
+    if (i==4) {sprintf(histo,"tdc_dwc_up_d");}
+    if (i==5) {sprintf(histo,"tdc_dwc_dw_l");}
+    if (i==6) {sprintf(histo,"tdc_dwc_dw_r");}
+    if (i==7) {sprintf(histo,"tdc_dwc_dw_u");}
+    if (i==8) {sprintf(histo,"tdc_dwc_dw_d");}
+
+    htdc[i]=new TH1F (histo," TDC ",100,0.,1000.);
+  }
+  // Histogram of the number of corrupted hits (valid=1) in the event
+  htdccorr=new TH1F ("tdccorr"," TDC Corrupted ",65,-0.5,64.5);
+
+  htdcupud=new TH1F ("tdc_dwc_up_ud","DWC UP U-D",500,-250.5,249.5);
+  htdcuplr=new TH1F ("tdc_dwc_up_lr","DWC UP L-R",500,-250.5,249.5);
+  htdcdwud=new TH1F ("tdc_dwc_dw_ud","DWC DW U-D",500,-250.5,249.5);
+  htdcdwlr=new TH1F ("tdc_dwc_dw_lr","DWC DW L-R",500,-250.5,249.5);
+  // Histograms for TEMPERATURE MODULE TH03 with 3 Channels
+  // x axis is the T in deg C.
+  for (i=0;i<3;i++) {
+    sprintf(histo,"temp%d",i);
+    htemp[i]=new TH1F (histo," TEMP ",200,-100.,100.); 
+  }
+
+
+  // Histograms for the OSCILLOSCOPE- 4 Channels
+  // 1-Dim Histo 
+  // This is just a histogram of the channel output
+  // values, about 250 fills per event
+  for( i=1;i<5;i++) {
+    sprintf(histo,"osc%d",i);
+    hosc[i-1] = new TH1F (histo," OSC ", 256,-128.5,127.5);
+  }
+
+  // Time Structure of 100 events (event number:10001,20001....100001) 
+  for (l=1;l<101;l++) {
+    for ( k=1; k<5; k++) {
+      sprintf(histo,"time_str_osc%d_n%d",k,l);
+      hosc2[l-1][k-1]=new TH1F (histo,"Time Structure",282,-0.5,281.5);
+    }
+  }                
+                                                                                     
+
+  return 0;
+}
+
+static unsigned int nSingleHisto = 0;
+
+int dreammon_event(unsigned int doSingle, unsigned int evt, unsigned int * buf){
+  int rc;
+  unsigned int j;
+  unsigned int hits;
+  unsigned int *addr;
+  mySCA scaData;
+  myADCN adcnData;
+  myTH03 th03Data;
+  myTEKOSC tekoscData;
+  myTDC tdcData;
+  myADC adcData;
+  /*myFADC fadcData;
+    myKTDC ktdcData;
+  */
+                                                                                
+
+  int isFirstEvent ;
+  int carry;
+  unsigned int doThat;
+
+  if(evt==0) isFirstEvent=1;
+  if(evt!=0) isFirstEvent=0;
+
+  unsigned int i;
+  EventHeader * head=(EventHeader *) buf;
+
+  if(head->evmark!=0xCAFECAFE){
+    printf( "Cannot find the event marker. Something is wrong.\n" );
+    return 0;
+  }
+  
+
+  i=head->evhsiz/sizeof(unsigned int);
+
+  Nevtda   = 0; 
+  // Fill histo of run number and pedestal run number 
+  hrn->Fill(Nrunnumber);
+  hprn->Fill(ped_run_number);
+
+  if (isFirstEvent) {
+    BegTimeEvs = head->tsec;
+    BegTimeEvu = head->tusec;
+    isFirstEvent =0;
+  }
+  Nevtda   = head->evnum;
+  TimeEvu  = head->tusec - BegTimeEvu;
+  if (TimeEvu<0.) { TimeEvu = 1e6 + head->tusec - BegTimeEvu; carry = 1; }
+  else carry = 0;
+  TimeEvs  = head->tsec - BegTimeEvs - carry; 
+
+// doThat is true if the event number is 10001,2001,....100001 (necessary for oscillospe histos)
+  doThat = (doSingle) && (nSingleHisto < MAX_SINGLE_HISTO);
+  if (doThat) {
+    nSingleHisto ++;
+  } 
+
+/* Used for FLASH ADC (TB 2006) 
+  if (doThat) {
+    usigned int k,h_n1a,h_n2a; 
+    h_n1a=200+10+Nevtda*1000;
+    h_n2a=500+10+Nevtda*1000;
+    for ( k=1; k<9; k++) {
+    sprintf(histo,"h%d",h_n1a+k);
+    sprintf(histop,"h%d",h_n2a+k);
+    //     hfadcsetup1[k-1] = new TH2F (histo," Time Structure SETUP1",60,-4.4,70.6,2000,-2000.,2000.);
+    //     hfadcsetup2[k-1] = new TH2F (histo," Time Structure SETUP2",30,-3.8,71.2,2000,-2000.,2000.);
+    }
+  }
+*/
+
+  // Decode and Fill Histo for the Modules 
+  //   FILL SCALER 260
+  hits = 0;
+  unsigned int sz = (head->evsiz - head->evhsiz )/4;
+  addr = SubEventSeek2(0x200003,&buf[i],sz);
+  rc += DecodeV260(addr, &scaData);
+  for (j=0; j<scaData.index; j++) {
+    CHSCA[hits]  = scaData.channel[j];
+    COUNTSCA[hits] = scaData.counts[j];
+    hits++;
+  }
+  NSCA = hits;
+
+  // Decode and FILL Histo for temperature TH03 Module
+
+  hits = 0;
+  addr =  SubEventSeek2(0x0000ffff, &buf[i],sz);
+  rc += DecodeTH03(addr, &th03Data);
+  for (j=0; j<th03Data.index; j++) {
+    CHTH03[hits]  = th03Data.channel[j];
+    DATATH03[hits] = th03Data.data[j];
+    unsigned int ch=CHTH03[hits];
+    htemp[ch]->Fill(DATATH03[hits]);
+    hits++;
+  }
+  NhitTH03 = hits;
+                       
+                                                        
+  // Decode and  fill Histo for  ADC  MODULE 0 V792AC (The new ADC=ADCN)
+  int k = 0;
+  float s_tot=0;
+  float q_tot=0;
+  float s_tot_p=0;
+  float q_tot_p=0;
+
+  hits = 0;
+  addr =  SubEventSeek2(0x04000005, &buf[i],sz);
+  rc += DecodeV792AC(addr, &adcnData);
+  for (j=0; j<adcnData.index; j++) {
+    CHADCN0[hits]  = adcnData.channel[j];
+    CHARGEADCN0[hits] = adcnData.data[j];
+    hadc0n[CHADCN0[hits]]->Fill(CHARGEADCN0[hits]);
+    hadc0np[CHADCN0[hits]]->Fill(CHARGEADCN0[hits]- pmean[CHADCN0[hits]]);
+    hadc0ovmap->Fill(CHADCN0[hits],adcnData.ov[j]);
+    if(CHADCN0[hits]<19){
+      s_tot=s_tot+CHARGEADCN0[hits];
+      s_tot_p=s_tot_p+CHARGEADCN0[hits]-pmean[CHADCN0[hits]];
+    }else {
+      q_tot=q_tot+CHARGEADCN0[hits];
+      q_tot_p=q_tot_p+CHARGEADCN0[hits]-pmean[CHADCN0[hits]];
+    }
+   hits++;
+  }
+  NhitADCN0 = hits;
+
+
+  // Decode and FILL  Histo for ADC MODULE 1 V792AC (The new ADC=ADCN)
+  hits = 0;
+  addr =  SubEventSeek2(0x06000005, &buf[i],sz);
+  rc += DecodeV792AC(addr, &adcnData);
+  for (j=0; j<adcnData.index; j++) {
+    CHADCN1[hits]  = adcnData.channel[j];
+    CHARGEADCN1[hits] = adcnData.data[j];
+    hadc1ovmap->Fill(CHADCN1[hits],adcnData.ov[j]);
+    if (CHADCN1[hits]>=18) {
+      hadc1n[CHADCN1[hits]]->Fill(CHARGEADCN1[hits]);
+      hadc1np[CHADCN1[hits]]->Fill(CHARGEADCN1[hits]-pmean[CHADCN1[hits]+32]);
+      if ((CHADCN1[hits]>=18)&&(CHADCN1[hits]<24)) {
+	q_tot=q_tot+CHARGEADCN1[hits];
+	q_tot_p=q_tot_p+CHARGEADCN1[hits]-pmean[CHADCN1[hits]+32];
+      }
+    }
+    hits++;
+  }
+  NhitADCN1 = hits;
+
+  hs->Fill(s_tot);
+  hq->Fill(q_tot);
+  hsp->Fill(s_tot_p);
+  hqp->Fill(q_tot_p);
+                                                                             
+  // Decode and FILL Oscillospe TEKOSC
+  hits = 0;
+  addr =  SubEventSeek2(0x0000fafa, &buf[i],sz);
+  rc += DecodeTEKOSC(addr, &tekoscData);
+  unsigned int kp;
+  for (j=0; j<tekoscData.index; j++) {
+    CHOSC[hits]  = tekoscData.channel[j];
+    DATAOSC[hits] = tekoscData.data[j];
+    NUMOSC[hits] =tekoscData.num[j];
+    hosc[CHOSC[hits]]->Fill(DATAOSC[hits]/256);
+    if (doThat) {
+      if ((NUMOSC[hits]==0)&&(CHOSC[hits]==0)){ 
+      }
+      hosc2[nSingleHisto-1][CHOSC[hits]]->Fill(NUMOSC[hits],DATAOSC[hits]/256);
+          
+    }
+    hits++;
+  }
+  NhitOSC = hits;
+  for (kp=0;kp<4;kp++) {
+    SCALEOSC[kp]=tekoscData.scale[kp];
+    POSOSC[kp]=tekoscData.position[kp];
+    TDOSC[kp]=tekoscData.tdiff[kp];
+    CHFOSC[kp]=tekoscData.chfla[kp];
+  }
+
+  //Decode and FILL ADC LECROY L1182 MODULE 0 
+
+  hits = 0;
+  addr = SubEventSeek2(0x10002,&buf[i],sz);
+  rc += DecodeL1182(addr, &adcData);
+  for (j=0; j<adcData.index; j++) {
+    CHADC0[hits]  = adcData.channel[j];
+    CHARGEADC0[hits]  = adcData.charge[j];
+    if(CHADC0[hits]<2) {
+      hadc[CHADC0[hits]]->Fill(CHARGEADC0[hits]);
+      hadcp[CHADC0[hits]]->Fill(CHARGEADC0[hits]-pmean[CHADC0[hits]+64]);
+    }
+    hits++;
+    k++;
+  }
+  NhitADC0 = hits;
+
+  /*  In TB 2006 there was other ADC LECROY 1182 Modules
+
+  //FILL ADC LECROY L1182 MODULE 1
+  hits = 0;
+  addr = SubEventSeek2(0x50002, &buf[i],sz);
+  rc += DecodeL1182(addr, &adcData);
+  for (j=0; j<adcData.index; j++) {
+  CHADC1[hits]  = adcData.channel[j];
+  CHARGEADC1[hits]  = adcData.charge[j];
+  hits++;
+  k++;
+  }
+  NhitADC1 = hits;
+  //FILL ADC LECROY L1182 MODULE 2
+  hits = 0;
+  addr = SubEventSeek2(0x40002, &buf[i],sz);
+  rc += DecodeL1182(addr, &adcData);
+  for (j=0; j<adcData.index; j++) {
+  CHADC2[hits]  = adcData.channel[j];
+  CHARGEADC2[hits]  = adcData.charge[j];
+  hits++;
+  k++;
+  }
+  NhitADC2 = hits;
+  //FILL ADC LECROY L1182 MODULE 3
+  hits = 0;
+  addr = SubEventSeek2(0x30002, &buf[i],sz);
+  rc += DecodeL1182(addr, &adcData);
+  for (j=0; j<adcData.index; j++) {
+  CHADC3[hits]  = adcData.channel[j];
+  CHARGEADC3[hits]  = adcData.charge[j];
+
+  hits++;
+  k++;
+  }
+  NhitADC3 = hits;
+  //FILL ADC LECROY L1182  MODULE 4
+  hits = 0;
+  addr = SubEventSeek2(0x20002, &buf[i],sz);
+  rc += DecodeL1182(addr, &adcData);
+  for (j=0; j<adcData.index; j++) {
+  CHADC4[hits]  = adcData.channel[j];
+  CHARGEADC4[hits]  = adcData.charge[j];
+
+  hits++;
+  k++;
+  }
+  NhitADC4 = hits;
+ 
+  //FILL ADC LECROY L1182 MODULE 5
+  hits = 0;
+  addr = SubEventSeek2(0x10002, &buf[i],sz);
+  rc += DecodeL1182(addr, &adcData);
+  for (j=0; j<adcData.index; j++) {
+  CHADC5[hits]  = adcData.channel[j];
+  CHARGEADC5[hits]  = adcData.charge[j];
+  hits++;
+  k++;
+  }
+  NhitADC5 = hits;
+
+  */
+
+  /*  FILL FADC SIS3320 present in TB 2006
+      float off2=0;
+      hits = 0;
+      addr = SubEventSeek2(0x20000013, &buf[i],sz);
+      rc += DecodeSIS3320(addr, &fadcData);
+      for (j=0; j<fadcData.index; j++) {
+      CHFADC[hits]  = fadcData.channel[j];
+      VALUEFADC[hits]  = fadcData.value[j];
+      NUMFADC[hits]  = fadcData.num[j];
+      hfadc[CHFADC[hits]-1]->Fill(VALUEFADC[hits]);
+      if (doThat) { 
+      // SETUP 1
+      if ((CHFADC[hits]==1)||(CHFADC[hits]==5)) {
+      off2=3.75;
+      }
+      if ((CHFADC[hits]==2)||(CHFADC[hits]==6)) {
+      off2=2.5;
+      }
+      if ((CHFADC[hits]==3)||(CHFADC[hits]==7)) {
+      off2=1.25;
+      }
+      if ((CHFADC[hits]==4)||(CHFADC[hits]==8)) {
+      off2=0.;
+      }      
+      float x=5.*NUMFADC[hits]+off2; // nsec
+      float y=VALUEFADC[hits];
+      //      hfadcsetup1([CHFADC[hits]-1])->Fill(x,y);
+      
+      // SETUP 2
+      if((CHFADC[hits]==1)||(CHFADC[hits]==3)||(CHFADC[hits]==5)||(CHFADC[hits]==7)) {
+      off2=2.5;
+      }
+      if((CHFADC[hits]==2)||(CHFADC[hits]==4)||(CHFADC[hits]==6)||(CHFADC[hits]==8)) {
+      off2=0.;
+      }
+   
+      x=5.*NUMFADC[hits]+off2;
+      y=VALUEFADC[hits];
+      //      hfadcsetup2([CHFADC[hits]-1])->Fill(x,y);
+      } // if Nevtda
+
+      hits++;
+      }
+      NhitFADC = hits;
+  */
+  //Decode and  Fill TDC L1176
+  hits = 0;
+  int corr=0;
+  int tdcdwleft=-1;
+  int tdcdwright=-1;
+  int tdcdwup=-1;
+  int tdcdwdown=-1;
+  int tdcupleft=-1;
+  int tdcupright=-1;
+  int tdcupup=-1;
+  int tdcupdown=-1;
+  bool foundbchtdc[8]={false,false,false,false,false,false,false,false};
+  addr = SubEventSeek2(0x300002, &buf[i],sz);
+  rc += DecodeL1176(addr, &tdcData);
+  for (j=0; j<tdcData.index; j++) { 
+    COUNTTDC[hits]  = tdcData.data[j];
+    EDGETDC[hits]  = tdcData.edge[j];
+    int tdcchan = CHTDC[hits]  = tdcData.channel[j];
+    VALIDTDC[hits]  = tdcData.valid[j];
+    if((tdcchan>0)&&(tdcchan<9)){
+      if ((VALIDTDC[hits]==0) && (!foundbchtdc[tdcchan-1])) {
+	htdc[tdcchan]->Fill(COUNTTDC[hits]);
+        foundbchtdc[tdcchan-1] = true;
+      }else{
+	corr++;
+      }
+    } 
+    if((tdcchan==1) && (tdcupleft == -1))
+      tdcupleft=COUNTTDC[hits];
+    if((tdcchan==2) && (tdcupright == -1))
+      tdcupright=COUNTTDC[hits];
+    if((tdcchan==3) && (tdcupup == -1))
+      tdcupup=COUNTTDC[hits];
+    if((tdcchan==4) && (tdcupdown == -1))
+      tdcupdown=COUNTTDC[hits];
+    if((tdcchan==5) && (tdcdwleft == -1))
+      tdcdwleft=COUNTTDC[hits];
+    if((tdcchan==6) && (tdcdwright == -1))
+      tdcdwright=COUNTTDC[hits];
+    if((tdcchan==7) && (tdcdwup == -1))
+      tdcdwup=COUNTTDC[hits];
+    if((tdcchan==8) && (tdcdwdown == -1))
+      tdcdwdown=COUNTTDC[hits];
+
+    hits++;
+  }
+  NhitTDC = hits; 
+  htdccorr->Fill(corr); 
+
+  if(tdcupleft>=0 && tdcupright>=0)
+    htdcuplr->Fill(tdcupleft-tdcupright);
+  if(tdcupup>=0 && tdcupdown>=0)
+    htdcupud->Fill(tdcupup-tdcupdown);
+  if(tdcdwleft>=0 && tdcdwright>=0)
+    htdcdwlr->Fill(tdcdwleft-tdcdwright);
+  if(tdcdwup>=0 && tdcdwdown>=0)
+    htdcdwud->Fill(tdcdwup-tdcdwdown);
+
+  /*
+  //Decode for KLOE TDC -
+  hits = 0;
+  addr = SubEventSeek2(0x7C000012, &buf[i],sz);
+  rc += DecodeKLOETDC(addr, &ktdcData);
+  for (j=0; j<ktdcData.index; j++) {
+  COUNTKTDC[hits]  = ktdcData.data[j];
+  EDGEKTDC[hits]  = ktdcData.edge[j];
+  CHKTDC[hits]  = ktdcData.channel[j];
+  OVERKTDC[hits]  = ktdcData.over[j];
+  HFILL(400+CHKTDC[hits],COUNTKTDC[hits],0.,1.);
+  hits++;
+  }  
+  NhitKTDC = hits;
+  */
+  return 0;
+}
+
+
+int dreammon_exit(unsigned int i){
+  int istat;
+  TFile hfile(ntfilename,"RECREATE");
+/*   if (!hfile) {
+    fprintf(stderr, "Cannot open pedestal data file %s\n", ntfilename);
+    return -1;
+  }
+*/
+  // Write the istogramms
+  hrn->Write();
+  hprn->Write();
+  unsigned int k=0;
+  for (k=0;k<2;k++){
+    hadc[k]->Write();
+    hadcp[k]->Write();
+  }
+  for (k=0;k<32;k++){ 
+    hadc0n[k]->Write();
+    hadc0np[k]->Write();
+  }
+  for (k=18;k<32;k++) {
+    hadc1n[k]->Write();
+    hadc1np[k]->Write();
+  }
+  hadc0ovmap->Write();
+  hadc1ovmap->Write();
+  hs->Write();
+  hq->Write();
+  hsp->Write();
+  hqp->Write();
+    
+  for (k=1;k<9;k++){
+    htdc[k]->Write();
+  }
+  htdccorr->Write();
+  htdcuplr->Write();
+  htdcupud->Write();
+  htdcdwlr->Write();
+  htdcdwud->Write();
+  k=0;
+  for (k=0;k<3;k++){
+    htemp[k]->Write();
+  }
+    k=0;
+    unsigned int l=0;
+     for (k=0;k<4;k++){
+    hosc[k]->Write();
+       for(l=0;l<100;l++) {
+     hosc2[l][k]->Write();
+}
+}
+
+  hfile.Close(); 
+  return 0;
+}
+/***************************************************/

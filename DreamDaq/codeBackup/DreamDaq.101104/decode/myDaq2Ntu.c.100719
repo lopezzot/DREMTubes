@@ -1,0 +1,767 @@
+/*************************************************************************
+
+        myDaq2Ntu.c
+        -----------
+
+        myDaq --> Ntuple conversion program
+
+        Version 0.1,      A.Cardini C. Deplano 29/11/2001
+
+                          E. Meoni L. La Rotonda 25/07/2006
+*********************************************************************/
+
+#include "../myRawFile.h"
+#include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+#include <sys/time.h>
+#include <TTree.h>
+#include <TFile.h>
+#include <iostream>     
+#include <TH1.h> 
+#include <TMath.h>
+
+#define TOTFADC 0
+#define TOTADC  0
+#define TOTSCA  1
+#define TOTTDC  1
+#define TOTKLOETDC 1
+#define TOTTH03  1
+#define TOTADCN 3
+
+TTree *tree;
+/* Global Variables for NTUPLE (not all used in the ntuple at the moment) */
+bool phys;
+bool  drs;
+bool  drs_fb_lk;
+bool  drs_matrix;
+int  drs_setup;
+bool scope; 
+
+int Nrunnumber;           // Number of the Run  
+int BegTimeEvs;             // Time of first event in Seconds
+int BegTimeEvu;             // Time of first event in MicroSeconds
+int TimeEvs;                // Time of event in Seconds
+int TimeEvu;                // Time of event in MicroSeconds
+unsigned int Nevtda =0 ;             // Number of data event
+unsigned int NSCA;              // Total number of counts in Scaler 
+unsigned int CHSCA[16];         // Channels in the scaler (the channel of the count) 
+unsigned int  COUNTSCA[16];     //  Counts in the Scaler  (the value of the count)
+
+
+unsigned int NhitTH03;          // Total number of measurements in the TH03 (always 3) 
+unsigned int CHTH03[3];         // Channels in the TH03 (the channel of the measurement) 
+                                // (CHTH03[i] is the channel of the i-th measurement) 
+
+UShort_t lowth03;     
+UShort_t highth03;     
+UShort_t RAWTH03[3];     
+                         
+float DATATH03[3];              // Measurements in the TH03 (the value of the mesurement)
+                                // (DATATH03[i] is the value of the i-th measurement) 
+
+
+unsigned int NhitOSC;           // Total number of points in the Oscilloscope 
+                                // (=2128 if there are 4 channels each with 282 points )
+unsigned int CHOSC[2128];       // Channels in the oscilloscope
+                                // CHOSC[i] is the channel of the i-th point )  
+Char_t DATAOSC[2128];              // Values of the poit in the oscilloscope
+// (DATAOSC[i] is the value of the i-th point)
+unsigned int NUMOSC[2128];      // Number of the point in the channel (max value =282)
+                                
+int POSOSC[2];                  // Position for Oscilloscope (as in myOscDataFile.h) 
+unsigned int TDOSC[2];          // Time Diff for Oscilloscope (as in myOscDataFile.h)
+unsigned int SCALEOSC[2];       // Scale of the Oscilloscope (as in myOscDataFile.h)  
+unsigned int CHFOSC[2];         // Oscilloscope Channel Flag (0= channel enabled, 1 =channel abled)  
+unsigned int PTSOSC;            // Oscilloscope pts (as in myOscDataFile.h , at the moment =282)  
+unsigned int SROSC;             // Sampling rate of the Oscilloscope (as in myOscDataFile.h)
+float PED_MEAN_OSC[2];
+float PED_RMS_OSC[2];
+
+unsigned int NhitADCN0;         // Hits in ADCN0 (the total number of couts in ADCNO, MODULE 0 of V792AC)  
+unsigned int CHADCN0[32];       // Channel in ADCN0 (the channel of cout)
+                                // (CHADCN0[i] is the channel of the i-th count )
+unsigned int CHARGEADCN0[32] ;  // Charge in ADCN0  (the value of the count)
+                                // (CHARGEADCN0[i] is the  value of the i-th cout )
+UChar_t OVERADCN0[32] ; 
+UChar_t UNDERADCN0[32] ; 
+
+
+float   PED_MEAN_ADCN0[32];
+float   PED_RMS_ADCN0[32];
+
+unsigned int NhitADCN1;         // Hits in ADCN1 (the total number of couts in ADCNO, MODULE1  of V792AC)
+unsigned int CHADCN1[32];       // Channel in ADCN1 (the channel of the count)
+                                // (CHADCN1[i] is the channel of the i-th count )
+unsigned int CHARGEADCN1[32] ;  // Charge in ADCN1  (the value of the count)
+                                // (CHARGEADCN1[i] is the  value of the i-th cout )
+
+UChar_t OVERADCN1[32] ; 
+UChar_t UNDERADCN1[32] ; 
+ 
+float   PED_MEAN_ADCN1[32];
+float   PED_RMS_ADCN1[32];
+
+
+unsigned int NhitADCN2;         // Hits in ADCN2 (the total number of couts in ADCNO, MODULE1  of V792AC)
+unsigned int CHADCN2[32];       // Channel in ADCN2 (the channel of the count)
+                                // (CHADCN2[i] is the channel of the i-th count )
+unsigned int CHARGEADCN2[32] ;  // Charge in ADCN2  (the value of the count)
+                                // (CHARGEADCN2[i] is the  value of the i-th cout )
+
+UChar_t OVERADCN2[32] ;
+UChar_t UNDERADCN2[32] ;
+
+float   PED_MEAN_ADCN2[32];
+float   PED_RMS_ADCN2[32];
+
+
+                                                                                                               
+unsigned int NhitTDC;           // Hits in TDC  (the total number of couts in TDC, MODULE 1176 )
+                                // Remember TDC have 16 channel multihit 
+                                //(at the moment used only 8 channels)  
+unsigned int CHTDC[64];         // Channel in TDC (the channel of the count)
+                                // (CHTDC[i] is the channel of the i-th count)
+unsigned int VALIDTDC[64];      //  0=good 1=corrupt
+unsigned int EDGETDC[64];       // Edge in TDC (0=falling 1=rising)
+unsigned int COUNTTDC[64];      // Count in TDC (the value of the count)
+                                //(COUNTTDC[i] is the  value of the i-th cout) 
+float X_UP[16];
+float Y_UP[16];                                                                        
+float X_DW[16];
+float Y_DW[16];
+
+unsigned int N_X_UP;
+unsigned int N_Y_UP;
+unsigned int N_X_DW;
+unsigned int N_Y_DW;
+
+
+
+/************************************************************************/
+void ntbook()
+/************************************************************************/
+{                                                                                                                             
+  //  TTree::SetMaxTreeSize(1000*Long64_t(2000000000));
+  // Declare ntuple identifier and title
+  tree = new TTree("DREAM","Title Dream 2008");
+
+                                                                                                 
+  // Describe data to be stored in the Ntuple (see comments before) 
+ 
+  tree->Branch("Nrunnumber",&Nrunnumber,"Nrunnumber/i");
+  tree->Branch("TimeEvs",&TimeEvs,"TimeEvs/i");
+  tree->Branch("TimeEvu",&TimeEvu,"TimeEvu/i");
+  tree->Branch("Nevtda",&Nevtda,"Nevtda/i");
+ 
+  tree->Branch("HIGHREFTH03",&highth03,"HIGHREFTH03/s");
+  tree->Branch("LOWREFTH03",&lowth03,"LOWREFTH03/s");
+  tree->Branch("RAWTH03",RAWTH03,"RAWTH03[3]/s");
+  tree->Branch("DATATH03",DATATH03,"DATATH03[3]/F");
+
+  if ((!drs)&&(scope)) {
+    tree->Branch("DATAOSC",DATAOSC,"DATAOSC[2128]/B");
+    tree->Branch("CHFOSC",CHFOSC,"CHFOSC[2]/i");
+    tree->Branch("POSOSC",POSOSC,"POSOSC[2]/I");
+    tree->Branch("SCALEOSC",SCALEOSC,"SCALEOSC[2]/i");
+    tree->Branch("TDOSC",TDOSC,"TDOSC[2]/i");
+    tree->Branch("PTSOSC",&PTSOSC,"PTSOSC/i");
+    tree->Branch("SROSC",&SROSC,"SROSC/i");
+  }
+  if ((!drs)||(drs&&drs_matrix)) {
+    tree->Branch("CHADCN0",CHADCN0,"CHADCN0[32]/i");
+    tree->Branch("CHARGEADCN0",CHARGEADCN0,"CHARGEADCN0[32]/i");
+    tree->Branch("OVERADCN0",OVERADCN0,"OVERADCN0/b");
+    tree->Branch("UNDERADCN0",UNDERADCN0,"UNDERADCN0/b");
+
+    tree->Branch("CHADCN1",CHADCN1,"CHADCN1[32]/i");
+    tree->Branch("CHARGEADCN1",CHARGEADCN1,"CHARGEADCN1[32]/i");
+    tree->Branch("OVERADCN1",OVERADCN1,"OVERADCN1/b");
+    tree->Branch("UNDERADCN1",UNDERADCN1,"UNDERADCN1/b");
+  }
+
+  tree->Branch("CHADCN2",CHADCN2,"CHADCN2[32]/i");
+  tree->Branch("CHARGEADCN2",CHARGEADCN2,"CHARGEADCN2[32]/i");
+  tree->Branch("OVERADCN2",OVERADCN2,"OVERADCN2/b");
+  tree->Branch("UNDERADCN2",UNDERADCN2,"UNDERADCN2/b");
+
+  tree->Branch("NhitTDC",&NhitTDC,"NhitTDC/i"); 
+  tree->Branch("CHTDC",CHTDC,"CHTDC[64]/i");
+  tree->Branch("COUNTTDC",COUNTTDC,"COUNTTDC[64]/i");
+  tree->Branch("VALIDTDC",VALIDTDC,"VALIDTDC[64]/i");
+  tree->Branch("EDGETDC",EDGETDC,"EDGETDC[64]/i");
+  
+  tree->Branch("X",X_DW,"X[16]/F");
+  tree->Branch("N_X",&N_X_DW,"N_X/i");
+  tree->Branch("Y",Y_DW,"Y[16]/F");
+  tree->Branch("N_Y",&N_Y_DW,"N_Y/i");
+
+  tree->Branch("OPT_X",X_UP,"OPT_X[16]/F");
+  tree->Branch("N_OPT_X",&N_X_UP,"N_OPT_X/i");
+  tree->Branch("OPT_Y",Y_UP,"OPT_Y[16]/F");
+  tree->Branch("N_OPT_Y",&N_Y_UP,"N_OPT_Y/i");
+
+  tree->Branch("CHSCA",CHSCA,"CHSCA[16]/i");
+  tree->Branch("COUNTSCA",COUNTSCA,"COUNTSCA[16]/i");
+
+  if (phys) {
+    if ((!drs)||(drs&&drs_matrix))  {     
+      tree->Branch("PED_MEAN_ADCN0",PED_MEAN_ADCN0,"PED_MEAN_ADCN0[32]/F");
+      tree->Branch("PED_RMS_ADCN0",PED_RMS_ADCN0,"PED_RMS_ADCN0[32]/F");
+
+      tree->Branch("PED_MEAN_ADCN1",PED_MEAN_ADCN1,"PED_MEAN_ADCN1[32]/F");
+      tree->Branch("PED_RMS_ADCN1",PED_RMS_ADCN1,"PED_RMS_ADCN1[32]/F");
+    }
+
+    tree->Branch("PED_MEAN_ADCN2",PED_MEAN_ADCN2,"PED_MEAN_ADCN2[32]/F");
+    tree->Branch("PED_RMS_ADCN2",PED_RMS_ADCN2,"PED_RMS_ADCN2[32]/F");
+
+    if ((!drs)&&(scope))  {
+      tree->Branch("PED_MEAN_OSC",PED_MEAN_OSC,"PED_MEAN_OSC[2]/F");
+      tree->Branch("PED_RMS_OSC",PED_RMS_OSC,"PED_RMS_OSC[2]/F");
+    }
+    // DRS 2008    }
+      
+    // Fill DRS ped istogram in the ntuple
+
+
+  } 
+}
+
+
+/************************************************************************/
+int main(int argc, char **argv)
+/************************************************************************/
+{
+  int rc;
+  unsigned int j;
+  int hits;
+  unsigned int buf[10000];
+  unsigned int *addr;
+  mySCA scaData;
+  myADCN adcnData;
+  myTH03 th03Data;
+  myTEKOSC tekoscData;
+  myTDC tdcData;
+
+
+  char datadir[256];
+  char datafilename[256];
+  char ntdir[256];
+  char ntfilename[256];
+  int isFirstEvent = 1;
+  //  int istat;
+  int carry;
+
+  if(argc<3){
+    std::cout << "Usage: " << argv[0] << " runnumber datatype" 
+	      << " (pedestal or data)" << std::endl;
+    std::cout << "PLEASE set correctly the following environmental variables"<< std::endl;
+   
+    std::cout << "Input binary files are searched in:"<< std::endl;
+    std::cout << "\t $DATADIR/data"<< std::endl;
+    std::cout << "\t $DATADIR/pedestal"<< std::endl;
+    std::cout << "Input root files for pedestal math are searched in:"<< std::endl;
+    std::cout << "\t $NTUPLEDIR/"<< std::endl;
+    std::cout << "Output files will be placed in:"<< std::endl;
+    std::cout << "\t $NTUPLEDIR/"<< std::endl;
+    exit(1);
+  }
+  
+  if(!strcmp(argv[2],"pedestal")){
+    phys=false;
+  }else if(!strcmp(argv[2],"data")){
+    phys=true;
+  }else{
+    std::cout << "Unknown data type: " << argv[1] << std::endl;
+    exit(1);
+  }
+
+  /*
+    drs=false;
+    drs_fb_lk=false;
+    drs_matrix=false;
+    drs_setup=0;
+    scope=true;
+  */
+  if (argc < 4) {
+    drs=false;
+    drs_fb_lk=false;
+    drs_matrix=false;
+    drs_setup=0;
+    scope= true;
+    //      printf(" ciao %d\n",argc);
+  }else if (argc==4) {
+    if (!strcmp(argv[3],"nodrs")){
+      drs=false;
+      drs_fb_lk=false;
+      drs_matrix=false;
+      drs_setup=0;
+      scope=true;
+    }else if(!strcmp(argv[3],"nodrs_noscope")){
+      drs=false;
+      drs_fb_lk=false;
+      drs_matrix=false;
+      drs_setup=0;
+      scope=false; 
+    }else if (!strcmp(argv[3],"drs_fb_lk")){
+      drs=true;
+      drs_fb_lk=true;
+      drs_matrix=false;
+      drs_setup=1;
+      scope=false;
+
+    } else if (!strcmp(argv[3],"drs_matrix")){
+      drs=true;
+      drs_fb_lk=false;
+      drs_matrix=true;
+      drs_setup=2;
+      scope=false;
+    }
+  }
+
+
+  // Create Input/Output filenames
+  if (getenv("DATADIR") == NULL){
+    if(phys)
+      sprintf(datadir, "/home/dreamtest/working");
+    else
+      sprintf(datadir, "/home/dreamtest/working");
+  }else
+    sprintf(datadir, "%s", getenv("DATADIR"));
+  
+  if (getenv("NTUPLEDIR") == NULL)
+    sprintf(ntdir, "/home/dreamtest/working/ntuple");
+  else
+    sprintf(ntdir, "%s", getenv("NTUPLEDIR"));
+   
+  
+ 
+  if(phys){
+    sprintf(datafilename, "%s/data/datafile_run%s.dat", datadir, argv[1]);
+    sprintf(ntfilename, "%s/datafile_ntup_run%s.root", ntdir, argv[1]);
+  }else{
+    sprintf(datafilename, "%s/pedestal/pedestal_run%s.dat", datadir, argv[1]);
+    sprintf(ntfilename, "%s/pedestal_ntup_run%s.root", ntdir, argv[1]);
+
+  }
+
+
+  //
+
+  if(phys){
+    // Read pedestal information for the different modules from Pedestal Ntuple
+    char pedntfilename[256],channel[50],charge_modul[50];
+    float mean_adcn[3][32],rms_adcn[3][32],mean_adc[8],rms_adc[8],mean_osc[2],rms_osc[2];
+
+    for (unsigned int i=0;i<8;i++){
+      mean_adc[i]=0;
+      rms_adc[i]=0;
+    }
+    for (unsigned int i=0;i<2;i++) {
+      mean_osc[i]=0;
+      rms_osc[i]=0;
+    } 
+    for (unsigned int i=0;i<3;i++) {
+      for (unsigned int j=0;j<32;j++){
+	mean_adcn[i][j]=0;
+	rms_adcn[i][j]=0;
+      }
+    }
+    // DRS 2008    if (!drs) {  
+    sprintf(pedntfilename, "%s/pedestal_ntup_run%s.root", ntdir, argv[1]);
+     
+    TFile *fileped = new TFile(pedntfilename,"READ");
+    if (!(fileped->IsOpen())){
+      printf("myDaq2Ntu: cannot open pedestal ntuple file %s\n",pedntfilename);
+    }//file open
+    if(fileped->IsOpen()) {
+      //      if (!drs) {
+      TTree *t=(TTree *)gDirectory->Get("DREAM");
+      
+      if(t!=NULL && t->GetEntries()>0){
+	
+	TH1F *ht=new TH1F("ht","ADC",4096,-0.5,4095.5);
+
+	for (int j=0;j<3;j++){
+	  for (int i=0;i<32;i++) {
+	    sprintf(charge_modul,"CHARGEADCN%d",j);
+	    sprintf(channel,"CHADCN%d==%d",j,i);
+	    if ((!drs)||(drs&&drs_matrix)) {
+	      if(t->Project("ht",charge_modul,channel))  {
+		mean_adcn[j][i]= ht->GetMean();
+		rms_adcn[j][i] = ht->GetRMS();
+	      }else{
+		mean_adcn[j][i]=0;
+		rms_adcn[j][i]=0;
+	      }
+	    } 
+	    if ((drs)&&(drs_fb_lk)){
+	      if (j==2) {
+		if(t->Project("ht",charge_modul,channel))  {
+		  mean_adcn[j][i]= ht->GetMean();
+		  rms_adcn[j][i] = ht->GetRMS();
+		}else{
+		  mean_adcn[j][i]=0;
+		  rms_adcn[j][i]=0;
+		}
+              }
+
+	    }
+	    ht->Reset();
+	  }
+	}
+	
+	for (int i=0;i<32;i++) {
+	  PED_MEAN_ADCN0[i]=mean_adcn[0][i];
+	  PED_RMS_ADCN0[i]=rms_adcn[0][i];
+	  PED_MEAN_ADCN1[i]=mean_adcn[1][i];
+	  PED_RMS_ADCN1[i]=rms_adcn[1][i];
+	  PED_MEAN_ADCN2[i]=mean_adcn[2][i];
+	  PED_RMS_ADCN2[i]=rms_adcn[2][i];
+
+	}
+	delete ht;
+
+	if ((!drs)&&(scope)) {
+	  UInt_t ptsosc,chfosc[2];
+	  Char_t dataosc[2128];
+	  t->SetBranchAddress("PTSOSC",&ptsosc);
+	  t->SetBranchAddress("CHFOSC",chfosc);
+	  t->SetBranchAddress("DATAOSC",dataosc);
+	  t->GetEntry(0);
+	
+	  unsigned int k[2];
+	  for (int i=0;i<2;i++) {
+	    if (chfosc[i]==1)
+	      k[i]=i;
+	    else
+	      k[i]=0;
+	  }
+	
+	  char histo[20],name[20];
+	  TH1F *htosc[2];
+	  for(unsigned int j=0;j<2;j++) {
+	    if (chfosc[j]==1){
+	      sprintf(histo,"ht%d",j);
+	      sprintf(name,"CHFOSC%d",j);
+	      htosc[j]=new TH1F(histo,name,256,-128.5,127.5);
+	    }
+	  } 
+	
+	  for (unsigned int j=0;j<t->GetEntriesFast();j++){
+	    t->GetEntry(j);
+	    for (int i=0;i<2;i++) {
+	      if (chfosc[i]==1) {
+		for (unsigned l=0;l<ptsosc;l++) {
+		  htosc[i]->Fill(dataosc[(k[i]*ptsosc)+l]);
+		} 
+	      } 
+	    }
+	  }
+	
+	  for (int i=0;i<2;i++){
+	    if (chfosc[i]==1){
+	      PED_MEAN_OSC[i]=htosc[i]->GetMean();
+	      PED_RMS_OSC[i]=htosc[i]->GetRMS();
+	      delete htosc[i];
+	    }else{
+	      mean_osc[i]=0;
+	      rms_osc[i]=0;
+	      PED_MEAN_OSC[i]=0;
+	      PED_RMS_OSC[i]=0;
+
+	    }
+	  }
+
+	}
+      }//entries>0
+
+
+      fileped->Close(); 
+    }//file open
+  }//if phys
+ 
+   // Open Data file
+  rc = RawFileOpen(datafilename);
+  if (rc) {
+    printf("myDaq2Ntu: cannot open data file %s\n", argv[1]);
+    return -1;
+  }
+ 
+  TFile *file = new TFile(ntfilename,"RECREATE");
+
+  printf("output file: %s\n",file->GetName());
+
+  if (!file->IsOpen()) {
+    printf("myDaq2Ntu: cannot open ntuple file %s\n", ntfilename);
+    return -1;
+  }
+  file->SetCompressionLevel(4);
+  
+  //
+  // Book Ntuple
+  ntbook();
+  // Main Loop on all events
+  for (;;) {
+
+    // Read Event and write it in buffer 'buf'
+    rc = RawFileReadEventData(buf);
+    if (rc == RAWDATAEOF) { 
+      printf("Found EOF at event %d\n", GetEventNumber()); 
+      break; }
+    if (rc == RAWDATAUNEXPECTEDEOF) { printf("Unexpected EOF at event %d\n", GetEventNumber()); break; }
+    rc = 0;  // 
+    Nrunnumber=GetRunNumber();
+    //    int Nevttot=GetTotEvts();
+    // Write in the Ntuple  the Event Number and Time (seconds and uSec) w.r.t first event.
+    if (isFirstEvent) {
+      BegTimeEvs = GetEventTimes();
+      BegTimeEvu = GetEventTimeu();
+      isFirstEvent =0;
+    }
+    Nevtda   = GetEventNumber();
+    //    std::cout<<" Nevt "<<Nevtda<<std::endl;
+    TimeEvu  = GetEventTimeu() - BegTimeEvu;
+    if (TimeEvu<0.) {
+      double TimeEvu_t= 1e6 + GetEventTimeu() - BegTimeEvu; 
+      TimeEvu = (int) TimeEvu_t; 
+      carry = 1; 
+    }
+    else 
+      carry = 0;
+    
+    TimeEvs  = GetEventTimes() - BegTimeEvs - carry;
+
+
+    //    printf("while fillng time info: Event %d TimeEvs %d TimeEvu %d\n", Nevtda, TimeEvs, TimeEvu);
+
+
+    //  Decode module and compute the variables of the NTUPLE
+    //
+
+    // FILL EVENTNUMER
+    // FILL SCALER 260
+    for (int i=0;i<16;i++) {
+      CHSCA[i] = 100;
+    }
+
+    hits = 0;
+    addr = SubEventSeek(0x200003, buf);
+    rc += DecodeV260(addr, &scaData);
+    for (j=0; j<scaData.index; j++) {
+      CHSCA[hits]  = scaData.channel[j];
+      COUNTSCA[hits] = scaData.counts[j];
+      hits++;
+    }
+    NSCA = hits;
+
+    // FILL TH03
+    hits = 0;
+    addr =  SubEventSeek(0x0000ffff, buf);
+    rc += DecodeTH03(addr, &th03Data);
+
+    for (j=0; j<th03Data.index; j++) {
+      CHTH03[hits]  = th03Data.channel[j];
+      RAWTH03[hits]= th03Data.rawdata[j];
+      DATATH03[hits] = th03Data.data[j];
+      hits++;
+    }
+    lowth03=th03Data.lowref;
+    highth03=th03Data.highref;
+    NhitTH03 = hits;
+
+    // FILL ADC NEW 0
+    for (int i=0;i<32;i++){     
+      CHADCN0[i] = 100;
+      CHADCN1[i] = 100;
+      CHADCN2[i] = 100; 
+    }
+
+    if ((!drs)||(drs&&drs_matrix)) {
+ 
+      hits = 0;
+      addr =  SubEventSeek(0x04000005, buf);
+      rc += DecodeV792AC(addr, &adcnData);
+      
+      for (j=0; j<adcnData.index; j++) {
+	CHADCN0[hits]  = adcnData.channel[j];
+	CHARGEADCN0[hits] = adcnData.data[j];
+	OVERADCN0[hits] = adcnData.ov[j];
+	UNDERADCN0[hits] = adcnData.un[j];
+	hits++;
+      }
+      NhitADCN0 = hits;
+     
+      // FILL ADC NEW 1
+      hits = 0;
+      addr =  SubEventSeek(0x05000005, buf);
+      rc += DecodeV792AC(addr, &adcnData);
+                                                                                                 
+      for (j=0; j<adcnData.index; j++) {
+	CHADCN1[hits]  = adcnData.channel[j];
+	CHARGEADCN1[hits] = adcnData.data[j];
+	OVERADCN1[hits] = adcnData.ov[j];
+	UNDERADCN1[hits] = adcnData.un[j];
+	hits++;
+      }
+      NhitADCN1 = hits;
+                                
+    }                                                                 
+                                                                                           
+    hits = 0;
+    addr =  SubEventSeek(0x40000025, buf);
+    rc += DecodeV792AC(addr, &adcnData);
+
+    for (j=0; j<adcnData.index; j++) {
+      CHADCN2[hits]  = adcnData.channel[j];
+      CHARGEADCN2[hits] = adcnData.data[j];
+      OVERADCN2[hits] = adcnData.ov[j];
+      UNDERADCN2[hits] = adcnData.un[j];
+      hits++;
+    }
+    NhitADCN2 = hits;
+
+
+    // FILL TEKOSC
+    if ((!drs)&&(scope)){
+      hits = 0;
+      addr =  SubEventSeek(0x0000fafa, buf);
+      rc += DecodeTEKOSC(addr, &tekoscData);
+      unsigned int kp;
+      for (j=0; j<tekoscData.index; j++) {
+	CHOSC[hits]  = tekoscData.channel[j];
+	DATAOSC[hits] = (Char_t)(tekoscData.data[j]/256);
+	NUMOSC[hits] =tekoscData.num[j];
+      
+	hits++;
+      }
+      NhitOSC = hits;
+
+      for (kp=0;kp<2;kp++) {
+	SCALEOSC[kp]=tekoscData.scale[kp];
+	POSOSC[kp]=tekoscData.position[kp];
+	TDOSC[kp]=tekoscData.tdiff[kp];
+	CHFOSC[kp]=tekoscData.chfla[kp];
+      }
+      PTSOSC=tekoscData.pts;
+      SROSC=tekoscData.samplerate;
+      if (PTSOSC>532) printf("ERROR in scope sampling, correct sampling=%d",PTSOSC);
+    }
+
+
+    //FILL TDC L1176
+    for (int i=0;i<64;i++) {
+      CHTDC[i] = 100;
+    }
+
+    hits = 0;
+    addr = SubEventSeek(0x300020, buf);
+    rc += DecodeL1176(addr, &tdcData);
+    //     printf("TDC TDC index= %d",tdcData.index);
+    for (j=0; j<tdcData.index; j++) { 
+      COUNTTDC[hits]  = tdcData.data[j];
+      EDGETDC[hits]  = tdcData.edge[j];
+      CHTDC[hits]  = tdcData.channel[j];
+      VALIDTDC[hits]  = tdcData.valid[j];
+      //      printf("TDC Nevtda=%d hits= %d chtdc =%d valid=%d count=%d \n",Nevtda, hits,CHTDC[hits] , VALIDTDC[hits], COUNTTDC[hits]);
+      hits++;
+    }
+    NhitTDC = hits;
+    //    printf("TDC NUOVO EVENTO NHIT=%d\n",NhitTDC);
+
+    // Convert time information of TDC L1176 in space coordinate
+    unsigned int x,y,c[9];
+    float count[9][4];
+    // NEW CAL FROM GABRY  - TB 2009
+
+    //     float hSlope_up=-0.183;
+    float hSlope_up=-0.183;
+    float vSlope_up=-0.183;
+    float hOffset_up=0.06;
+    float vOffset_up=0.79;
+ 
+    float hSlope_dw=-0.1818;
+    float vSlope_dw=-0.1854;
+    float hOffset_dw=-7.1877;
+    float vOffset_dw=2.1384;
+    ///
+
+    for (j=0;j<8;j++) c[j]=0;
+    for (j=0; j<NhitTDC; j++) {
+      if (VALIDTDC[j]==0) {
+	for (unsigned int i=0;i<8;i++) {
+	  if (CHTDC[j]==i) {
+	    count[i][c[i]]=COUNTTDC[j];
+	    //           printf("TDC convers channel=%d c=%d count=%f\n",i,c[i],count[i][c[i]]);
+	    c[i]++;
+	  } 
+	}
+      } 
+    }
+    x=0;
+    for (unsigned int i1=0;i1<c[0] && x<=16;i1++)  {
+      for (unsigned int i2=0;i2<c[1] && x<=16;i2++) {
+
+	X_UP[x]=((count[1][i2]-count[0][i1])*hSlope_up)+hOffset_up;
+         
+	x++;
+      }
+    }
+    N_X_UP=x;
+    //printf("TDC N=%d \n", N_X_UP);
+    y=0;
+    for (unsigned int i3=0;i3<c[2] && y<=16;i3++)  {
+      for (unsigned int i4=0;i4<c[3] && y<=16;i4++) {
+
+        Y_UP[y]=((count[3][i4]-count[2][i3])*vSlope_up)+vOffset_up;
+	//       printf("TDC y=%d i3=%d i4=%d  Y_UP=%f count3=%f count4=%f\n",y,i3,i4,Y_UP[y],count[3][i3],count[4][i4]);
+	y++;
+      }
+    }
+    N_Y_UP=y;
+    //printf("TDC N=%d \n", N_Y_UP);
+
+    x=0;
+    for (unsigned int i5=0;i5<c[4] && x<=16;i5++)  {
+      for (unsigned int i6=0;i6<c[5] && x<=16;i6++) {
+
+        X_DW[x]=((count[5][i6]-count[4][i5])*hSlope_dw)+hOffset_dw;
+	//       printf("TDC x=%d i5=%d i6=%d X_DW=%f cont6=%f count5=%f\n",x,i5,i6,X_DW[x],count[6][i6],count[5][i5]);
+	x++;
+      }
+    }
+    N_X_DW=x;
+    //printf("TDC N=%d \n", N_X_DW); 
+    y=0;
+    for (unsigned int i7=0;i7<c[6] && y<=16;i7++)  {
+      for (unsigned int i8=0;i8<c[7] && y<=16;i8++) {
+
+	Y_DW[y]=((count[7][i8]-count[6][i7])*vSlope_dw)+vOffset_dw;
+	//        printf("TDC y=%d i7=%d i8=%d Y_DW=%f count7=%f count8=%f\n",y,i7,i8,Y_DW[y],count[7][i7],count[8][i8]); 
+	y++;
+      }
+    }
+    N_Y_DW=y;
+    //printf("TDC N=%d \n", N_Y_DW);
+
+
+
+    tree->Fill();
+  } // End of loop forever
+
+
+  // Close Data file
+  RawFileClose();
+  // Write and close Ntuple
+  //  tree->Write();
+  tree->Write("",TObject::kWriteDelete);
+  file->Close();
+
+  return 0;
+
+}
