@@ -88,9 +88,10 @@ newfls = list(set(datafls)-set(ntuplfls))
 #Rootify those data
 #
 print "Hi!"
+if newfls:
+    print str(len(newfls))+" new files found"
 #newfls = ["sps2021data.run627.txt"]
 for fl in newfls:
-    print str(len(newfls))+" new files found"
     print "->Found new file to be rootified: "+str(fl)
     os.system("bzip2 -d -k "+datapath+str(fl)+".bz2")
     print "--->"+str(fl)+".bz2 decompressed"
@@ -106,4 +107,5 @@ for fl in newfls:
 if not newfls:
     print "->No new files found"
 print "Bye!"
+
 ##**************************************************

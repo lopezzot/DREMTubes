@@ -23,3 +23,4 @@ Refer to README.md files in subfolders for instructions and further documentatio
 ## Authors and contacts
 - (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon (Supervisor)
 - (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri
+- (University of Insubria and INFN Milano) Romualdo Santoro, Edoardo Proserpio, Simona Cometti, Agnese Giaz
