@@ -1,5 +1,5 @@
 # DREMTubes
-**Repository for Dual-Readout Calorimetry 2021 beam tests using the 2020 DR em-sized tubes prototype. It includes the Geant4 simulation, the DAQ code, the test-beam-data conversion tools and monitoring, and the physics analysis code.**
+**Repository for Dual-Readout Calorimetry 2021 beam tests using the 2020 DR EM-sized Tubes prototype. It includes the Geant4 simulation, the DAQ code, the test-beam-data conversion tools and monitoring, and the physics analysis code.**
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
@@ -15,7 +15,7 @@
 Refer to README.md files in subfolders for instructions and further documentation:
 
 - DREMTubes/ **A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests.**
-- DreamDaq/ **The DAQ code used at the 2021 SPS Dual-Readout test beam."
+- DreamDaq/ **The DAQ code used at the 2021 SPS Dual-Readout test beam.**
 - TBDataPreparation/ **Repository for the code to convert raw test-beam-data to ROOT ntuples, and raw test-beam-data monitoring.**
 
 - Start date: 7 July 2021
