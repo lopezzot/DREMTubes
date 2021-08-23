@@ -131,8 +131,8 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
                 for ch in range(0,64):
                     HG_Board[myboard][ch] = SiPMInput.HighGainADC[ch]
                     LG_Board[myboard][ch] = SiPMInput.LowGainADC[ch]
-            TriggerTimeStampUs = SiPMInput.TriggerTimeStampUs
-        EventNumber = daq_ev
+            TriggerTimeStampUs[0] = SiPMInput.TriggerTimeStampUs
+        EventNumber[0] = daq_ev
         
         newTree.Fill()
 
@@ -264,7 +264,7 @@ def main():
     parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')
     parser.add_argument('--no_merge', dest='no_merge',action='store_true',help='Do not do the merging step')           
     parser.add_argument('--runNumber',dest='runNumber',default='0', help='Specify run number. The output file name will be merged_sps2021_run[runNumber].root ')
-    parser.add_argument('--newFiles',dest='newFiles',action='store_true', default='False', help='Looks for new runs in ' + SiPMFileDir + ' and ' + DaqFileDir + ', and merges them. To be used ONLY from the ideadr account on lxplus')
+    parser.add_argument('--newFiles',dest='newFiles',action='store_true', default=False, help='Looks for new runs in ' + SiPMFileDir + ' and ' + DaqFileDir + ', and merges them. To be used ONLY from the ideadr account on lxplus')
 
     par  = parser.parse_args()
     global doNotMerge
