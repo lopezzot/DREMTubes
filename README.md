@@ -1,5 +1,5 @@
 # DREMTubes
-**A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests, including code for test-beam data conversion and analysis.**
+**Repository for Dual-Readout Calorimetry 2021 beam tests using the 2020 DR em-sized tubes prototype. It includes the Geant4 simulation, the DAQ code, the test-beam-data conversion tools and monitoring, and the physics analysis code.**
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
@@ -12,15 +12,16 @@
 
 <!--Project desription-->
 ## Project description
-The repository contains the Geant4 code for the Dual-Readout simulation of the 2021 beam-tests, the code for test-beam raw data conversion and the test-beam data analysis. 
-- Start date: 7 July 2021 
-
 Refer to README.md files in subfolders for instructions and further documentation:
+
 - DREMTubes/ **A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests.**
-- TBDataPreparation/ **Repository for the code to convert raw test-beam data to ROOT ntuples.**
+- DreamDaq/ **The DAQ code used at the 2021 SPS Dual-Readout test beam."
+- TBDataPreparation/ **Repository for the code to convert raw test-beam-data to ROOT ntuples, and raw test-beam-data monitoring.**
+
+- Start date: 7 July 2021
 
 <!--Authors and contacts-->
 ## Authors and contacts
 - (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon (Supervisor)
-- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri
+- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri, Roberto Ferrari
 - (University of Insubria and INFN Milano) Romualdo Santoro, Edoardo Proserpio, Simona Cometti, Agnese Giaz
