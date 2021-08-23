@@ -1,0 +1,14 @@
+#!/bin/bash
+let i=0
+let echoon=0
+first="++++++++++++++++++++++ RUN ${1} ++++++++++++++++++++++"
+last="---------------------- RUN ${1} ----------------------"
+while read xline; do
+   if [ "$xline" == "$first" ]; then
+      let echoon=1
+   fi
+   (( echoon )) && echo "$xline"
+   if [ "$xline" == "$last" ]; then
+      let echoon=0
+   fi
+done

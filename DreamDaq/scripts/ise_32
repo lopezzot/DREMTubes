@@ -1,0 +1,5 @@
+#!/bin/bash
+
+. /opt/Xilinx/14.7/ISE_DS/settings32.sh
+export printer="laser_lan"
+/opt/Xilinx/14.7/ISE_DS/ISE/bin/lin/ise

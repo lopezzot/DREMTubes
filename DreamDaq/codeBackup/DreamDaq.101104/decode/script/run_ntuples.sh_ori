@@ -1,0 +1,8 @@
+#!/bin/bash
+NUMBERS="156 157 158 159"
+for i in `echo $NUMBERS`   
+do
+myDaq2Ntu "$i" pedestal nodrs_noscope
+myDaq2Ntu "$i" data nodrs_noscope
+done
+exit

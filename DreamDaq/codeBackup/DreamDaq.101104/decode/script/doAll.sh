@@ -1,0 +1,27 @@
+#!/bin/bash -f
+echo "1065 0 "`doOfflineHisto 1065 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1066 -5 "`doOfflineHisto 1066 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1067 -10 "`doOfflineHisto 1067 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1068 -15 "`doOfflineHisto 1068 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1070 -20 "`doOfflineHisto 1070 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1074 -25 "`doOfflineHisto 1074 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1075 -30 "`doOfflineHisto 1075 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1076 5 "`doOfflineHisto 1076 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1077 10 "`doOfflineHisto 1077 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1078 15 "`doOfflineHisto 1078 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1080 20 "`doOfflineHisto 1080 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1081 20 "`doOfflineHisto 1081 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1082 25 "`doOfflineHisto 1082 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1083 30 "`doOfflineHisto 1083 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1085 35 "`doOfflineHisto 1085 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1086 40 "`doOfflineHisto 1086 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1088 45 "`doOfflineHisto 1088 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1090 50 "`doOfflineHisto 1090 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1091 50 "`doOfflineHisto 1091 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1092 55 "`doOfflineHisto 1092 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1093 -30 "`doOfflineHisto 1093 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1095 -40 "`doOfflineHisto 1095 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1096 -35 "`doOfflineHisto 1096 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1098 -45 "`doOfflineHisto 1098 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1099 -50 "`doOfflineHisto 1099 data | grep -v EOF | awk '{print $5 " " $10}'`
+echo "1100 -55 "`doOfflineHisto 1100 data | grep -v EOF | awk '{print $5 " " $10}'`

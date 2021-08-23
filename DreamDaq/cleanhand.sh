@@ -1,0 +1,9 @@
+ipcrm -M 0x02000334
+ipcrm -M 0x00001908
+ipcrm -M 0x00001907
+ipcrm -M 0x00001978
+ipcrm -M 0x00001977
+ipcrm -S 0x01000334
+ipcrm -S 0x03000334
+ipcrm -S 0x00001909
+ipcrm -S 0x00001979

@@ -1,0 +1,125 @@
+#!/bin/bash
+
+rdo=myReadOut
+smp=sampler
+wrt=myDataWriter
+
+allp=`ps -aef | awk '{print $8}' | grep -E "${rdo}|${smp}|${wrt}" | grep -v grep`
+shrr=`ipcs | grep dreamtest | grep -v ^0x00000000 `
+
+if [ x"$allp" == x ] && [ x"$shrr" == x ]; then
+  echo "*** Nothing to be done ***"
+  ipcclean
+  exit
+fi
+
+procr=`ps -aef | grep -E "${rdo}" | awk '{print $8}' | grep ^${rdo} | uniq`
+if [ x"$procr" != x ]; then
+  echo "killall ${procr} ..."
+  killall ${procr}
+  sleep 1
+fi
+procs=`ps -aef | grep -E "${smp}" | awk '{print $8}' | grep ^${smp}| uniq`
+if [ x"$procs" != x ]; then
+  echo "killall ${procs} ..."
+  killall ${procs}
+  sleep 1
+fi
+procw=`ps -aef | grep -E "${wrt}" | awk '{print $8}' | grep ^${wrt}| uniq`
+if [ x"$procw" != x ]; then
+  echo "killall ${procw}(s) ..."
+  killall ${procw}
+  sleep 1
+fi
+przip=`ps -aef | grep -E "bzip2" | awk '{print $8}' | grep ^bzip2| uniq`
+if [ x"$przip" != x ]; then
+  echo "killall ${przip}(s) ..."
+  killall ${przip}
+  sleep 1
+fi
+shrr=`ipcs | grep dreamtest | grep -v ^0x00000000 `
+if [ x"$shrr" != x ]; then
+  echo "ipcclean ..."
+  ipcclean
+  sleep 1
+fi
+
+for i in 3 2 1; do
+  echo "$i"
+  sleep 1
+done
+echo "0"
+
+allp=`ps -aef | awk '{print $8}' | grep -E "${rdo}|${smp}|${wrt}" | grep -v grep`
+shrr=`ipcs | grep dreamtest | grep -v ^0x00000000 `
+
+if [ x"$allp" == x ] && [ x"$shrr" == x ]; then
+  echo "*** Cleanup done ***"
+  ipcclean
+  exit
+fi
+
+procr=`ps -aef | grep -E "${rdo}" | awk '{print $8}' | grep ^${rdo}| uniq`
+if [ x"$procr" != x ]; then
+  echo "killall -9 ${procr} ..."
+  killall -9 ${procr}
+  sleep 1
+fi
+sleep 1
+procs=`ps -aef | grep -E "${smp}" | awk '{print $8}' | grep ^${smp}| uniq`
+if [ x"$procs" != x ]; then
+  echo "killall -9 ${procs} ..."
+  killall -9 ${procs}
+  sleep 1
+fi
+procw=`ps -aef | grep -E "${wrt}" | awk '{print $8}' | grep ^${wrt}| uniq`
+if [ x"$procw" != x ]; then
+  echo "killall -9 ${procw}(s) ..."
+  killall -9 ${procw}
+  sleep 1
+fi
+shrr=`ipcs | grep dreamtest | grep -v ^0x00000000 `
+if [ x"$shrr" != x ]; then
+  echo "ipcclean ..."
+  ipcclean
+  sleep 1
+fi
+
+allp=`ps -aef | awk '{print $8}' | grep -E "${rdo}|${smp}|${wrt}" | grep -v grep`
+procr=`ps -aef | grep -E "${rdo}" | awk '{print $8}' | grep ^${rdo}| uniq`
+procs=`ps -aef | grep -E "${smp}" | awk '{print $8}' | grep ^${smp}| uniq`
+procw=`ps -aef | grep -E "${wrt}" | awk '{print $8}' | grep ^${wrt}| uniq`
+shrr=`ipcs | grep dreamtest | grep -v ^0x00000000 `
+
+if [ x"$allp" != x ] || [ x"$shrr" != x ]; then
+  echo "*** CLEANUP FAILED ***"
+  if [ x"$procr" != x ]; then
+    echo -e "   *** ${procr} still running"
+    ps -aef | grep -E "${rdo}" | grep -v grep
+  fi
+  if [ x"$procs" != x ]; then
+    echo -e "   *** ${procs} still running"
+    ps -aef | grep -E "${smp}" | grep -v grep
+  fi
+  if [ x"$procw" != x ]; then
+    echo -e "   *** ${procw}(s) still running"
+    ps -aef | grep -E "${wrt}" | grep -v grep
+  fi
+  if [ x"$shrr" != x ]; then
+    echo -e "   *** shared resources not released \n$shrr"
+  fi
+  echo "if [ Is this the first attempt ? ] "
+  echo ""
+  echo "    Take the time for one more chance "
+  echo ""
+  echo "  else "
+  echo ""
+  echo "    Call your favourite DAQ expert (if any) "
+  echo ""
+  echo "*** Enjoy your shift ***"
+  echo ""
+fi
+
+ipcclean
+
+exit 0

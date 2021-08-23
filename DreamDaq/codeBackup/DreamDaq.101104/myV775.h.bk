@@ -1,0 +1,731 @@
+//$Id: myV775.h,v 1.4 2008/07/18 11:11:51 dreamdaq Exp $
+/*****************************************
+
+  myV775.h
+  ---------
+
+  Definition of the CAEN V775 TDC.
+  This class is a class derived from the class vme.
+
+*****************************************/
+
+// Standard C header files
+extern "C" {
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <errno.h>
+}
+
+// C++ header files
+#include <iostream>
+#include <iomanip>
+
+#define V775_SETBITS(OFF,BITS){ \
+unsigned int val; \
+read32phys(OFF,&val); \
+val |= BITS; \
+write32phys(OFF,val); \
+}
+
+#define V775_RESETBITS(OFF,BITS){ \
+unsigned int val; \
+read32phys(OFF,&val); \
+val &= (~(BITS)); \
+write32phys(OFF,val); \
+}
+
+#define V775_GETBITS(OFF,BITS,SHIFT){ \
+unsigned int val; \
+read32phys(OFF,&val); \
+return ((val&BITS)>>SHIFT); \
+}
+
+#define V775_DO_A_SLEEP usleep(1000);
+#define HEXWORD(m) "0x" << std::hex << std::setfill('0') << std::setw(8) << m << std::dec
+
+#define V775_DATA_TYPE(v)       ((v >> 24) & 0x7  )
+#define V775_DATA_NUM_CH_CNT(v) ((v >>  8) & 0x3F )
+#define V775_DATA_VALUE(v)      ( v        & 0xFFF)
+#define V775_DATA_CHANNEL(v)    ((v >> 17) & 0xF  )
+#define V775_DATA_EV_CNT(v)     ( v        & 0xFFFFFF)
+
+
+// Set Register 1
+#define V775_SELECT_ADDR_BIT    0x10
+#define V775_SOFT_RESET_BIT     0x80
+
+// Set register 2
+#define V775_MEM_TEST_BIT       0x1
+#define V775_OFFLINE_BIT        0x2
+#define V775_CLEAR_DATA_BIT     0x4
+#define V775_OVER_SUPPR_BIT     0x8
+#define V775_ZERO_SUPPR_BIT     0x10
+#define V775_VALID_CTRL_BIT     0x20
+#define V775_TEST_ACQ_BIT       0x40
+#define V775_SLIDE_ENABLED_BIT  0x80
+#define V775_STEP_TH_BIT        0x100
+#define V775_UNUSED             0x200
+#define V775_START_STOP_BIT     0x400
+#define V775_AUTO_INCR_BIT      0x800
+#define V775_EMPTY_PROG_BIT     0x1000
+#define V775_SLIDE_SUB_ENAB_BIT 0x2000
+#define V775_ALL_TRG_BIT        0x4000
+
+// Status register 1
+#define V775_DATA_READY_BIT     0x1
+#define V775_DATA_READY_G_BIT   0x2
+#define V775_BUSY_BIT           0x4
+#define V775_BUSY_G_BIT         0x8
+#define V775_AMNESIA_BIT        0x10
+#define V775_PURGED_BIT         0x20
+#define V775_TERM_ON_BIT        0x40
+#define V775_TERM_OFF_BIT       0x80
+#define V775_EVRDY_BIT          0x100	
+
+// Status register 2
+#define V775_BUFFER_EMPTY_BIT   0x2
+#define V775_BUFFER_EMPTY_FULL  0x4
+
+// Control register 1
+#define V775_BLK_END_BIT        0x4
+#define V775_PROG_RESET_BIT     0x10
+#define V775_BUS_ERR_ENABL_BIT  0x20
+#define V775_ALIGN64_BIT        0x40
+
+
+using namespace std;
+
+/*****************************************/
+// The v775 class 
+/*****************************************/
+class v775 : public vme {
+
+ public:
+
+  // Constructor
+  v775(unsigned int base, const char *dev);    
+  ~v775();
+
+  uint16_t geoAddr();
+  void geoAddr(uint16_t adr);
+  uint16_t mcst_cbltAddr();
+  void mcst_cbltAddr(uint16_t adr);
+  uint16_t bsetReg1();
+  void bsetReg1(uint16_t mask);
+  uint16_t bclearReg1();
+  void bclearReg1(uint16_t mask);
+  uint16_t irqlReg();
+  void irqlReg(uint16_t lev);
+  uint16_t irqlVec();
+  void irqlVec(uint16_t vec);
+  uint16_t stReg1();
+  uint16_t ctrlReg1();
+  void ctrlReg1(uint16_t sets);
+  uint16_t hiAddr();
+  void hiAddr(uint16_t hiad);
+  uint16_t loAddr();
+  void loAddr(uint16_t load);
+  void sshotReset();
+  uint16_t mcst_cbltCtrl();
+  void mcst_cbltCtrl(uint16_t sets);
+  uint16_t evTrig();
+  void evTrig(uint16_t nev);
+  uint16_t stReg2();
+  uint16_t evcLo();
+  uint16_t evcHi();
+  void evIncr();
+  void ofsIncr();
+  uint16_t fastClrW();
+  void fastClrW(uint16_t tw);
+  uint16_t bsetReg2();
+  void bsetReg2(uint16_t mask);
+  void bclearReg2(uint16_t mask);
+  void wmemTest(uint16_t wadr);
+  void wmemHi(uint16_t whi);
+  void wmemLo(uint16_t wlo);
+  uint16_t csel();
+  void csel(uint16_t cnr);
+  void testEvent(void * evtp);
+  void evCntReset();
+  uint16_t fullScale();
+  void fullScale(uint16_t fsr);
+  void rmemTest(uint16_t radr);
+  void swComm();
+  uint16_t slideConst();
+  void slideConst(uint16_t sld);
+  uint16_t aadReg();
+  uint16_t badReg();
+  uint16_t thresMem(uint16_t chan);
+  void thresMem(uint16_t chan, uint16_t thr);
+  uint16_t romMem(uint16_t chan);
+  void romPrint();
+
+  // Crap
+  void print();                                 // Simple dump function
+
+  inline unsigned int id();                     // Module ID
+ 
+  //Control register
+  void testCycle();      //Execute test cycle
+  void enableEvenChTest();   //Enable test for even channels
+  void disableEvenChTest();   //disable test for even channels
+  void enableOddChTest();   //Enable test for odd channels
+  void disableOddChTest();   //disable test for odd channels
+  void setTestNHits(unsigned int hits);      //Set number of hists during test
+  void setTestHitDuration(unsigned int time); //Set duration of test hits
+  void setCommStartTimeout(unsigned int time);  //Set common start timeout
+  void enableAuxCommonHit();                   //??????
+  void disableAuxCommonHit();                   //??????
+  void enableFallingEdge();     //Enable falling edge registration
+  void disableFallingEdge();     //disable falling edge registration
+  void enableRisingEdge();     //Enable rising edge registration
+  void disableRisingEdge();     //disable rising edge registration
+  void setTriggerPulse();   //Each hit
+  void setTriggerLatch();   //Latch first hit
+  void setCommStart();     //Common start
+  void setCommStop();      //Common stop
+  void setFastCLWindow(unsigned int time); //set fast clear window
+  void enableFastClear();    //enable fast clear
+  void disableFastClear();    //disable fast clear
+  void enableAcq();        //enable data acquisition
+  void disableAcq();       //disable data acquisition
+  unsigned int isAcqEnabled();      //acquisition status
+  unsigned int roip();          //read-out in progress
+  void clear();         // clear
+  unsigned int evtCnt();    //return number of events
+  unsigned int isBufferFull();  //return bufer full bit
+  unsigned int getCSR0();
+
+  unsigned int readSingleEvent(unsigned int *buf);  //read data
+  unsigned int readData(unsigned int *buf);  //read data
+
+  void swReset();        // Software reset
+  void dataReset();      // Data reset
+  
+  enum common {commonStart, commonStop};
+
+  void     zeroSuppression(bool on); // Enable/disable zero-suppression
+  bool     zeroSuppression();        // Get zero-suppression status
+  void     overSuppression(bool on); // Enable/disable overflow suppression
+  bool     overSuppression();        // Get overflow suppression status
+  void     setCommon(uint32_t c);    // Switch between v775::commonStart/v775::commonStop  
+  common   getCommon();              // Return v775::commonStart or v755::commonStop          
+  uint32_t setFullScale(uint32_t ns);// Set the end scale in ns
+ 
+  void     setTestMode();            // Set the acquisition test mode (debugging)
+  void     printRegisters();         // Dump registers to stdout
+
+  bool     isWordValid(uint32_t v);  // Check the status bits of the data word
+  void     printDataHdr(uint32_t v);
+  void     printDataBody(uint32_t v);
+  void     printDataEnd(uint32_t v);
+
+  static uint32_t getDataType(uint32_t v) { return (v >> 24) & 0x7; }
+ 
+ protected:
+  
+ private:
+   vme * outputbuffer;
+};
+
+/*****************************************/
+// Generic Commands
+/*****************************************/
+
+
+inline unsigned int v775::id() {return ba | ID_V775;}
+
+
+/*****************************************/
+// Constructor
+/*****************************************/
+v775::v775(unsigned int base, const char *dev):vme(base, 0x10000, dev)
+  {
+   std::string s(dev);
+   uint32_t l=s.length();
+   if (l>3) s.replace(l-3, 3, "d32");
+   outputbuffer = new vme (base, 0x1000, s.c_str());
+   std::cout << " v775::v775 done \n";
+  }
+
+v775::~v775()
+  {
+   delete outputbuffer;
+   std::cout << " v775::~v775 done \n";
+  }
+
+/*****************************************/
+void v775::print() 
+/*****************************************/
+{
+  cout << "*************************************" << endl;  
+  cout << "CAEN TDC V775 Module / base " << ba << ", mmap " << &vbuf << ", length " << length << endl;
+  cout << "*************************************" << endl;
+  return;
+}
+
+inline uint16_t v775::geoAddr()
+  {
+   uint16_t i;
+   read16phys(0x1002,&i);
+   return i;
+  }
+inline void v775::geoAddr(uint16_t adr)
+  {
+   write16phys(0x1002,adr);
+  }
+inline uint16_t v775::mcst_cbltAddr()
+  {
+   uint16_t i;
+   read16phys(0x1004,&i);
+   return i;
+  }
+inline void v775::mcst_cbltAddr(uint16_t adr)
+  {
+   write16phys(0x1004,adr);
+  }
+inline uint16_t v775::bsetReg1()
+  {
+   uint16_t i;
+   read16phys(0x1006,&i);
+   return i;
+  }
+inline void v775::bsetReg1(uint16_t mask)
+  {
+   write16phys(0x1006,mask);
+  }
+inline uint16_t v775::bclearReg1()
+  {
+   uint16_t i;
+   read16phys(0x1008,&i);
+   return i;
+  }
+inline void v775::bclearReg1(uint16_t mask)
+  {
+   write16phys(0x1008,mask);
+  }
+inline uint16_t v775::irqlReg()
+  {
+   uint16_t i;
+   read16phys(0x100a,&i);
+   return i;
+  }
+inline void v775::irqlReg(uint16_t lev)
+  {
+   write16phys(0x100a,lev);
+  }
+inline uint16_t v775::irqlVec()
+  {
+   uint16_t i;
+   read16phys(0x100c,&i);
+   return i;
+  }
+inline void v775::irqlVec(uint16_t vec)
+  {
+   write16phys(0x100c,vec);
+  }
+inline uint16_t v775::stReg1()
+  {
+   uint16_t i;
+   read16phys(0x100e,&i);
+   return i;
+  }
+inline uint16_t v775::ctrlReg1()
+  {
+   uint16_t i;
+   read16phys(0x1010,&i);
+   return i;
+  }
+inline void v775::ctrlReg1(uint16_t sets)
+  {
+   write16phys(0x1010,sets);
+  }
+inline uint16_t v775::hiAddr()
+  {
+   uint16_t i;
+   read16phys(0x1012,&i);
+   return i;
+  }
+inline void v775::hiAddr(uint16_t hiad)
+  {
+   write16phys(0x1012,hiad);
+  }
+inline uint16_t v775::loAddr()
+  {
+   uint16_t i;
+   read16phys(0x1014,&i);
+   return i;
+  }
+inline void v775::loAddr(uint16_t load)
+  {
+   write16phys(0x1014,load);
+  }
+inline void v775::sshotReset()
+  {
+   write16phys(0x1016,0);
+  }
+inline uint16_t v775::mcst_cbltCtrl()
+  {
+   uint16_t i;
+   read16phys(0x101a,&i);
+   return i;
+  }
+inline void v775::mcst_cbltCtrl(uint16_t sets)
+  {
+   write16phys(0x101a,sets);
+  }
+inline uint16_t v775::evTrig()
+  {
+   uint16_t i;
+   read16phys(0x1020,&i);
+   return i;
+  }
+inline void v775::evTrig(uint16_t nev)
+  {
+   write16phys(0x1020,nev);
+  }
+inline uint16_t v775::stReg2()
+  {
+   uint16_t i;
+   read16phys(0x1022,&i);
+   return i;
+  }
+inline uint16_t v775::evcLo()
+  {
+   uint16_t i;
+   read16phys(0x1024,&i);
+   return i;
+  }
+inline uint16_t v775::evcHi()
+  {
+   uint16_t i;
+   read16phys(0x1026,&i);
+   return i;
+  }
+inline void v775::evIncr()
+  {
+   write16phys(0x1028,0);
+  }
+inline void v775::ofsIncr()
+  {
+   write16phys(0x102a,0);
+  }
+inline uint16_t v775::fastClrW()
+  {
+   uint16_t i;
+   read16phys(0x102e,&i);
+   return i;
+  }
+inline void v775::fastClrW(uint16_t tw)
+  {
+   write16phys(0x102e,tw);
+  }
+inline uint16_t v775::bsetReg2()
+  {
+   uint16_t i;
+   read16phys(0x1032,&i);
+   return i;
+  }
+inline void v775::bsetReg2(uint16_t mask)
+  {
+   write16phys(0x1032,mask);
+  }
+inline void v775::bclearReg2(uint16_t mask)
+  {
+   write16phys(0x1034,mask);
+  }
+inline void v775::wmemTest(uint16_t wadr)
+  {
+   write16phys(0x1036,wadr);
+  }
+inline void v775::wmemHi(uint16_t whi)
+  {
+   write16phys(0x1038,whi);
+  }
+inline void v775::wmemLo(uint16_t wlo)
+  {
+   write16phys(0x103a,wlo);
+  }
+inline uint16_t v775::csel()
+  {
+   uint16_t i;
+   read16phys(0x103c,&i);
+   return i;
+  }
+inline void v775::csel(uint16_t cnr)
+  {
+   write16phys(0x103c,cnr);
+  }
+inline void v775::testEvent(void * evtp)
+  {
+   uint16_t * u16p = static_cast<uint16_t *>(evtp);
+   for (int i=32; i; i--) write16phys(0x103e,*u16p++);
+  }
+inline void v775::evCntReset()
+  {
+   write16phys(0x1040,0);
+  }
+inline uint16_t v775::fullScale()
+  {
+   uint16_t i;
+   read16phys(0x1060,&i);
+   return i;
+  }
+inline void v775::fullScale(uint16_t fsr)
+  {
+   write16phys(0x1060,fsr);
+  }
+inline void v775::rmemTest(uint16_t radr)
+  {
+   write16phys(0x1064,radr);
+  }
+inline void v775::swComm()
+  {
+   write16phys(0x1068,0);
+  }
+inline uint16_t v775::slideConst()
+  {
+   uint16_t i;
+   read16phys(0x106a,&i);
+   return i;
+  }
+inline void v775::slideConst(uint16_t sld)
+  {
+   write16phys(0x106a,sld);
+  }
+inline uint16_t v775::aadReg()
+  {
+   uint16_t i;
+   read16phys(0x1070,&i);
+   return i;
+  }
+inline uint16_t v775::badReg()
+  {
+   uint16_t i;
+   read16phys(0x1072,&i);
+   return i;
+  }
+inline uint16_t v775::thresMem(uint16_t chan)
+  {
+   uint16_t i;
+   uint addr = 0x1080 + 2*chan;
+   read16phys(addr,&i);
+   return i;
+  }
+inline void v775::thresMem(uint16_t chan, uint16_t thr)
+  {
+   uint addr = 0x1080 + 2*chan;
+   write16phys(addr,thr);
+  }
+inline uint16_t v775::romMem(uint16_t adr)
+  {
+   uint16_t i;
+   uint addr = 0x8000 + adr;
+   read16phys(addr,&i);
+   return i;
+  }
+void v775::romPrint()
+  {
+   std::cout << std::hex;
+   cout << "*************************************" << endl;  
+   cout << "     oui msb     " << romMem(0x0026) << endl;
+   cout << "     oui         " << romMem(0x002a) << endl;
+   cout << "     oui lsb     " << romMem(0x002e) << endl;
+   cout << "     version     " << romMem(0x0032) << endl;
+   cout << "     id msb      " << romMem(0x0036) << endl;
+   cout << "     id          " << romMem(0x003a) << endl;
+   cout << "     id lsb      " << romMem(0x003e) << endl;
+   cout << "     revision    " << romMem(0x004e) << endl;
+   cout << "     serial msb  " << romMem(0x0f02) << endl;
+   cout << "     serial lsb  " << romMem(0x0f06) << endl;
+   cout << "*************************************" << endl;  
+   std::cout << std::dec;
+  }
+  
+  
+unsigned int v775::readSingleEvent(unsigned int *buf){
+  unsigned int val, count=0;
+
+  *buf++ = 0xDEAAED00;
+  count=0;
+  do {
+    // read32phys(V775_EVENT(0)+0x8*count,&val);
+    read32phys(4*count,&val);
+    *buf++ = val;
+    count ++;
+  } while (val&0x800000);  /// MAAA ... non e' 0x4000000
+
+  return count+1;
+}
+
+bool v775::isWordValid(uint32_t v)
+{ return (V775_DATA_TYPE(v) == 0x6) ? false : true; }
+
+void v775::printDataHdr(uint32_t v)
+{
+  cout << "Header: " << HEXWORD(v) 
+       << " | T : "  << getDataType(v) 
+       << " #ch "    << V775_DATA_NUM_CH_CNT(v)  << endl;
+}
+
+void v775::printDataBody(uint32_t v)
+{
+  cout << "Data  : " << HEXWORD(v) 
+       << " | T : "  << V775_DATA_TYPE(v) 
+       << " | ch: "  << V775_DATA_CHANNEL(v) 
+       << " dat "    << V775_DATA_VALUE(v) << endl;
+}
+
+void v775::printDataEnd(uint32_t v)
+{
+  cout << "EndBlk: " << HEXWORD(v)
+       << " | T : "  << V775_DATA_TYPE(v) 
+       << " #ev "    << V775_DATA_EV_CNT(v) << endl;
+}
+
+unsigned int v775::readData(unsigned int *buf)
+{
+  if(! (stReg1() & V775_DATA_READY_BIT) )
+    return 0;
+  
+  uint32_t val;
+  uint32_t size=0;
+
+  *buf++ = 0xAAAAAAAA;     // TDC header
+  
+  // Read the block header
+  outputbuffer->read32phys(0x0,&val); printDataHdr(val);
+  size++;
+  if(!isWordValid(val))
+    { cerr << "Not valid data" << endl; return 0; }
+  uint32_t channels = V775_DATA_NUM_CH_CNT(val);
+  for(uint32_t i=0; i < channels ; i++)
+  { 
+    outputbuffer->read32phys(0x0,&val); printDataBody(val);
+    size++;
+    if( V775_DATA_TYPE(val) != 0x0) {
+       cerr << "Not valid word (data type should be 0x0)" << V775_DATA_TYPE(val) <<  endl;
+       return 0;
+    }
+  }
+  outputbuffer->read32phys(0x0,&val); printDataEnd(val);
+  size++;
+  return size;
+
+
+/*
+  unsigned int i,size=0;
+  unsigned int evts=7; //evtNum();
+  unsigned int val;
+  unsigned int count;
+
+  if(evts==0)
+    return 0;
+
+
+  for(i=0;i<evts;i++){
+    *buf++ = 0xDEAAED00+i;
+    size++;
+    count=0;
+    do{
+      // read32phys(V775_EVENT(i)+0x8*count,&val);   // BOB ??? come 8 ?
+      *buf++ = 0;
+      size++;
+      count++;
+    }
+    while(0x800000);
+  }
+  
+  return size;
+*/
+}
+
+
+inline uint32_t v775::evtCnt()
+{
+  uint16_t lo = evcLo(); 
+  uint16_t hi = evcHi();
+  return (hi<<16)|lo;
+}
+
+void v775::swReset()
+{
+  bsetReg1(V775_SOFT_RESET_BIT);   // Set the SOFT_RESET bit
+  V775_DO_A_SLEEP;                 // Is it needed?
+  bclearReg1(V775_SOFT_RESET_BIT); // Clear the SOFT_RESET bit 
+}
+
+void v775::dataReset()
+{
+  bsetReg2(V775_CLEAR_DATA_BIT);   // Set the CLEAR_DATA bit
+  V775_DO_A_SLEEP;                 // Is it needed?
+  bclearReg2(V775_CLEAR_DATA_BIT); // Clear the SOFT_RESET bit 
+}
+
+inline void v775::zeroSuppression(bool on)
+{ (on)? bclearReg2(V775_ZERO_SUPPR_BIT) : bsetReg2(V775_ZERO_SUPPR_BIT); }
+
+inline bool v775::zeroSuppression() 
+{ return bsetReg2() & V775_ZERO_SUPPR_BIT; }
+
+inline void v775::overSuppression(bool on)
+{ (on)? bclearReg2(V775_OVER_SUPPR_BIT) : bsetReg2(V775_OVER_SUPPR_BIT); }
+
+inline bool v775::overSuppression() 
+{ return bsetReg2() & V775_OVER_SUPPR_BIT; }
+
+inline void v775::setCommon(uint32_t c)  
+{
+  if(c==v775::commonStop)  bsetReg2(V775_START_STOP_BIT);
+  if(c==v775::commonStart) bclearReg2(V775_START_STOP_BIT); 
+}
+  
+inline v775::common v775::getCommon()
+{
+  if (bsetReg2() & V775_START_STOP_BIT) return v775::commonStop;
+  else                                  return v775::commonStart;
+}         
+
+inline uint32_t v775::setFullScale(uint32_t ns)
+{
+   uint32_t n   = uint32_t(4000*8.9/ns);
+   fullScale(n);
+   float lsb = 8.9/n;
+   cout << "V755: fullscale(ns) = " << lsb*4000 << ", lsb(ns) = " << lsb << endl;
+   return n;
+}
+  
+inline void v775::setTestMode()
+{
+  dataReset();
+  swReset();                      // 1. Software reset
+  sleep(1);
+  bsetReg2(V775_EMPTY_PROG_BIT);
+  bsetReg2(V775_VALID_CTRL_BIT);  // 2.
+  bsetReg2(V775_TEST_ACQ_BIT);    // 3. Reset the write pointer
+  bclearReg2(V775_TEST_ACQ_BIT);  // 4. Reset the read ptr and release the write one
+  int num = 16;
+  for(int i=0; i<num; i++)        // 5. Write data
+    write16phys(0x103E,0x0A00 + i);  
+  bsetReg2(V775_TEST_ACQ_BIT);    // 6. Reset the write ptr and release the read one   
+  cout << "Test mode: written " << num << " events in the test register " << endl;
+}
+
+inline void v775::printRegisters()
+{
+  cout << "------------------ " << endl;
+  cout << "Register bitset1 : " << HEXWORD(bsetReg1()) << endl;
+  cout << "Register bitset2 : " << HEXWORD(bsetReg2()) << endl;
+  cout << "Register status1 : " << HEXWORD(stReg1()  ) << endl;
+  cout << "Register status2 : " << HEXWORD(stReg2()  ) << endl;
+  cout << "Register control1: " << HEXWORD(ctrlReg1()) << endl;
+  float lsb = 8.9/fullScale() ;
+  cout << "Full scale       : " << HEXWORD(fullScale()) 
+                                << " T(lsb/fullrange) = " << lsb
+                                << "/" << lsb*4000 << " ns" <<  endl;
+  cout << "Events:            " << evtCnt() << endl;
+  cout << "------------------ " << endl;
+}

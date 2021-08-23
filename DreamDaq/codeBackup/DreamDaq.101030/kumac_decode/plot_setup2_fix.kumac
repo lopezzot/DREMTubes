@@ -1,0 +1,109 @@
+
+set cshi 0.01
+set pass 9
+set asiz 0.4
+set yhti 1.2
+set tsiz 0.4
+set vsiz 0.3
+set ylab 1.2
+set xlab 1.2
+set xval 0.2
+set xmgl 2.5
+set ymgl 2.5
+set yval 0.4
+igset lwid 7.
+set hwid 7.
+opt stat
+set stat 111
+opt nstat
+
+set mtyp 23
+filecase keep
+
+read run
+
+run_location=$WORKDIR/ntuple
+
+h/file 1 [run_location]/datafile_ntup_run[run].hbook 4096
+
+h/file 1 datafile_ntup_run[run].hbook 4096
+
+v/crea pmean(8) r 4*0
+h/crea/1d 901  ' ' 5000 0 5000
+h/crea/1d 902  ' ' 5000 0 5000
+h/crea/1d 903  ' ' 5000 0 5000
+h/crea/1d 904  ' ' 5000 0 5000
+h/crea/1d 905  ' ' 5000 0 5000
+h/crea/1d 906  ' ' 5000 0 5000
+h/crea/1d 907  ' ' 5000 0 5000
+h/crea/1d 908  ' ' 5000 0 5000
+
+nt/pro 901 1.valuefadc chfadc.eq.1.and.numfadc.eq.0
+nt/pro 902 1.valuefadc chfadc.eq.2.and.numfadc.eq.0
+nt/pro 903 1.valuefadc chfadc.eq.3.and.numfadc.eq.0
+nt/pro 904 1.valuefadc chfadc.eq.4.and.numfadc.eq.0
+nt/pro 905 1.valuefadc chfadc.eq.5.and.numfadc.eq.0
+nt/pro 906 1.valuefadc chfadc.eq.6.and.numfadc.eq.0
+nt/pro 907 1.valuefadc chfadc.eq.7.and.numfadc.eq.0
+nt/pro 908 1.valuefadc chfadc.eq.8.and.numfadc.eq.0
+
+
+vec/input pmean(1) $HINFO(901,'MEAN')
+vec/input pmean(2) $HINFO(902,'MEAN')
+vec/input pmean(3) $HINFO(903,'MEAN')
+vec/input pmean(4) $HINFO(904,'MEAN')
+vec/input pmean(5) $HINFO(905,'MEAN')
+vec/input pmean(6) $HINFO(906,'MEAN')
+vec/input pmean(7) $HINFO(907,'MEAN')
+vec/input pmean(8) $HINFO(908,'MEAN')
+
+opt nstat
+v/pri pmean
+opt nstat
+h/del *
+return
+macro plt evnum=1
+cut $1 (nevtda.eq.[evnum])
+zone 2 2
+
+h/crea/2d 4100 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro 4100 1.valuefadc-pmean(2)%numfadc*5 (chfadc.eq.2).and.$1
+h/crea/2d 4200 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro  4200  1.valuefadc-pmean(1)%numfadc*5+2.5 (chfadc.eq.1).and.$1
+set hcol 2 
+h/pl 4100
+set hcol 4
+h/pl 4200 s
+
+h/crea/2d 4300 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro 4300 1.valuefadc-pmean(4)%numfadc*5 (chfadc.eq.4).and.$1
+h/crea/2d 4400 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro  4400  1.valuefadc-pmean(3)%numfadc*5+2.5 (chfadc.eq.3).and.$1
+set hcol 2
+h/pl 4300
+set hcol 4
+h/pl 4400 s
+
+h/crea/2d 4500 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro 4500 1.valuefadc-pmean(6)%numfadc*5 (chfadc.eq.6).and.$1
+h/crea/2d 4600 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro  4600  1.valuefadc-pmean(5)%numfadc*5+2.5 (chfadc.eq.5).and.$1
+set hcol 2
+h/pl 4500
+set hcol 4
+h/pl 4600 s
+
+h/crea/2d 4700 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro 4700 1.valuefadc-pmean(8)%numfadc*5 (chfadc.eq.8).and.$1
+h/crea/2d 4800 ' ' 75 -5. 70. 120 -100. 20.
+nt/pro  4800  1.valuefadc-pmean(7)%numfadc*5+2.5 (chfadc.eq.7).and.$1
+set hcol 2
+h/pl 4700
+set hcol 4
+h/pl 4800 s
+
+
+
+h/del *
+
+return

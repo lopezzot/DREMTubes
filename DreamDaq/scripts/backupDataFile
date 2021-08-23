@@ -1,0 +1,9 @@
+#!/bin/bash
+# Backup files belonging to a given run number to /mnt/wd/ disk
+
+LOGFILE=/home/dreamtest/working/backup.log
+RUN=$1
+
+date >> $LOGFILE
+cp -v /mnt/working/data/datafile_run${RUN}*.dat     /mnt/wd/working_bak/data     >> $LOGFILE
+cp -v /mnt/working/pedestal/pedestal_run${RUN}*.dat /mnt/wd/working_bak/pedestal >> $LOGFILE

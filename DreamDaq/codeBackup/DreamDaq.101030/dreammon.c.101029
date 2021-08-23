@@ -1,0 +1,771 @@
+#include <unistd.h>
+#include <signal.h>
+#include <stdio.h>
+#include <TH1.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TH2.h>
+#include "myhbook.h"
+#include "myRawFile.h"
+#include "dreammon.h"
+#include <iostream>
+#include <iomanip>
+#include <map>
+#include <string>
+#include "eventX742.h"
+
+//int dream_adc_to[32]=     {-100,  -1,  -2,  -3,  -4,  -5,  -6,  -7,  -8,  -9,  -10,  -11,  -12,  -13,  -14,  -15,  -16,  -17,  -18,  -19,  -20,  -21,  -22,  -23,  -24,  -25,  -26,  -27,  -28,  -29,  -30,  -31};
+int dream_adc_to_ch[32]=    {-100,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,   11,   12,   13,   14,   15,  -16,   16,   17,   18,   19,  -20,  -21,  -23,  -24,  -25,  -26,  -27,  -28,  -29,  -30,  -31};
+float dream_adc_to_x[32]=   {-100,   0, -.5,  -1, -.5,  .5,   1,  .5,   0,  -1, -1.5,   -2, -1.5,   -1,    0,    1, -100,  1.5,    2,  1.5,    1, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100};
+float dream_adc_to_y[32]=   {-100,   0,  -1,   0,   1,   1,   0,  -1,  -2,  -2,   -1,    0,    1,    2,    2,    2, -100,    1,    0,   -1,   -2, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100};
+
+int newdream_adc_to_ch[32]= {-100,   1,   2,   3,   4,  -5,  -6,  -7,  -8,  -9,  -10,  -11,  -12,  -13,  -14,  -15,  -16,  -17,  -18,  -19,  -20,  -21,  -22,  -23,  -24,  -25,  -26,  -27,  -28,  -29,  -30,  -31};
+float newdream_adc_to_x[32]={-100,  -1,   -1,   1,  1,-100,-100,-100,-100,-100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100};
+float newdream_adc_to_y[32]={-100,   1,   -1,   -1, 1,-100,-100,-100,-100,-100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100};
+
+using namespace std;
+
+TFile* ped_file=0;
+
+float get_pedestal(TH1F* h){
+  if(ped_file==0 || ped_file->IsZombie() || h==0)
+    return 0.;
+  //printf("ped file exists\n");
+ 
+  static std::map<std::string, float> cache;
+
+  std::string name = Form("%s",h->GetName());
+  //printf("h_ped: %s\n",name.c_str());
+  float ped = cache[name];
+
+  if(ped == 0.){ //not in cache
+    //printf("h_ped: %s\n",name.c_str());
+    //printf("not in cache\n");
+    //printf("ped_file: %s\n",ped_file->GetName());
+    TH1F* h_ped = 0;
+    ped_file->GetObject(name.c_str(),h_ped);
+    if (h_ped==0 ){
+      name = Form("Debug/%s",h->GetName());
+      ped_file->GetObject(name.c_str(),h_ped);
+    }
+    if (h_ped==0 ) {
+	//printf("not found\n");
+	ped = 0;
+	cache[name] = -10000.;
+/*     } else if(h_ped->GetEntries()<10){ */
+/*       //printf("not enough stat\n"); */
+/*       ped = 0; */
+/*       cache[name] = -10000.; */
+    } else{
+      //printf("found!\n");
+      ped = h_ped->GetMean();
+      cache[name] = ped;
+    } 
+  } else if(ped == - 10000.){ //we already know it's not there
+    //printf("we already know it's missing!\n");
+    ped = 0;
+  }
+  //printf("ped: %f\n",ped);
+  return ped;
+}
+
+int dreammon_init(char ** argv, unsigned int run_nr, bool drs,int drs_setup,bool phys_h)
+{
+
+  char * myWorkDir;
+
+  if (getenv("WORKDIR") == NULL)
+    myWorkDir = getenv("/home/dreamtest/working/");
+  else
+    myWorkDir = getenv("WORKDIR");
+  
+  // Create Input/Output filenames
+  if (getenv("HISTODIR") == NULL)
+    sprintf(ntdir, "%s/%s", myWorkDir, "hbook");
+  else
+    sprintf(ntdir, "%s", getenv("HISTODIR"));
+  
+  Nrunnumber= run_nr;
+  if (phys_h){
+    sprintf(ntfilename, "%s/datafile_histo_run%d.root", ntdir, Nrunnumber);
+  }else if (!phys_h){
+    sprintf(ntfilename, "%s/datafile_histo_pedestal_run%d.root", ntdir, Nrunnumber);
+  }
+
+  if (getenv("PEDDIR") == NULL)
+    sprintf(peddir, "%s/%s", myWorkDir, "ped");
+  else
+    sprintf(peddir, "%s", getenv("PEDDIR"));
+   
+  // ped_run_name -- file name for the pedestal data
+  if (getenv("PED_RUN") == NULL){ 
+    sprintf(ped_run_name, "%s/pedestal_run0.cal",peddir);
+    ped_run_number=0;
+    if(phys_h){
+      ped_file = TFile::Open(Form("%s/datafile_histo_pedestal_run%d.root",
+				  ntdir, Nrunnumber));
+      if(ped_file==0){
+	ped_file = TFile::Open(Form("%s/datafile_histo_pedestal_run0.root",
+				    ntdir));
+      }
+      
+    }
+  }else{ 
+    sprintf(ped_run_name, "%s/pedestal_run%s.cal", peddir, getenv("PED_RUN"));
+    ped_run_number=atol(getenv("PED_RUN"));
+    if(phys_h)ped_file = TFile::Open(Form("%s/datafile_histo_pedestal_run%d.root", ntdir, ped_run_number));
+  }
+
+  if(!phys_h) ped_file = 0;
+  if(ped_file!=0)printf ("using ped_file %s\n", ped_file->GetName());
+
+  if (getenv("MAXEVT") == NULL)
+    evt_max= 100000;
+  else
+    evt_max = atol(getenv("MAXEVT"));                                                                                         
+ 
+  char histo[20];
+  char name[50];
+
+  ////////////////////////////// New Histograms 
+
+  //Histograms for the 2 Dream ADC toghether
+  for(int i_dreamadc=0; i_dreamadc<2; i_dreamadc++){
+    char adcname[10];
+    if(i_dreamadc==0)sprintf(adcname,"s");
+    else sprintf(adcname,"q");
+    
+    for(int ch=0;ch<32;ch++){
+      sprintf(histo,"Dream_ADC%d_ch%d", i_dreamadc,ch);
+      sprintf(name,"Dream (ADC%d ch%d)", i_dreamadc,ch);
+      hadc_dream_debug[i_dreamadc][ch] = new TH1F (histo,name, BIN_ADC,MIN_ADC, MAX_ADC);
+
+      hadc_newdream[i_dreamadc][ch]=0;
+      hadc_dream[i_dreamadc][ch]=0;
+
+      if(ch>0 && ch<16) {
+	sprintf(histo,"%s_%d",adcname,ch);
+	hadc_dream[i_dreamadc][ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+      }else if (ch>16 && ch<21) { 
+	sprintf(histo,"%s_%d",adcname,ch-1);
+	hadc_dream[i_dreamadc][ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+      }  
+      if(ch>0 && ch<5) {
+	sprintf(histo,"%s_newdream_%d",adcname,ch);
+	hadc_newdream[i_dreamadc][ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+      }
+    }
+
+    sprintf(histo,"Dream_ADC%d_map",i_dreamadc);
+    hadc_dream_map[i_dreamadc] = 
+      new TH2F(histo,histo,32,0,32,BIN_ADC,MIN_ADC, MAX_ADC);
+    
+    sprintf(histo,"Dream_%s_baricenter_x",adcname);
+    hadc_dream_baricenter_x[i_dreamadc] = 
+      new TH1F(histo,histo,100,-2,2);
+    sprintf(histo,"Dream_%s_baricenter_y",adcname);
+    hadc_dream_baricenter_y[i_dreamadc] = 
+      new TH1F(histo,histo,100,-2,2);
+    sprintf(histo,"Dream_%s_baricenter",adcname);
+    hadc_dream_baricenter[i_dreamadc] = 
+      new TH2F(histo,histo,100,-2,2,100,-2,2);
+    sprintf(histo,"Newdream_%s_baricenter_x",adcname);
+    hadc_newdream_baricenter_x[i_dreamadc] = 
+      new TH1F(histo,histo,100,-2,2);
+    sprintf(histo,"Newdream_%s_baricenter_y",adcname);
+    hadc_newdream_baricenter_y[i_dreamadc] = 
+      new TH1F(histo,histo,100,-2,2);
+    sprintf(histo,"Newdream_%s_baricenter",adcname);
+    hadc_newdream_baricenter[i_dreamadc] = 
+      new TH2F(histo,histo,100,-2,2,100,-2,2);
+
+    sprintf(histo,"%s_tot",adcname);
+    hadc_dream_tot[i_dreamadc] = new TH1F(histo,histo, 8000,-100.5,8095.5);
+     
+    sprintf(histo,"%s_newdream_tot",adcname);
+    hadc_newdream_tot[i_dreamadc] = new TH1F(histo,histo, 8000,-100.5,8095.5);
+  }
+
+  //Leakage ADC histograms
+  for(int ch=0;ch<32;ch++){
+    sprintf(histo,"Leakage_ADC_ch%d",ch);
+    sprintf(name,"Leakage (ADC ch%d)",ch);
+    hadc_leakage_debug[ch] = new TH1F (histo,name, BIN_ADC,MIN_ADC, MAX_ADC);
+    hadc_leakage[ch] = 0;
+    if(ch<8)
+    {
+      switch(ch)
+      {
+        case 0: sprintf(histo,"Leakage-L1");   break;
+        case 1: sprintf(histo,"Leakage-L3Dw"); break;
+        case 2: sprintf(histo,"Leakage-L3Up"); break;
+        case 3: sprintf(histo,"Leakage-L4Dw"); break;
+        case 4: sprintf(histo,"Leakage-L4Up"); break;
+        case 5: sprintf(histo,"Leakage-L5");   break;
+        case 6: sprintf(histo,"Leakage-L6");   break;
+        case 7: sprintf(histo,"CMS-C-counter");break;
+      }
+      hadc_leakage[ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+    }
+  }
+  sprintf(histo,"Leakage_ADC_map");
+  hadc_leakage_map = 
+    new TH2F(histo,histo,32,0,32,BIN_ADC,MIN_ADC, MAX_ADC);
+  
+  sprintf(histo,"Leakage_tot");
+  hadc_leakage_tot = new TH1F(histo,histo, 8196,-100.5,8095.5);
+
+  //Ancillary ADC histograms
+  for(int ch=0;ch<32;ch++){
+    sprintf(histo,"Ancillary_ADC_ch%d",ch);
+    sprintf(name,"Ancillary (ADC ch%d)",ch);
+    hadc_ancillary_debug[ch] = new TH1F (histo,name, BIN_ADC,MIN_ADC, MAX_ADC);
+    hadc_ancillary[ch] = 0;
+    if(ch==0){
+      sprintf(histo,"Muon veto");
+      hadc_ancillary[ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+    } else if(ch==1){
+      sprintf(histo,"Tail catcher");
+      hadc_ancillary[ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+    } else if(ch==2){
+      sprintf(histo,"Preshower / Ineraction Target");
+      hadc_ancillary[ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+    } else if(ch==3){
+      sprintf(histo,"Cherenkov chamber 1");
+      hadc_ancillary[ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+    } else if(ch==4){
+      sprintf(histo,"Cherenkov chamber 2");
+      hadc_ancillary[ch] = new TH1F (histo,histo, BIN_ADC,MIN_ADC, MAX_ADC);
+    }
+  }
+  sprintf(histo,"Ancillary_ADC_map");
+  hadc_ancillary_map = 
+    new TH2F(histo,histo,32,0,32,BIN_ADC,MIN_ADC, MAX_ADC);
+
+  // TDC (DWC) histograms
+  for ( int i_tdc_ch=0;i_tdc_ch<16;i_tdc_ch++) {
+    sprintf(histo,"TDC_ch%d",i_tdc_ch);  
+    sprintf(name,"TDC ch %d",i_tdc_ch);  
+    htdc_debug[i_tdc_ch]=new TH1F (histo,name,BIN_ADC,-0.5,4095.5);
+  }
+
+  h_dwc_x = new TH1F ("DWC_x","DWC x",500,-250.5,249.5);
+  h_dwc_y = new TH1F ("DWC_y","DWC y",500,-250.5,249.5);
+  h_dwc_xy = new TH2F ("DWC_xy","DWC xy",500,-250.5,249.5,500,-250.5,249.5);
+
+  // Oscilloscope
+  for(int i_osc_ch = 0; i_osc_ch <N_CH_OSC; i_osc_ch++ ){
+    sprintf(histo,"OSC_ch%d_map",i_osc_ch);
+    h_osc[i_osc_ch] = new TH2F(histo, histo, N_CELLS_OSC,0, N_CELLS_OSC, RANGE_OSC,
+			       MIN_RANGE_OSC,MAX_RANGE_OSC);
+    for(int i_ev = 0; i_ev <N_1EV_H; i_ev++ ){
+      sprintf(histo,"OSC_ch%d_ev%d",i_osc_ch,i_ev*100);
+      h_osc_1ev[i_osc_ch][i_ev] = new TH1F(histo, histo, N_CELLS_OSC,0, N_CELLS_OSC);
+    }
+    sprintf(histo,"OSC_ch%d_integral",i_osc_ch);
+    h_osc_int[i_osc_ch] = new TH1F(histo, histo,  RANGE_OSC*2,
+				   MIN_RANGE_OSC*10,MAX_RANGE_OSC*10);
+    sprintf(histo,"OSC_ch%d_underflow",i_osc_ch);
+    h_osc_under[i_osc_ch] = new TH1F(histo, histo, 3,-1.5,1.5);
+    h_osc_under[i_osc_ch]->GetXaxis()->SetBinLabel(1,"# Underflow");
+    h_osc_under[i_osc_ch]->GetXaxis()->SetBinLabel(2,"# Ok");
+    h_osc_under[i_osc_ch]->GetXaxis()->SetBinLabel(3,"# Overflow");
+    sprintf(histo,"OSC_ch%d_integral_vs_event_number",i_osc_ch);
+    h_osc_int_vs_event[i_osc_ch] = new TH2F(histo, histo, 1000,0,50000,RANGE_OSC*2,
+					    MIN_RANGE_OSC*10,MAX_RANGE_OSC*10);
+  }  
+/*   sprintf(histo,"OSC_map"); */
+/*   h_osc_map = new TH2F(histo, histo, N_CH_OSC, 0, N_CH_OSC, 1024,-10240,10240); */
+  
+  // DRS 
+  for(int i_drs_ch = 0; i_drs_ch <N_CH_DRS; i_drs_ch++ ){
+    sprintf(histo,"DRS_ch%d_map",i_drs_ch);
+    h_drs[i_drs_ch] = new TH2F(histo, histo, N_CELLS_DRS,0, N_CELLS_DRS, RANGE_DRS,
+			       MIN_RANGE_DRS,MAX_RANGE_DRS);
+    for(int i_ev = 0; i_ev <N_1EV_H; i_ev++ ){
+      sprintf(histo,"DRS_ch%d_ev%d",i_drs_ch,i_ev*100);
+      h_drs_1ev[i_drs_ch][i_ev] = new TH1F(histo, histo, N_CELLS_DRS,0, N_CELLS_DRS);
+    }
+    sprintf(histo,"DRS_ch%d_integral_ped_subtracted",i_drs_ch);
+    h_drs_int[i_drs_ch] = new TH1F(histo, histo,  RANGE_DRS*2,
+				   -MAX_RANGE_DRS*1000,MAX_RANGE_DRS*1000);
+    sprintf(histo,"DRS_ch%d_underflow",i_drs_ch);
+    h_drs_under[i_drs_ch] = new TH1F(histo, histo, 3,-1.5,1.5);
+    h_drs_under[i_drs_ch]->GetXaxis()->SetBinLabel(1,"# Underflow");
+    h_drs_under[i_drs_ch]->GetXaxis()->SetBinLabel(2,"# Ok");
+    h_drs_under[i_drs_ch]->GetXaxis()->SetBinLabel(3,"# Overflow");
+  } 
+
+  sprintf(histo,"Scaler");
+  hscaler = new TH1F(histo, histo, 16,0,16);
+  hscaler->GetXaxis()->SetBinLabel(1,"Number_of_spills");
+  hscaler->GetXaxis()->SetBinLabel(2,"N_of_phys_Triggers");
+  hscaler->GetXaxis()->SetBinLabel(3,"N_of_ped_Triggers");
+  hscaler->GetXaxis()->SetBinLabel(4,"N_of_triggers");
+  hscaler->GetXaxis()->SetBinLabel(5,"N_of_double_triggers");
+
+  return 0;
+}
+
+int dreammon_event(unsigned int doSingle, unsigned int evt, unsigned int * buf,bool drs, int drs_setup){
+  int rc, adc_id;
+  unsigned int hits;
+  unsigned int *addr;
+  mySCA scaData;
+  myADCN adcnData;
+  myTEKOSC tekoscData;
+  myTDC tdcData;
+
+  EventHeader * head=(EventHeader *) buf;
+  if(head->evmark!=0xCAFECAFE){
+    printf( "Cannot find the event marker. Something is wrong.\n" );
+    return 0;
+  }
+  unsigned int i = head->evhsiz/sizeof(unsigned int);
+
+  Nevtda   = 0; 
+  // Fill histo of run number and pedestal run number 
+  Nevtda   = head->evnum;
+
+  hits = 0;
+  rc=0;
+  unsigned int sz = (head->evsiz - head->evhsiz )/4;
+
+  ////////////////////////////// Fill new histograms
+
+  addr = SubEventSeek2(0x00200003,&buf[i],sz);
+  rc += DecodeV260(addr, &scaData);
+  for (unsigned int j=0; j<scaData.index; j++) {
+    int ch = scaData.channel[j];
+    int data = scaData.counts[j];
+    hscaler->SetBinContent(ch+1,data);
+    //cout << evt << ") ch " << ch << ": " << data << endl;
+  }
+
+  for(int i_dreamadc=0; i_dreamadc<2; i_dreamadc++){
+    adc_id = 0x04000005+0x01000000*i_dreamadc;
+    addr =  SubEventSeek2(adc_id, &buf[i],sz);
+    rc += DecodeV792AC(addr, &adcnData);
+    float dream_tot = 0, newdream_tot=0;
+    float dream_weight_x = 0, newdream_weight_x=0, 
+      dream_weight_y = 0, newdream_weight_y=0;
+    for (unsigned int j=0; j<adcnData.index; j++) {
+      int ch = adcnData.channel[j];
+      int data = adcnData.data[j];
+      //data -= get_pedestal(hadc_dream_debug[i_dreamadc][ch]);
+      hadc_dream_debug[i_dreamadc][ch]->Fill(data);
+      if(hadc_dream[i_dreamadc][ch]!=0){
+	hadc_dream[i_dreamadc][ch]->Fill(data);
+        dream_tot += data;
+        dream_weight_x += data*dream_adc_to_x[ch];
+        dream_weight_y += data*dream_adc_to_y[ch];
+      }
+      if(hadc_newdream[i_dreamadc][ch]!=0){
+	hadc_newdream[i_dreamadc][ch]->Fill(data);
+        newdream_tot += data;
+        newdream_weight_x += data*newdream_adc_to_x[ch];
+        newdream_weight_y += data*newdream_adc_to_y[ch];
+      }
+      hadc_dream_map[i_dreamadc]->Fill(ch,data);
+    }
+    hadc_dream_tot[i_dreamadc]->Fill(dream_tot);
+    hadc_newdream_tot[i_dreamadc]->Fill(newdream_tot);
+
+    float dream_x = dream_weight_x/dream_tot;
+    float dream_y = dream_weight_y/dream_tot;
+    hadc_dream_baricenter_x[i_dreamadc]->Fill(dream_x);
+    hadc_dream_baricenter_y[i_dreamadc]->Fill(dream_y);
+    hadc_dream_baricenter[i_dreamadc]->Fill(dream_x,dream_y);
+
+    float newdream_x = newdream_weight_x/newdream_tot;
+    float newdream_y = newdream_weight_y/newdream_tot;
+    hadc_newdream_baricenter_x[i_dreamadc]->Fill(newdream_x);
+    hadc_newdream_baricenter_y[i_dreamadc]->Fill(newdream_y);
+    hadc_newdream_baricenter[i_dreamadc]->Fill(newdream_x,newdream_y);
+  }
+
+  //Leakage ADC histograms
+  adc_id = 0x06000005;
+  float tot = 0;
+  addr =  SubEventSeek2(adc_id, &buf[i],sz);
+  rc += DecodeV792AC(addr, &adcnData);
+  for (unsigned int j=0; j<adcnData.index; j++) {
+    int ch = adcnData.channel[j];
+    float data = adcnData.data[j];
+    hadc_leakage_debug[ch]->Fill(data);
+    if(hadc_leakage[ch]!=0)
+      hadc_leakage[ch]->Fill(data);
+    hadc_leakage_map->Fill(ch,data);
+    tot +=data;
+  }
+  hadc_leakage_tot->Fill(tot);
+  
+  //Ancillary ADC histograms
+  adc_id = 0x07000025;
+  addr =  SubEventSeek2(adc_id, &buf[i],sz);
+  rc += DecodeV862(addr, &adcnData);
+  for (unsigned int j=0; j<adcnData.index; j++) {
+    int ch = adcnData.channel[j];
+    float data = adcnData.data[j];
+    hadc_ancillary_debug[ch]->Fill(data);
+    if(hadc_ancillary[ch]!=0)
+      hadc_ancillary[ch]->Fill(data);
+    hadc_ancillary_map->Fill(ch,data);
+  }
+
+  //Decode and  Fill TDC V775 debug histos
+  addr = SubEventSeek2(0x08000024, &buf[i],sz);
+  rc += DecodeV775(addr, &tdcData);
+  float dwc_l=0, dwc_r=0, dwc_u=0, dwc_d=0;
+  bool tdc_is_good_event= true;
+
+  for (unsigned int j=0; j<tdcData.index; j++) { 
+    int ch = tdcData.channel[j];
+    int data = tdcData.data[j];
+    int valid = tdcData.valid[j];
+    htdc_debug[ch]->Fill(data);
+    if(ch>=1 && ch<=4){
+      //if(valid == 1) tdc_is_good_event= true;
+      //.24414 = 1000./4096.
+      switch(ch){
+      case 1: {dwc_l = data; break;}
+      case 2: {dwc_r = data; break;}
+      case 3: {dwc_u = data; break;}
+      case 4: {dwc_d = data; break;}
+      }
+    }
+  }
+
+  if(tdcData.index!=0 && tdc_is_good_event){
+    //X-position = (timeRight - timeLeft) * horizontalSlope + horizontalOffset
+    //Y-position = (timeUp - timeDown) * verticalSlope + verticalOffset
+    float vSlope = 0.178042;
+    float vOffset = 3.47181;
+    float hSlope = 0.179104;
+    float hOffset = 1.34328;
+    
+    float x = (dwc_r - dwc_l) * hSlope + hOffset;
+    float y = (dwc_u - dwc_d) * vSlope + vOffset;
+    
+    h_dwc_xy->Fill(x,y);
+    h_dwc_x->Fill(x);
+    h_dwc_y->Fill(y);
+  }
+
+  int i_1ev_h = evt/100;
+  bool fill_1ev_h = (evt%100==0) && (i_1ev_h < N_1EV_H);
+
+  // Oscilloscope
+  {
+    addr =  SubEventSeek2(0x0000fafa, &buf[i],sz);
+    rc += DecodeTEKOSC(addr, &tekoscData);
+    int integral[N_CH_OSC];
+    bool underflow[N_CH_OSC];
+    bool overflow[N_CH_OSC];
+    for(int i_ch=0; i_ch<N_CH_OSC; i_ch++ ){
+      integral[i_ch]=0;
+      underflow[i_ch]=false;
+      overflow[i_ch]=false;
+    }
+    for (unsigned int j=0; j<tekoscData.index; j++) {
+      unsigned int nh = tekoscData.num[j];
+      unsigned int ch = tekoscData.channel[j];
+      const int data = tekoscData.data[j]/256;
+      if(data<=MIN_RANGE_OSC) underflow[ch] = true;
+      if(data>=MAX_RANGE_OSC) overflow[ch] = true;
+      h_osc[ch]->Fill(nh,data);
+      if(fill_1ev_h) h_osc_1ev[ch][i_1ev_h]->Fill(nh,data);
+      integral[ch] += data;
+    }
+    for(int i_ch=0; i_ch<N_CH_OSC; i_ch++ ){
+      if(underflow[i_ch]) h_osc_under[i_ch]->Fill(-1);
+      else if(overflow[i_ch])h_osc_under[i_ch]->Fill(1);
+      else h_osc_under[i_ch]->Fill(0);
+      h_osc_int[i_ch]->Fill(integral[i_ch]);
+      h_osc_int_vs_event[i_ch]->Fill(evt,integral[i_ch]);
+    }
+  }
+
+  // *******************************************************
+  // DRS stuff - Ale debugged on 28OCT2010
+  // *******************************************************
+
+  // Look for address of subevent containing DRS data
+  addr =  SubEventSeek2(0x00032026, &buf[i], sz);
+  //  printf("Found DRS: %x %x %x %x %x %x %x %x %x %x ...\n", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], addr[6], addr[7], addr[8], addr[9]);
+  
+  // DRS-related variables
+  CAEN_DGTZ_EventInfo_t eventInfo; 
+  CAEN_DGTZ_V1742_GROUP_t *g0, *g1;
+  uint32_t *ig0, *ig1; 
+
+  // DRS "DGTZ" buffers
+  CAEN_DGTZ_V1742_EVENT_t *EventV1742 = newEventV1742(); 
+  g0 = &(EventV1742->Group[0]);
+  g1 = &(EventV1742->Group[1]);
+
+  // Decode event using "DGTZ" functions
+  ig0 = &addr[8]; /* header is [0-3], then 4 more for DRS header, then you start with the first group data --> 8 */
+  V1742UnpackEventGroup(ig0, g0); 
+  ig1 = &addr[3466]; /* 4 (header) + 4 (DRS header) + 1 (ev. desc) + 0xC00 (channels 1-7) + 0x180 (trigger) + 1 (TTT) --> 3466 */
+  V1742UnpackEventGroup(ig1, g1); 
+  
+  // Some dump for debugging...
+  //  printf("DRS Data (group 0): %x %x %x %x ...\n", g0->Data[0][0], g0->Data[1][0], g0->Data[2][0], g0->Data[3][0]);
+  //  printf("DRS Data (group 1): %x %x %x %x ...\n", g1->Data[0][0], g1->Data[1][0], g1->Data[2][0], g1->Data[3][0]);
+
+  // Now prepare data and fill our histos - These are Michele's stuff with minor changes...
+  float ped[N_CH_DRS], sum;
+  int integral[N_CH_DRS];
+  bool underflow[N_CH_DRS];
+  bool overflow[N_CH_DRS];
+  int data;
+
+  for(int i_ch=0; i_ch<N_CH_DRS; i_ch++) {
+    integral[i_ch] = 0;
+    underflow[i_ch] = false;
+    overflow[i_ch] = false;
+  }
+
+  // Group 0
+  for(int i_ch=0; i_ch<MAX_V1742_CHANNEL_SIZE; i_ch++ ) {
+    int ii = i_ch;
+    sum=0; //set to zero 
+    for(int cell=0; cell< NUM_SAMPLES; cell++) {
+      data = g0->Data[i_ch][cell];
+      if(data <= MIN_RANGE_DRS) underflow[ii] = true;
+      if(data >= MAX_RANGE_DRS) overflow[ii] = true;
+      if(cell<N_PED_SAMPLES) sum+=data; //accumulate data for first N_PED_SAMPLES 
+      integral[ii] += data;
+      h_drs[ii]->Fill(cell,data);
+      if(fill_1ev_h) h_drs_1ev[ii][i_1ev_h]->Fill(cell,data);
+    }
+    ped[ii]=sum/N_PED_SAMPLES; // compute average
+  }
+
+  // Group 1
+  for(int i_ch=0; i_ch<MAX_V1742_CHANNEL_SIZE; i_ch++ ) {
+    int ii = i_ch + MAX_V1742_CHANNEL_SIZE;
+    sum=0; //set to zero 
+    for(int cell=0; cell< NUM_SAMPLES; cell++) {
+      data = g1->Data[i_ch][cell];
+      if(data <= MIN_RANGE_DRS) underflow[ii] = true;
+      if(data >= MAX_RANGE_DRS) overflow[ii] = true;
+      if(cell<N_PED_SAMPLES) sum+=data; //accumulate data for first N_PED_SAMPLES 
+      integral[ii] += data;
+      h_drs[ii]->Fill(cell,data);
+      if(fill_1ev_h) h_drs_1ev[ii][i_1ev_h]->Fill(cell,data);
+    }
+    ped[ii]=sum/N_PED_SAMPLES; // compute average
+  }
+
+  for (int i_ch=0; i_ch<N_CH_DRS; i_ch++ ) {
+    if (underflow[i_ch]) 
+      h_drs_under[i_ch]->Fill(-1);
+    else if (overflow[i_ch]) 
+      h_drs_under[i_ch]->Fill(1);
+    else 
+      h_drs_under[i_ch]->Fill(0);
+/*     cout << i_ch << ") int " << integral[i_ch] << " - "<< ped[i_ch]*1024  << " = " */
+/* 	 << integral[i_ch]-ped[i_ch]*1024 << endl; */
+    h_drs_int[i_ch]->Fill(integral[i_ch]-ped[i_ch]*1024);
+  }
+
+  // End of DRS analsis - free DRS "DGTZ" buffers
+  if (EventV1742) destroyEventV1742(EventV1742); 
+
+  // *******************************************************
+  // End of DRS stuff
+  // *******************************************************
+
+  return 0;
+}
+
+
+int dreammon_exit(unsigned int i, bool drs,int drs_setup){
+  TFile hfile(ntfilename,"RECREATE");
+  if (hfile.IsZombie()) {
+    fprintf(stderr, "Cannot open  file %s\n", ntfilename);
+    return -1;
+  }
+  char histo[20];
+  printf("%s\n",ntfilename);
+
+  //debug plots in the Debug directory
+
+  hfile.mkdir("Debug");
+  hfile.cd("Debug");
+
+  //Save debug histos for the 2 Dream ADCs
+  for(int i_dreamadc=0; i_dreamadc<2; i_dreamadc++){
+    for(int ch=0;ch<32;ch++){
+      hadc_dream_debug[i_dreamadc][ch]->Write();
+    }
+    hadc_dream_map[i_dreamadc]->Write();
+  }  
+
+  //Save Histo for Ancillary and Leakage ADCs
+  for(int ch=0;ch<32;ch++){
+    hadc_ancillary_debug[ch]->Write();
+    hadc_leakage_debug[ch]->Write();
+  }
+  hadc_ancillary_map->Write();
+  hadc_leakage_map->Write();
+
+  // debug histos for TDC - DWC
+  for ( int i_tdc_ch=0;i_tdc_ch<16;i_tdc_ch++) {
+    htdc_debug[i_tdc_ch]->Write();
+  }
+
+  // new plots are divided in directories
+  hfile.cd("");
+  hfile.mkdir("DWC");
+  hfile.cd("DWC");
+
+  h_dwc_x->Write();
+  h_dwc_y->Write();
+  h_dwc_xy->Write();
+
+  hfile.cd("");
+  hfile.mkdir("Dream");
+  hfile.cd("Dream");
+
+  //Save debug histos for the 2 Dream ADCs
+  for(int i_dreamadc=0; i_dreamadc<2; i_dreamadc++){
+    hadc_dream_baricenter_x[i_dreamadc]->Write(); 
+    hadc_dream_baricenter_y[i_dreamadc]->Write(); 
+    hadc_dream_baricenter[i_dreamadc]->Write(); 
+    hadc_dream_tot[i_dreamadc]->Write();
+
+    for(int ch=0;ch<32;ch++){
+      if(hadc_dream[i_dreamadc][ch]!=0)
+	hadc_dream[i_dreamadc][ch]->Write();
+    }
+  }
+
+  sprintf(histo,"Dream_S_channels");
+  hsummary_dreams = hadc_dream_map[0]->ProfileX();
+  hsummary_dreams->SetNameTitle(histo,histo);
+  for(int i_ch = 0; i_ch < N_CH_ADC; i_ch++)
+    if(hadc_dream[0][i_ch]!=0)
+      hsummary_dreams->GetXaxis()->SetBinLabel(i_ch+1,hadc_dream[0][i_ch]->GetTitle());
+  hsummary_dreams->SetNameTitle(histo,histo);
+  hsummary_dreams->Write();
+
+  sprintf(histo,"Dream_Q_channels");
+  hsummary_dreamq = hadc_dream_map[1]->ProfileX();
+  hsummary_dreamq->SetNameTitle(histo,histo);
+  for(int i_ch = 0; i_ch < N_CH_ADC; i_ch++)
+    if(hadc_dream[1][i_ch]!=0)
+      hsummary_dreamq->GetXaxis()->SetBinLabel(i_ch+1,hadc_dream[1][i_ch]->GetTitle());
+  hsummary_dreamq->SetNameTitle(histo,histo);
+  hsummary_dreamq->Write();
+
+  hfile.cd("");
+  hfile.mkdir("NewDream");
+  hfile.cd("NewDream");
+
+  for(int i_dreamadc=0; i_dreamadc<2; i_dreamadc++){
+    hadc_newdream_baricenter_x[i_dreamadc]->Write(); 
+    hadc_newdream_baricenter_y[i_dreamadc]->Write(); 
+    hadc_newdream_baricenter[i_dreamadc]->Write();
+    hadc_newdream_tot[i_dreamadc]->Write();
+    for(int ch=0;ch<32;ch++){
+      if(hadc_newdream[i_dreamadc][ch]!=0)
+	hadc_newdream[i_dreamadc][ch]->Write();
+    }
+  }
+
+  //Save Histo for  Leakage ADC
+  hfile.cd("");
+  hfile.mkdir("Leakage");
+  hfile.cd("Leakage");
+  for(int ch=0;ch<32;ch++){
+    if(hadc_leakage[ch]!=0)
+      hadc_leakage[ch]->Write();
+  }
+  hadc_leakage_tot->Write();
+
+  sprintf(histo,"Leakage_summary");
+  hsummary_leakage = hadc_leakage_map->ProfileX();
+  for(int i_ch = 0; i_ch < N_CH_ADC; i_ch++)
+    if(hadc_leakage[i_ch]!=0)
+      hsummary_leakage->GetXaxis()->SetBinLabel(i_ch+1,hadc_leakage[i_ch]->GetTitle());
+  hsummary_leakage->SetNameTitle(histo,histo);
+  hsummary_leakage->Write();
+
+  //Save Histo for Ancillary  ADC
+  hfile.cd("");
+  hfile.mkdir("Ancillary");
+  hfile.cd("Ancillary");
+  for(int ch=0;ch<32;ch++){
+    if(hadc_ancillary[ch]!=0)
+      hadc_ancillary[ch]->Write();
+  }  
+
+  sprintf(histo,"Ancillary_channels_summary");
+  hsummary_ancillary = hadc_ancillary_map->ProfileX();
+  for(int i_ch = 0; i_ch < N_CH_ADC; i_ch++)
+    if(hadc_ancillary[i_ch]!=0)
+      hsummary_ancillary->GetXaxis()->SetBinLabel(i_ch+1,hadc_ancillary[i_ch]->GetTitle());
+  hsummary_ancillary->SetNameTitle(histo,histo);
+  hsummary_ancillary->Write();
+
+  //Save Oscilloscope Histos
+  hfile.cd("");
+  hfile.mkdir("Oscilloscope");
+  hfile.cd("Oscilloscope");
+
+  for(int i_osc_ch = 0; i_osc_ch <N_CH_OSC; i_osc_ch++ ){
+    h_osc[i_osc_ch]->Write();
+    h_osc_int[i_osc_ch]->Write();
+    h_osc_under[i_osc_ch]->Write();
+    sprintf(histo,"OSC_ch%d_average_shape",i_osc_ch);
+    h_osc_average[i_osc_ch] = h_osc[i_osc_ch]->ProfileX();
+    h_osc_average[i_osc_ch]->SetNameTitle(histo,histo);
+    h_osc_average[i_osc_ch]->Write();
+    h_osc_int_vs_event[i_osc_ch]->Write();
+  }
+
+  //Save DRS Histos
+  hfile.cd("");
+  hfile.mkdir("DRS");
+  hfile.cd("DRS");
+
+  for(int i_drs_ch = 0; i_drs_ch <N_CH_DRS; i_drs_ch++ ){
+    h_drs[i_drs_ch]->Write();
+    h_drs_int[i_drs_ch]->Write();
+    h_drs_under[i_drs_ch]->Write();
+    sprintf(histo,"DRS_ch%d_average_shape",i_drs_ch);
+    h_drs_average[i_drs_ch] = h_drs[i_drs_ch]->ProfileX();
+    h_drs_average[i_drs_ch]->SetNameTitle(histo,histo);
+    h_drs_average[i_drs_ch]->Write();
+  }
+
+  hfile.cd("");
+  hfile.mkdir("Random events");
+  hfile.cd("Random events");
+
+  for(int i_osc_ch = 0; i_osc_ch <N_CH_OSC; i_osc_ch++ ){
+    for(int i_ev = 0; i_ev <N_1EV_H; i_ev++ ){
+      h_osc_1ev[i_osc_ch][i_ev]->Write();
+    }
+  }
+
+  for(int i_drs_ch = 0; i_drs_ch <N_CH_DRS; i_drs_ch++ ){
+    for(int i_ev = 0; i_ev <N_1EV_H; i_ev++ ){
+      h_drs_1ev[i_drs_ch][i_ev]->Write();
+    }
+  }
+
+  hfile.cd("");
+  //Scaler
+  hscaler->Write();
+
+/*   sprintf(histo,"Summary_OSC"); */
+/*   hsummary_osc =  */
+
+  hfile.Close(); 
+  return 0;
+}
+/***************************************************/

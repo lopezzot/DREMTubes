@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ $# < 2 ] ; then 
+	root -l ~/working/macro/open_run.cxx\($1\)
+else
+	root -l ~/working/macro/open_run.cxx\($1,$2\)
+fi

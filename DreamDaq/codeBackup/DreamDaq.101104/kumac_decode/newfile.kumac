@@ -1,0 +1,7 @@
+MACRO newfile 1=500 2=1
+run_location=$WORKDIR/hbook
+file_name=datafile_histo_run[1].hbook
+**** shell rm -f /tmp/datafile_histo_run*.hbook
+shell cp -p [run_location]/[file_name] /tmp/[file_name]
+h/file [2] /tmp/[file_name] 4096
+return

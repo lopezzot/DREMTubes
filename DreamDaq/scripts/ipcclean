@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ipcs -m | grep dreamtest | grep -v ^0x00000000 | awk '{print "ipcrm -M " $1}' | bash
+ipcs -s | grep dreamtest | grep -v ^0x00000000 | awk '{print "ipcrm -S " $1}' | bash
+

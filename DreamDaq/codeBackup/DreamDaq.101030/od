@@ -1,0 +1,1 @@
+od -t x4 -v -w4 datafile > DFile

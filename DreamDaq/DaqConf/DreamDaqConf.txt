@@ -1,0 +1,8 @@
+v262		0x00400000		/dev/vmedrvb24d16
+v1742		0x00032000		/dev/vmedrvb32d32
+v792ac		0x04000000		/dev/vmedrv32d32
+v792ac		0x05000000		/dev/vmedrv32d32
+v792ac		0x06000000		/dev/vmedrv32d32
+v862ac		0x07000000		/dev/vmedrv32d32
+v775		0x08000000		/dev/vmedrv32d16
+v2718		0x00000000		/dev/vmedrv32d16

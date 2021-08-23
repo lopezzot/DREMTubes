@@ -1,0 +1,10 @@
+zone 4 5
+opt nsta
+h/crea/1dhisto  10  'pippo' 10 0. 10. 
+message "cherenkov signal"
+h/pl 523,524,525,526,527,530,531,532,533,534,535,536,537,540,541,542,543,544,545,10
+wait
+message "scintillation signal"
+h/pl 500,501,502,503,504,505,506,507,510,511,512,513,514,515,516,517,520,521,522,10
+opt stat 111111 
+zone 1 2

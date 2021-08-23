@@ -277,7 +277,6 @@ def main():
     parser.add_argument('--runNumber',dest='runNumber',default='0', help='Specify run number. The output file name will be merged_sps2021_run[runNumber].root ')
     parser.add_argument('--newFiles',dest='newFiles',action='store_true', default=False, help='Looks for new runs in ' + SiPMFileDir + ' and ' + DaqFileDir + ', and merges them. To be used ONLY from the ideadr account on lxplus')
 
-
     
     par  = parser.parse_args()
     global doNotMerge

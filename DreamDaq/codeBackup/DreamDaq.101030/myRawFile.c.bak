@@ -1,0 +1,709 @@
+#include "myRawFile.h"
+#include "myOscDataFile.h"
+
+#include <stdio.h>
+#include <math.h>
+
+#include <iostream>
+
+FILE *rawdatafp;
+int beginningOfRun;
+
+/* Run related variables */
+RunHeader rh;
+
+/* Event related variables */
+EventHeader eh;
+int stRel;  // Time of event (sec.) relative to time of first event
+int ustRel; // Time of event (usec.) relative to time of first event
+int toverp;
+
+/* SubEvent related variables */
+SubEventHeader seh;
+
+
+/********************************************/
+void abortOnReadError()
+     /********************************************/
+{
+  printf("abortOnReadError\n");
+  exit(ABRTREAD);
+}
+
+/********************************************/
+void abortOnBadMagicWord()
+     /********************************************/
+{
+  printf("abortOnBadMagicWord\n");
+  exit(ABRTMAGIC);
+}
+
+/********************************************/
+void abortOnBadEventMarker(int mark)
+     /********************************************/
+{
+  printf("abortOnBadEventMarker: marker is 0x%x, expected 0x%x\n", mark, EVENTMARKER);
+  exit(ABRTEVENT);
+}
+
+/********************************************/
+void abortOnBadSubEventMarker(int mark)
+     /********************************************/
+{
+  printf("abortOnBadSubEventMarker: marker is 0x%x, expected 0x%x\n", mark, SUBEVENTMARKER);
+  exit(ABRTSUBEVENT);
+}
+
+/********************************************/
+int RawFileOpen(const char *fname)
+     /********************************************/
+{
+  int rc = 0;
+
+  rawdatafp = fopen(fname, "r");
+  if (!rawdatafp) {
+    fprintf(stderr, "RawFileOpen: cannot open file %s\n", fname);
+    rc = -1;
+  }
+  beginningOfRun = 1;
+  return rc;
+}
+
+/********************************************/
+int RawFileClose()
+     /********************************************/
+{
+  return fclose(rawdatafp);
+}
+
+/********************************************/
+unsigned int GetRunNumber() { return rh.runnumber; }
+/********************************************/
+
+/********************************************/
+unsigned int GetTotEvts() { return rh.evtsinrun; }
+/********************************************/
+
+/********************************************/
+unsigned int GetBegTime() { return rh.begtim; }
+/********************************************/
+
+/********************************************/
+unsigned int GetEndTime() { return rh.endtim; }
+/********************************************/
+
+/********************************************/
+unsigned int GetEventTimes() { return eh.tsec; }
+/********************************************/
+
+/********************************************/
+unsigned int GetEventTimeu() { return eh.tusec; }
+/********************************************/
+
+/********************************************/
+/********************************************/
+
+/********************************************/
+unsigned int GetEventNumber() { return eh.evnum; }
+/********************************************/
+
+/********************************************/
+unsigned int GetSpillNumber() { return eh.spill; }
+/********************************************/
+
+/********************************************/
+unsigned int GetEventHeaderSize() { return eh.evhsiz; }
+/********************************************/
+
+/********************************************/
+unsigned int GetEventSize() { return eh.evsiz; }
+/********************************************/
+
+/********************************************/
+unsigned int GetEventMarker() { return eh.evmark; }
+/********************************************/
+
+/********************************************/
+unsigned int GetSubEventMarker() { return seh.semk; }
+/********************************************/
+
+/********************************************/
+unsigned int GetSubEventHeaderSize() { return seh.sevhsiz; } 
+/********************************************/
+
+/********************************************/
+unsigned int GetSubEventSize() { return seh.size; } 
+/********************************************/
+
+/********************************************/
+unsigned int GetModuleId() { return seh.id; }
+/********************************************/
+
+/********************************************/
+void UpdateEventTime()
+     /********************************************/
+{
+  static int first = 1;
+  static int sbeg, usbeg;
+  int tdiff;
+
+  if (first) { first = 0; sbeg = eh.tsec; usbeg = eh.tusec; }
+  tdiff = (1000000*eh.tsec+eh.tusec)-(1000000*sbeg+usbeg);
+  stRel  = tdiff/1000000;
+  ustRel = tdiff%1000000;
+}
+
+/********************************************/
+int RawFileReadEvent(unsigned int *buf)
+     /********************************************/
+{
+  int rc;
+  int sz;
+  if (beginningOfRun) { // Only at the beginning of a new run
+
+    // Read Magic Word if beginning of run
+    rc = fread(buf, sizeof(unsigned int), 1, rawdatafp);
+    if (rc != 1) abortOnReadError();
+    switch (buf[0]) {
+    case IMAGIC:
+      break;
+    case IMAGIC_SWAPPED:
+    default:
+      abortOnBadMagicWord();
+    }
+
+    // Rewind and read Run Header if beginning of run
+    rewind(rawdatafp);
+    rc = fread(&rh, sizeof(RunHeader), 1, rawdatafp);
+    if (rc != 1) abortOnReadError();
+
+    // Run header found, avoid reading it again
+    beginningOfRun = 0;
+  }
+
+  // Read Event Header
+  rc = fread(&eh, sizeof(EventHeader), 1, rawdatafp);
+  if (rc != 1) {
+    if (feof(rawdatafp)) 
+      return RAWDATAEOF;   // Correct EOF
+    else 
+      abortOnReadError();
+  }
+  if (GetEventMarker() != EVENTMARKER) abortOnBadEventMarker(GetEventMarker());
+
+  // Update Event related variables
+  UpdateEventTime();
+
+  // Store event header
+  memcpy (buf, &eh, sizeof(EventHeader));
+  unsigned int eSize = GetEventSize()/4;
+  unsigned int hSize = GetEventHeaderSize()/4;
+  // Read Event
+  sz = eSize - hSize;
+  rc = fread(&buf[hSize], sizeof(unsigned int), sz, rawdatafp);
+  if (rc != sz) {
+    if (feof(rawdatafp))
+      return RAWDATAUNEXPECTEDEOF;  // Truncated file?
+    else 
+      abortOnReadError();
+  }
+
+  return eSize;
+}
+
+/********************************************/
+int RawFileReadEventData(unsigned int *buf)
+     /********************************************/
+{
+  int rc;
+  int sz;
+  if (beginningOfRun) { // Only at the beginning of a new run
+
+    // Read Magic Word if beginning of run
+    rc = fread(buf, sizeof(unsigned int), 1, rawdatafp);
+    if (rc != 1) abortOnReadError();
+    switch (buf[0]) {
+    case IMAGIC:
+      break;
+    case IMAGIC_SWAPPED:
+    default:
+      abortOnBadMagicWord();
+    }
+
+    // Rewind and read Run Header if beginning of run
+    rewind(rawdatafp);
+    rc = fread(&rh, sizeof(RunHeader), 1, rawdatafp);
+    if (rc != 1) abortOnReadError();
+
+    // Run header found, avoid reading it again
+    beginningOfRun = 0;
+  }
+
+  // Read Event Header
+  rc = fread(&eh, sizeof(EventHeader), 1, rawdatafp);
+  if (rc != 1) {
+    if (feof(rawdatafp)) 
+      return RAWDATAEOF;   // Correct EOF
+    else 
+      abortOnReadError();
+  }
+  if (GetEventMarker() != EVENTMARKER) abortOnBadEventMarker(GetEventMarker());
+
+  // Update Event related variables
+  UpdateEventTime();
+
+  // Store event header
+  unsigned int eSize = GetEventSize()/4;
+  unsigned int hSize = GetEventHeaderSize()/4;
+  // Read Event
+  sz = eSize - hSize;
+  rc = fread(buf, sizeof(unsigned int), sz, rawdatafp);
+  if (rc != sz) {
+    if (feof(rawdatafp))
+      return RAWDATAUNEXPECTEDEOF;  // Truncated file?
+    else 
+      abortOnReadError();
+  }
+
+  return sz;
+}
+
+/********************************************/
+unsigned int* SubEventSeek(unsigned int id, const unsigned int *lbuf)
+     /********************************************/
+{
+  int nw;
+  int sz;
+
+  // Loop on subevents
+  nw = 0;
+  sz = (GetEventSize() - GetEventHeaderSize())/4;
+  do {         
+    memcpy(&seh, &lbuf[nw], sizeof(SubEventHeader));
+    if (GetSubEventMarker() != SUBEVENTMARKER) abortOnBadSubEventMarker(GetSubEventMarker());
+    // Look for correct module id
+    if (GetModuleId() == id) return const_cast<unsigned int*>(&lbuf[nw]);
+    nw += GetSubEventSize()/4;
+  }  while (nw < sz);  // End of loop on all subevents
+  
+  return NULL;
+}
+
+/***************************************************/
+unsigned int* SubEventSeek2(unsigned int id, unsigned int *lbuf,unsigned int sz)
+     /********************************************/
+{
+  unsigned int nw;
+  // Loop on subevents
+  nw = 0;
+  do {
+    memcpy(&seh, &lbuf[nw], sizeof(SubEventHeader));
+    //    printf("nw:%d lbufnw=%x\n",nw,lbuf[nw]); 
+    if (GetSubEventMarker() != SUBEVENTMARKER) abortOnBadSubEventMarker(GetSubEventMarker());
+    // Look for correct module id
+    if (GetModuleId() == id) return &lbuf[nw];
+    nw += GetSubEventSize()/4;
+  }  while (nw < sz);  // End of loop on all subevents
+                                                                                                      
+  return NULL;
+}
+
+/******************************************/
+int DecodeTriggerNumber(const unsigned int *buf, myTRIGNUM *trignum)
+{
+ unsigned int i;
+ unsigned int hits = 0;
+ trignum->index =0 ;
+ if (!buf) return NODATA;    // Protection against non-existing subevent
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  unsigned int sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;
+//  std::cout<<" GetSubEventSize "<< GetSubEventSize() <<" GetSubEventHeaderSize "<<
+// GetSubEventHeaderSize()<<" sz "<<sz<<std::endl; 
+  if (sz>MAXTRIGNUM) return BADDATATRIGNUM;
+  i=GetSubEventHeaderSize()/4;
+//  std::cout<<" i "<<i<<" imax "<<GetSubEventSize()/4<<std::endl;
+  while (i<GetSubEventSize()/4) {
+//      std::cout<<" i "<<i<<" hits "<<hits<<" buf "<<buf[i]<<std::endl;
+     if (hits==0) {trignum->counter =buf[i];}
+     if (hits==1) {trignum->triggnumb =buf[i];}
+     hits++;
+     i++;
+     }   
+//     std::cout<<" counter "<< trignum->counter  <<" triggnumb "<<trignum->triggnumb<<std::endl;
+    trignum->index = hits;
+  return 0;
+
+}
+/********************************************/
+int DecodeL1182(const unsigned int *buf, myADC *adc)
+     /********************************************/
+{
+  unsigned int i;
+  unsigned int hits = 0;
+  unsigned int mark;
+  unsigned int evt;
+  unsigned int ch; 
+  adc->index = 0;
+  
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  unsigned int sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;
+  if (sz>MAXADC) return BADDATAADC;
+  i=GetSubEventHeaderSize()/4;
+  while (i<GetSubEventSize()/4) {
+    evt=buf[i]&0xFF;
+    mark=buf[i]&0xFFFFFF00;
+    if(mark!=0xFCBBCF00) return BADDATAADC;
+ 
+    i++;
+    ch=0;
+    while(i<(GetSubEventSize()/4) && ((buf[i]&0xFFFFFF00)!=0xABCCBA00) &&ch<8){
+      adc->channel[hits] = (buf[i]&0xF000)>>12;
+      adc->charge[hits]  = buf[i]&0xFFF;
+      i++;
+      hits++;
+      ch++;
+    }
+    
+    if ((buf[i]&0xFFFFFF00)!=0xABCCBA00) return BADDATAADC;
+    if ((buf[i]&0xFF)!=evt)  return BADDATAADC;
+    i++;
+  }
+
+ 
+  adc->index = hits;
+  return 0;
+
+}
+
+
+/********************************************/
+int DecodeV260 (const unsigned int *buf, mySCA *sca)
+     /********************************************/
+{
+
+  unsigned int i;
+  unsigned int hits = 0;
+  unsigned int sz = 0;
+  sca->index = 0;
+  
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+  
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  sz = ( GetSubEventSize()-GetSubEventHeaderSize() )/4;
+  if (sz>MAXSCA) return BADDATASCALER;    // We do not want truncated events
+  i =GetSubEventHeaderSize()/4;
+  while(i<GetSubEventSize()/4){
+    sca->channel[hits] = (buf[i]&0xF000000)>>24;
+    sca->counts[hits] = buf[i]&0xFFFFFF;
+    hits++;
+    i++;
+  }
+
+  sca->index = hits;
+  return 0;
+
+}
+
+
+/********************************************/
+int DecodeSIS3320 (const unsigned int *buf, myFADC *fadc)
+     /********************************************/
+{
+
+  unsigned int i;
+  unsigned int hits = 0;
+  unsigned int  sz=0;                                                                  
+  unsigned olddata=0;
+  unsigned int channels=0;
+  unsigned int ch=0;
+  fadc->index = 0;
+                                                                                
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+                                                                                
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  sz= (GetSubEventSize()-GetSubEventHeaderSize())/4;
+  i=GetSubEventHeaderSize()/4;
+  while(i<GetSubEventSize()/4){
+    if((buf[i]&0xFFFF0000)!=0xABCD0000) return BADDATAFADC;
+    ch= buf[i]&0xFFFF;
+    unsigned int data=0;
+    i++;
+    while(i<(GetSubEventSize()/4) && buf[i]!=0xABCDDBCA){
+      fadc->channel[hits] = ch;
+      fadc->value[hits] =buf[i]&0xFFF;
+      fadc->num[hits] = data;
+      fadc->channel[hits+1] = ch;
+      fadc->value[hits+1] =(buf[i]&0x0FFF0000)>>16;
+      fadc->num[hits+1] = data+1;
+      data+=2;
+      i++;
+      hits+=2;
+    }
+    i++;
+    if(ch%2==0 && olddata!=data) return BADDATAFADC;
+    olddata=data;
+    channels++;
+  }
+ 
+                                                                                   
+  if(buf[i-1]!=0xABCDDBCA) return BADDATAFADC;
+                                                                                
+
+  fadc->index = hits;
+  return 0;
+}
+/********************************************/
+int DecodeL1176 (const unsigned int *buf, myTDC *tdc)
+     /********************************************/
+{
+
+  unsigned int i;
+  unsigned int hits = 0;
+  unsigned int sz=0;                                                                                                                        
+  tdc->index = 0;
+                                                                                                                             
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+                                                                                                                             
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;    
+  if(sz>MAXTDC) return BADDATATDC;
+  i=GetSubEventHeaderSize()/4;
+  while(i<GetSubEventSize()/4){
+    unsigned int mark=buf[i]&0xFFFFFF00;
+    if(mark!=0xDEAAED00) return BADDATATDC;
+    i++;
+      unsigned int last=1;
+      while(i<(GetSubEventSize()/4) && last==1){
+      tdc->data[hits]=buf[i]&0xFFFF;
+      tdc->edge[hits]=(buf[i]&0x10000)>>16;
+      tdc->channel[hits]=(buf[i]&0x1E0000)>>17;
+      tdc->valid[hits]=(buf[i]&0x200000)>>21;
+      last=(buf[i]&0x800000)>>23;
+//      std::cout<<" Dentro TDC i= "<< std::dec << i<<" hits ="<< std::dec << hits<<" ch= "<< std::dec << 
+//	tdc->channel[hits]<<  " data= "<<std::dec << tdc->data[hits]<<std::endl;
+     
+//      std::cout<<" myhexdump ch= "
+//               << std::hex << ((buf[i]&0x1E0000)>>17)
+//               << " data= "<< std::hex << (buf[i]&0xFFFF ) <<std::endl;
+
+
+      i++;
+      hits++;
+     }
+  }
+                                                                                                                  
+  tdc->index = hits;
+//  std::cout<<" INDEX "<<tdc->index<<std::endl;
+  return 0;
+
+}
+
+/***********************************************/
+//int DecodeKLOETDC (unsigned int *buf, myKTDC *ktdc)
+/****************************************************/
+//{ 
+/* unsigned int i;
+   unsigned int last=0;
+   unsigned int datapresent=0;
+   unsigned int hits = 0;
+   unsigned int evn = 0;
+   unsigned int sz= 0;
+
+   ktdc->index = 0;
+                                                                                                   
+   if (!buf) return NODATA;    // Protection against non-existing subevent
+   memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+
+
+   sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;
+   i=GetSubEventHeaderSize()/4;
+   while(i<GetSubEventSize()/4){
+   if((buf[i]&(1<<23))!=1) return BADDATAKTDC; // "Cannot find the event number word"
+   evn=buf[i]&0xFFFF;
+   datapresent=buf[i]&(1<<25);
+   i++;
+   if(datapresent){
+   last=1;
+   while(i<GetSubEventSize()/4 && last){
+   ktdc->data[hits]=buf[i]&0xFFFF;
+   ktdc->edge[hits]=buf[i]&(1<<16);
+   ktdc->over[hits]=buf[i]&(1<<17);
+   ktdc->channel[hits]=buf[i]&0x7C0000;
+   last=buf[i]&(1<<24);
+   hits++;   	
+   i++;
+   }
+   }else{
+   }
+   }
+
+   ktdc->index = hits;
+   if(last && datapresent) return BADDATAKTDC;
+
+   return 0;
+*/
+//}
+
+/***********************************************/
+int DecodeTH03 (const unsigned int *buf, myTH03 *th03)
+     /****************************************************/
+{ 
+
+ 
+  unsigned int i=0;
+  unsigned int hits = 0;
+  unsigned int highref,lowref;
+  float correct;
+  unsigned int mean[3];
+  float res, temp, inv ;  
+
+  th03->index = 0;
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  unsigned int sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;
+  if (sz>MAXTH03) return BADDATATH03;
+  if (sz<MAXTH03) return  BADDATATH03;
+  i=GetSubEventHeaderSize()/4;
+  highref =  (buf[i]&0xFFFF0000)>>16;
+  lowref =  buf[i]&0xFFFF;
+  th03->highref = highref;
+  th03->lowref = lowref; 
+  i++;
+  th03->channel[hits] = hits;
+  mean[hits] = (buf[i]&0xFFFF0000)>>16;
+  th03->rawdata[hits] = mean[hits];
+  th03->channel[hits+1] = hits+1;
+  mean[hits+1] = buf[i]&0xFFFF;
+  th03->rawdata[hits+1] = mean[hits+1];
+  i++;
+  th03->channel[hits+2] = hits+2;
+  mean[hits+2] = (buf[i]&0xFFFF0000)>>16;
+  th03->rawdata[hits+2] = mean[hits+2];
+  th03->index = hits+3;
+
+  for(i=0;i<3;i++){
+    correct = 20082.0 + ((float) mean[i] - (float) lowref)*23691.0/(float) (highref-lowref);
+    res = (601+4.105*(correct-16.0E3)+0.000156*pow(correct-16.0E3,2))/5000.0;
+    inv = 3.3540154E-3+2.5627725E-4*log(res)+
+      2.082921E-6*pow(log(res),2)+7.3003206E-8*pow(log(res),3);
+    temp = pow(inv,-1)-273.15;
+    th03->data[i] = temp;
+//    std::cout<<" lowref "<<lowref<<" highref "<<highref<<std::endl;
+//    std::cout<<" correct "<<correct<<" res "<<res<<" inv "<<inv<<std::endl; 
+//    std::cout<<" mean "<< mean[i] <<" temp "<<temp<<std::endl;
+  }
+            
+ 
+  return 0;
+
+}
+
+/***********************************************/
+int DecodeTEKOSC (const unsigned int *buf, myTEKOSC *tekosc)
+     /****************************************************/
+{
+  unsigned int i=0;
+  unsigned int hits = 0;
+  tekosc->index = 0;
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+ 
+  // printf("%x\n",buf[0]);
+
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  //  unsigned int sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;
+  //  if (sz>MAXTEKOSC) return BADDATATEKOSC;
+  i=GetSubEventHeaderSize()/4;
+
+
+  struct oscheader * oschead=(struct oscheader *)&buf[i];
+  unsigned int tchmask=oschead->chmask;
+  
+  unsigned int chflag[4];
+  unsigned int k=0;
+ 
+  while (k<4) {
+    tekosc->chfla[k]=chflag[k]=tchmask & 0x1;
+    tchmask=tchmask >> 1;
+    k++;
+  }
+
+//  tekosc->channelmap=1000*chflag[0]+200*chflag[1]+30*chflag[3]+4*chflag[4];
+  unsigned int tpts=oschead->pts;
+  //  printf("%d\n",tpts);
+  tekosc->pts=tpts;
+  unsigned int tsamrate=oschead->samrate;
+  tekosc->samplerate=tsamrate; 
+   
+
+  k=0;
+  while(k<4){
+    tekosc->scale[k]=oschead->scale[k];
+    tekosc->position[k]=oschead->position[k];
+    tekosc->tdiff[k]=oschead->timediff[k];
+    k++;
+  } 
+  
+  i+=sizeof(oscheader)/sizeof(unsigned int);
+
+  //print("%d\n",(short)((buf[i]&0xFFFF0000)>>16));
+  
+  
+
+  k=0;
+  hits=0;
+  unsigned int k2=0;
+  unsigned int k1=0;
+  for (k=0;k<4;k++) {
+    if (chflag[k]==1) {
+      k2=0;
+      for (k1=0;k1<tpts/2;k1++) {
+	tekosc->channel[hits]=k;
+	tekosc->data[hits]=(short)(buf[i]&0xFFFF);
+	tekosc->num[hits]=k2;
+		
+	tekosc->channel[hits+1]=k;
+	tekosc->data[hits+1]=(short)((buf[i]&0xFFFF0000)>>16);
+	tekosc->num[hits+1]=k2+1;
+	
+	k2++;
+	k2++;
+	hits++;
+	hits++;
+	i++; 
+      } 
+      //      printf("=============\n");
+      
+    } 
+  }
+  tekosc->index = hits;
+                                                                                                                 
+  return 0;
+}
+
+/********************************************/
+int DecodeV792AC(const unsigned int *buf, myADCN *adcn)
+     /********************************************/
+{
+  unsigned int i;
+  unsigned int hits = 0;
+  adcn->index = 0;
+
+  if (!buf) return NODATA;    // Protection against non-existing subevent
+  memcpy(&seh, buf, sizeof(SubEventHeader));  // already done, but...
+  unsigned int sz=(GetSubEventSize()-GetSubEventHeaderSize())/4;
+  if (sz>MAXADCN+2) return BADDATAADCN;
+  i=GetSubEventHeaderSize()/4;
+  i++;
+  while (i<((GetSubEventSize()/4)-1)) {
+    adcn->data[hits]=(buf[i]&0xFFF);
+    adcn->channel[hits]=(buf[i]>>16)&0x1F;
+    adcn->ov[hits]=(buf[i]>>12)&0x1;
+    adcn->un[hits]=(buf[i]>>13)&0x1;
+    i++;
+    hits++;
+  } 
+
+  adcn->index = hits; 
+  return 0;                                                                                     
+}

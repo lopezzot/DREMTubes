@@ -29,7 +29,7 @@ void PhysicsConverter(const string run){
 
   //Open merge ntuples
   //
-  string infile = "merged_sps2021_run"+run+".root";
+  string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+run+".root";
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());

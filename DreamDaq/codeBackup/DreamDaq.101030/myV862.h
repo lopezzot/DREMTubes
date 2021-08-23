@@ -1,0 +1,246 @@
+//$Id: myV775.h,v 1.4 2008/07/18 11:11:51 dreamdaq Exp $
+/*****************************************
+
+  myV8622.h
+  ---------
+
+  Definition of the CAEN V862 ADC.
+  This class is a class derived from the class vme.
+
+*****************************************/
+
+// Standard C header files
+extern "C" {
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <errno.h>
+}
+
+// C++ header files
+#include <iostream>
+#include <iomanip>
+
+#define V862_SETBITS(OFF,BITS){ \
+unsigned short int val; \
+read16phys(OFF,&val); \
+val |= BITS; \
+write16phys(OFF,val); \
+}
+
+#define V862_RESETBITS(OFF,BITS){ \
+unsigned short int val; \
+read16phys(OFF,&val); \
+val &= (~(BITS)); \
+write16phys(OFF,val); \
+}
+
+#define V862_GETBITS(OFF,BITS,SHIFT){ \
+unsigned short int val; \
+read16phys(OFF,&val); \
+volatile unsigned short vol = val; \
+return ((vol&BITS)>>SHIFT); \
+}
+
+
+#define HEXWORD(m) "0x" << std::hex << std::setfill('0') << std::setw(8) << m << std::dec
+
+//Registers
+#define V862_BITSET1 0x1006
+#define V862_BITCLEAR1 0x1008
+#define V862_STATUS1 0x100E
+#define V862_CTRL1 0x1010
+#define V862_BITSET2 0x1032
+#define V862_BITCLEAR2 0x1034
+#define V862_STATUS2 0x1022
+#define V862_IPED 0x1060
+#define V862_THR_BASE 0x1080
+
+//Bits
+#define V862_BIT1_SWRESET 0x80
+
+#define V862_BIT2_CLEARDATA 0x4
+#define V862_BIT2_OVERFLOW 0x8
+#define V862_BIT2_ZEROSUPP 0x10
+#define V862_BIT2_SLIDING 0x80
+
+#define V862_KILL 0x100
+
+
+using namespace std;
+
+/*****************************************/
+// The v862 class 
+/*****************************************/
+class v862 : public vme {
+
+ public:
+
+  // Constructor
+  v862(unsigned int base, const char *dev);    
+  ~v862();
+
+  // Crap
+  void print();                                 // Simple dump function
+
+  inline unsigned int id();                     // Module ID
+
+  inline void clearData(){
+    write16phys(V862_BITSET2,V862_BIT2_CLEARDATA);
+    write16phys(V862_BITCLEAR2,V862_BIT2_CLEARDATA);
+  }
+  
+  inline void swReset(){
+    write16phys(V862_BITSET1,V862_BIT1_SWRESET);
+    write16phys(V862_BITCLEAR1,V862_BIT1_SWRESET);
+  }
+
+
+  inline void iPed(uint16_t value){write16phys(V862_IPED,value);}
+  inline uint16_t iPed();
+  
+  inline void overflowSuppression(bool on);
+  inline void zeroSuppression(bool on);
+  inline void slidingScale(bool on);
+  
+  inline void channel(uint32_t ch, bool on);
+
+  inline bool bufferEmpty();
+  inline bool bufferFull();
+  inline bool dready();
+  inline bool busy();
+
+  inline unsigned int readSingleEvent(unsigned int *buf);
+
+ protected:
+  
+ private:
+  vme * outputbuffer;
+};
+
+/*****************************************/
+// Generic Commands
+/*****************************************/
+
+
+inline unsigned int v862::id() {return ba | ID_V862;}
+
+
+/*****************************************/
+// Constructor
+/*****************************************/
+v862::v862(unsigned int base, const char *dev):vme(base, 0x2000, dev)
+  {
+   std::string s(dev);
+   uint32_t l=s.length();
+   if (l>3) s.replace(l-3, 3, "d32");
+   outputbuffer = new vme (base, 0x1000, s.c_str());
+  }
+
+v862::~v862()
+  {
+   delete outputbuffer;
+  }
+
+/*****************************************/
+void v862::print() 
+/*****************************************/
+{
+  cout << "*************************************" << endl;  
+  cout << "CAEN TDC V862 Module / base " << ba << ", mmap " << &vbuf << ", length " << length << endl;
+  cout << "*************************************" << endl;
+  return;
+}
+
+void v862::overflowSuppression(bool on){
+
+  uint32_t reg = on?V862_BITCLEAR2:V862_BITSET2;
+  write16phys(reg,V862_BIT2_OVERFLOW);
+}
+
+void v862::zeroSuppression(bool on){
+
+  uint32_t reg = on?V862_BITCLEAR2:V862_BITSET2;
+  write16phys(reg,V862_BIT2_ZEROSUPP);
+}
+
+void v862::slidingScale(bool on){
+
+  uint32_t reg = on?V862_BITSET2:V862_BITCLEAR2;
+  write16phys(reg,V862_BIT2_SLIDING);
+}
+
+uint16_t v862::iPed(){
+  uint16_t val;
+  read16phys(V862_IPED, &val);
+  return  (val & 0xff);
+}
+
+void v862::channel(uint32_t ch, bool on){
+
+  uint32_t reg = V862_THR_BASE + ch*2;
+  uint16_t val;
+  read16phys(reg, &val);
+  
+  if(on)
+    val &= ~(V862_KILL);
+  else
+    val |= V862_KILL;
+
+  write16phys(reg, val);
+}
+
+bool v862::bufferEmpty(){
+  
+  V862_GETBITS(V862_STATUS2, 0x2, 1);
+}
+
+bool v862::bufferFull(){
+  
+  V862_GETBITS(V862_STATUS2, 0x4, 2);
+}
+
+bool v862::dready(){
+
+  V862_GETBITS(V862_STATUS1, 0x1, 0);
+}
+
+bool v862::busy(){
+
+  V862_GETBITS(V862_STATUS1, 0x4, 2);
+}
+
+unsigned int v862::readSingleEvent(unsigned int *buf){
+ 
+  if(!this->dready()){
+    std::cerr << "[V862]: data not available" << std::endl;
+    return 0;
+  }
+
+  uint32_t val;
+  uint32_t size = 0; 
+
+  //Read (what is supposed to be) header
+  outputbuffer->read32phys(0x0,&val);
+  
+  if((val & 0x7000000) == 0x6000000){
+    std::cerr << "[V862]: invalid header" << std::endl;
+    return 0;
+  }
+  
+  uint32_t nwords = ((val & 0x3f00)>>8);
+  //std::cerr << "[V862]: " << nwords << std::endl;
+  for(size_t i=0; i<nwords; ++i){
+    outputbuffer->read32phys(0x0,&val);
+    //std::cerr << std::hex << val << std::endl;
+    *buf++ = val;
+    size++;
+  }
+
+  //Read the trailer
+  outputbuffer->read32phys(0x0,&val);
+
+  return size;
+}

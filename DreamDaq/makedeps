@@ -1,0 +1,24 @@
+
+CXX             =  g++
+CXXFLAGS        = -g -Wall -fPIC $(INCLUDES)
+32BIT           = -m32
+LIBS            = -lpthread -lrt
+
+
+all: setV258
+
+setV258.o: setV258.cpp myVme.h myV258.h setV258.d
+	$(CXX) $(CXXFLAGS) $(32BIT) -c setV258.cpp
+
+setV258: setV258.o
+	$(CXX) $(CXXFLAGS) $(32BIT) -o $@ $^ $(LIBS)
+
+#This is the rule for creating the dependency files
+%.d: %.cpp
+	echo $(CXX) $(CXXFLAGS) -MM -MT '$(patsubst %.cpp,%.o,$<)'
+	$(CXX) -M $(CXXFLAGS) $^ > $@
+
+#This rule does the compilation
+%.o: %.cpp %.d %.hh
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
+

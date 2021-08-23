@@ -1,0 +1,191 @@
+//$Id: sampler.cpp,v 1.22 2009/07/21 09:14:46 dreamdaq Exp $
+
+/****************************************/
+// Standard C header files
+/****************************************/
+extern "C" {
+#include <unistd.h>
+#include <signal.h>
+#include <stdio.h>
+#include <sys/times.h>
+#include <math.h>
+#include "myRunNumber.h"
+}
+
+#include <iostream>
+
+#include "myFIFOSampler.h"
+#include "myFIFO-IOp.h"
+
+using namespace std;
+
+extern "C" {
+  int dreammon_init(char * * argv, unsigned int run_nr, bool drs, int drs_setup, bool phys_h);
+  int dreammon_event(unsigned int doSingle, unsigned int events, unsigned int * buf, bool drs, int drs_setup);
+  int dreammon_exit(int i, bool drs, int drs_setup);
+}
+                                                                                                        
+bool abort_run=false;
+
+void cntrl_c_handler(int sig)
+{
+  cout << endl << "Got control-c, end of current run" << endl << endl;
+  abort_run = true;
+}
+
+int main(int argc, char ** argv){
+
+  unsigned int run_nr;
+  unsigned int events=0,size;
+  unsigned int buf[100000];
+  int evt_interval=1000;
+  unsigned int spillNr = 0;
+  unsigned int oldSpillNr = 0;
+  unsigned int evtnum = 0;
+  unsigned int doSingle;
+  struct tms tmsbuf;
+  unsigned int ticks_per_sec;
+  double time0, cputime, tottime, percent;
+
+  bool drs;
+  bool drs_fb_lk;
+  bool drs_matrix;
+
+  drs=false;
+  drs_fb_lk=false;
+  drs_matrix=false;
+
+  bool phys_h;
+  int drs_setup=0;
+
+  phys_h=true;
+/* DRS 2008 
+  if (argc==2) {
+  if(!strcmp(argv[1],"drs")){
+    drs=true;
+  }
+  if(!strcmp(argv[1],"nodrs")){
+    drs=false;
+  }
+
+  }
+*/
+  if (argc<2) {
+   drs=false;
+   drs_fb_lk=false;
+   drs_matrix= false;
+   drs_setup=0;
+  } 
+  if (argc==2) {
+  if(!strcmp(argv[1],"drs_fb_lk")){
+    drs=true;
+    drs_fb_lk=true;
+    drs_matrix=false;
+    drs_setup=1;
+  }
+  if(!strcmp(argv[1],"nodrs")){
+    drs= false;
+    drs_fb_lk=false;
+    drs_matrix=false;
+    drs_setup=0;
+  }
+  if(!strcmp(argv[1],"drs_matrix")){
+    drs= true;
+    drs_fb_lk=false;
+    drs_matrix=true;
+    drs_setup=2;
+  }
+
+  }
+
+
+  if ((drs==true)&&(drs_fb_lk==true)&&(drs_matrix==false)) drs_setup=1;
+  if ((drs==true)&&(drs_fb_lk==false)&&(drs_matrix==true)) drs_setup=2;
+  if  (drs==false) drs_setup=0;
+
+
+  time0 = times(&tmsbuf);
+  ticks_per_sec = sysconf(_SC_CLK_TCK);
+  signal(SIGINT, cntrl_c_handler);      // Control-C handler
+  
+  myFIFOSampler *fifo = new myFIFOSampler(PHYS_BASE_KEY);
+
+  if(fifo->isvalid()){
+    cout << "Fifo is valid" << endl;
+    fifo->waitReader();
+  }else{
+    cout << "Fifo is not valid" << endl;
+    abort_run=true;
+  }
+
+  run_nr = readRunNumber();
+  dreammon_init(argv, run_nr, drs, drs_setup, phys_h);  
+
+  bool done=false;
+  while(!abort_run)
+  {
+    oldSpillNr = spillNr;
+    fifo->waitlock();
+    myFIFO::result result =fifo->read(buf,&size);
+    spillNr=fifo->getSpillNr();
+    fifo->unlock();
+    
+    if(result==myFIFO::FIFOEMPTY){
+      if(!fifo->isWriterPresent()) 
+        break;
+//        if(done) break;
+//        sleep(1);
+//      }
+//      else
+//       done=true;
+      usleep(10000);
+    }
+    if(result==myFIFO::FIFOEMPTY){
+    }else if(result==myFIFO::WRLOCKED || result==myFIFO::RDLOCKED){
+      usleep(10000);
+    }else if(result==myFIFO::FAILED){
+      cout<< "Alignment error" << endl;
+      exit(1);
+    }else if(result==myFIFO::SUCCESS){
+      evtnum = ((EventHeader *)buf)->evnum;
+      doSingle = ((evtnum % evt_interval) == 1);
+      dreammon_event(doSingle,events++,buf,drs,drs_setup);  
+
+      //FIXME the following code never works, fix it or remove it?
+//       if (oldSpillNr != spillNr) 
+//       {
+//         std::cout << "[main]: oldSpillNr != spillNr " 
+//                   << oldSpillNr << " ! = " << spillNr << std::endl;
+//         dreammon_exit(1,drs,drs_setup);
+//       }
+    }
+ 
+  }
+  percent = (evtnum) ? events/(1.0*evtnum) : 0.0;
+  percent = rint(percent*10000)/100;
+
+  cout << "Sampled events "<< events << " over " << evtnum << " (" << percent << "%)" << endl;
+
+  dreammon_exit(0,drs,drs_setup);  
+
+  delete fifo;
+
+  tottime = times(&tmsbuf) - time0;
+  tottime /= ticks_per_sec;
+  cputime = tmsbuf.tms_utime + tmsbuf.tms_stime;
+  cputime /= ticks_per_sec;
+  percent = cputime/tottime;
+  percent = rint(percent*10000)/100;
+
+  cout << "TIME - TOT: " << tottime << " sec - CPU: " << cputime << " sec ("       << percent << "%)" << endl;
+
+  int i=5;
+  while (i)
+   {
+    std::cout << i-- << "..";
+    sleep(1);
+   }
+  std::cout << i << std::endl;
+
+  return 0;
+}
