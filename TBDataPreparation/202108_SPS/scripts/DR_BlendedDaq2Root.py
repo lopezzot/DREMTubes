@@ -4,7 +4,7 @@ import ROOT
 import os
 from array import array
 import numpy as np
-import glob
+import glob,time
 
 ####### Hard coded information - change as you want
 SiPMFileDir="/afs/cern.ch/user/i/ideadr/scratch/TB2021_H8/rawNtupleSiPM"
@@ -84,8 +84,8 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
     HG_Board = []
     LG_Board = []
     for i in range(0,5):
-        HG_Board.append(array('i',[-1]*64))
-        LG_Board.append(array('i',[-1]*64))
+        HG_Board.append(np.empty(64,'int'))
+        LG_Board.append(np.empty(64,'int'))
     newTree.Branch("TriggerTimeStampUs",TriggerTimeStampUs,'TriggerTimeStampUs/D')
     newTree.Branch("HG_Board0",HG_Board[0],"HG_Board0[64]/I")
     newTree.Branch("HG_Board1",HG_Board[1],"HG_Board1[64]/I")
@@ -120,8 +120,8 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
 
         for iboard in range(0,5):
             for ch in range(0,64):
-                HG_Board[iboard][ch] = 0
-                LG_Board[iboard][ch] = 0
+                HG_Board[iboard].fill(0)
+                LG_Board[iboard].fill(0)
 
         if (daq_ev + EvtOffset) in entryDict:
             for entryToBeStored in entryDict[daq_ev + EvtOffset]:
@@ -130,6 +130,7 @@ def CloneSiPMTree(DaqInputTree,SiPMInput,OutputFile):
                 myboard = map(ord,SiPMInput.BoardId)[0]
                 for ch in range(0,64):
                     HG_Board[myboard][ch] = SiPMInput.HighGainADC[ch]
+                    print (SiPMInput.HighGainADC)
                     LG_Board[myboard][ch] = SiPMInput.LowGainADC[ch]
             TriggerTimeStampUs = SiPMInput.TriggerTimeStampUs
         EventNumber = daq_ev
@@ -264,8 +265,10 @@ def main():
     parser.add_argument('--output', dest='outputFileName',default='SiPM_PMT_output.root',help='Output file name')
     parser.add_argument('--no_merge', dest='no_merge',action='store_true',help='Do not do the merging step')           
     parser.add_argument('--runNumber',dest='runNumber',default='0', help='Specify run number. The output file name will be merged_sps2021_run[runNumber].root ')
-    parser.add_argument('--newFiles',dest='newFiles',action='store_true', default='False', help='Looks for new runs in ' + SiPMFileDir + ' and ' + DaqFileDir + ', and merges them. To be used ONLY from the ideadr account on lxplus')
+    parser.add_argument('--newFiles',dest='newFiles',action='store_true', default=False, help='Looks for new runs in ' + SiPMFileDir + ' and ' + DaqFileDir + ', and merges them. To be used ONLY from the ideadr account on lxplus')
 
+
+    
     par  = parser.parse_args()
     global doNotMerge
     doNotMerge = par.no_merge
@@ -288,12 +291,15 @@ def main():
     else: 
         if par.inputSiPM != '0' and par.inputDaq != '0':
             print 'Running on files ' + par.inputSiPM + ' and ' +  par.inputDaq
-            allGood = CreateBlendedFile(par.inputSiPM,par.inputPMT,par.outputFileName)
+            start = time.time()
+            allGood = CreateBlendedFile(par.inputSiPM,par.inputDaq,par.outputFileName)
+            end = time.time()
+            print 'Execution time ' + str(end-start)
         else:
             print 'You need to provide either --inputSiPM and --inputDaq, or --runNumber. Exiting graciously.....'
             parser.print_help()
             return 
-    
+
     if allGood != 0:
         print 'Something went wrong. Please double check your options. If you are absolutely sure that the script should have worked, contact iacopo.vivarelli AT cern.ch'
 
