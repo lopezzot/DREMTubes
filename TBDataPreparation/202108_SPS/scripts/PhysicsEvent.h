@@ -86,8 +86,8 @@ class Event{
     int SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
     int CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
     
-    Int_t SiPMHighGain[320];
-    Int_t SiPMLowGain[320];
+    UShort_t SiPMHighGain[320];
+    UShort_t SiPMLowGain[320];
 
     void calibrate(const SiPMCalibration&, EventOut*);
     void calibratePMT(const PMTCalibration&, EventOut*);
