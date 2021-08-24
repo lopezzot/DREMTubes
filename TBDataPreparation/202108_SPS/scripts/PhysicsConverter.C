@@ -29,19 +29,15 @@ void PhysicsConverter(const string run){
 
   //Open merge ntuples
   //
-  string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+run+".root";
+  std::string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+run+".root";
   std::cout<<"Using file: "<<infile<<std::endl;
-  char cinfile[infile.size() + 1];
-  strcpy(cinfile, infile.c_str());
-  string outfile = "physics_sps2021_run"+run+".root";
-  char coutfile[outfile.size() + 1];
-  strcpy(coutfile, outfile.c_str());
-  auto Mergfile = new TFile(cinfile, "READ");
+  const std::string outfile = "file.root";
+  auto Mergfile = new TFile(infile.c_str(), "READ");
   auto *PMTtree = (TTree*) Mergfile->Get("CERNSPS2021");
   auto *SiPMtree = (TTree*) Mergfile->Get("SiPMSPS2021");
   //Create new tree and Event object
   //
-  auto Outfile = new TFile(coutfile,"RECREATE");
+  auto Outfile = new TFile(outfile.c_str(),"RECREATE");
   auto ftree = new TTree("Ftree","Ftree");
   ftree->SetDirectory(Outfile);
   auto ev = new Event();
@@ -59,7 +55,7 @@ void PhysicsConverter(const string run){
   //Allocate branch pointers
   //
   int EventID;
-   PMTtree->SetBranchAddress("EventNumber",&EventID);
+  PMTtree->SetBranchAddress("EventNumber",&EventID);
   int ADCs[96];
   PMTtree->SetBranchAddress("ADCs",ADCs);
   SiPMtree->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
@@ -106,16 +102,10 @@ void PhysicsConverter(const string run){
     //
     ev->calibrate(sipmCalibration, evout);
     ev->calibratePMT(pmtCalibration, evout);
-    evout->CompSPMTene();
-    evout->CompCPMTene();
     //std::cout<<ev->EventID<<" "<<ev->totSiPMPheS<<std::endl;
     //Write event in ftree
     //
     ftree->Fill();
-    //Reset totSiPMPheC and totSiPMPheS to 0
-    //
-    evout->totSiPMCene = 0;
-    evout->totSiPMSene = 0;
   }
 
   //Write and close Outfile
@@ -123,7 +113,6 @@ void PhysicsConverter(const string run){
   Mergfile->Close();
   ftree->Write();
   Outfile->Close();
-
 }
 
 //**************************************************
