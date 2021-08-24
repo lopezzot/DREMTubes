@@ -1,4 +1,4 @@
-
+//**************************************************
 // \file PhysicsEvent.h
 // \brief: implementation of Event class
 // \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot

@@ -21,8 +21,9 @@
 Refer to README.md files in subfolders for instructions and further documentation:
 
 - DREMTubes/ **A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests.**
-- DreamDaq/ **The DAQ code used at the 2021 SPS Dual-Readout test beam.**
-- TBDataPreparation/ **Repository for the code to convert raw test-beam-data to ROOT ntuples, and raw test-beam-data monitoring.**
+- DreamDaq/ **DAQ code used at the 2021 SPS Dual-Readout test beam.**
+- TBDataPreparation/ **Code to convert raw test-beam-data to ROOT ntuples, and raw test-beam-data monitoring.**
+- TBDataAnalysis/ **Code to analyze ROOT physics ntuples.**
 
 Coding began on July 7, 2021.
 
