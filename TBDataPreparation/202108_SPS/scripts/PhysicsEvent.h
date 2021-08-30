@@ -1,8 +1,10 @@
 //**************************************************
 // \file PhysicsEvent.h
 // \brief: implementation of Event class
-// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
+// 			@lopezzot
 //          Edoardo Proserpio (Uni Insubria)
+//          Iacopo Vivarelli (Uni Sussex)
 // \start date: 20 August 2021
 //**************************************************
 
