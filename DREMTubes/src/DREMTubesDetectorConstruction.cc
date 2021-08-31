@@ -1,7 +1,9 @@
 //**************************************************
 // \file DREMTubesDetectorConstruction.cc
-// \brief: Implementation of DREMTubesDetectorConstruction class
-// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \brief: Implementation of 
+//         DREMTubesDetectorConstruction class
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
+//          @lopezzot
 // \start date: 7 July 2021
 //**************************************************
 
@@ -310,10 +312,9 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //
     // Geometry parameters of the module
     //
+    // Each tower/module has 16*20 fibers 
+    // 16*10 Scin and 16*10 Cher
     G4int Nofmodules = 1; 
-    //G4int NofFibers = 16*20; 
-    //G4int NofScinFibers = NofFibers/2;
-    //G4int NofCherFibers = NofFibers/2;
     G4int NofFibersrow = 3*16;
     G4int NofFiberscolumn = 60;
     G4double moduleZ = (1000.)*mm;
@@ -388,6 +389,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                     fCheckOverlaps);  // check overlaps 
 
     //Absorber to calculate leakage
+		//
     G4VSolid* leakageabsorber = new G4Sphere("leakageabsorber",                        
         1000., 1100., 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
     
