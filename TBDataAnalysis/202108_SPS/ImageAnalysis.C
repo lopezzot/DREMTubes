@@ -7,7 +7,7 @@
 // \start date: 30 August 2021
 //**************************************************
 
-//Example to be used with run 669 - 40 GeV e+ in T0.
+//To be used with run 669 - 40 GeV e+ in T0.
 //Usage: root -l .x 'PhysicsAnalysis.C("669")'
 
 #include <TTree.h>
@@ -77,15 +77,14 @@ void ImageAnalysis(const string run){
 	  	SPMTplot->Reset();
 	  	CPMTplot->Write("CPMTplot");
 	  	CPMTplot->Reset();
-
+			
 			for(unsigned int index=0; index<160; index++){
 				double* pos = GetSSiPMPos(index);   
-		  	
 			}
-
     }
   }
-  outfile->Close();
+	outfile->Close();
+
 }
 
 //**************************************************
