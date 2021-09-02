@@ -49,7 +49,8 @@ Coding began on July 7, 2021.
 ### Selected presentations
 - Dual-Readout Calorimetry Meeting 21/7/2021, **DREMTubes: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
 
-### Pictures
+<!--Pictures-->
+## Pictures
 <figure>
 <figcaption align="center"><b>Fig. - Desy test beam setup.</b></figcaption>
 <img src="https://github.com/lopezzot/DREMTubes/blob/dev/images/Desy_TB.jpeg" alt="Trulli" style="width:100%">
