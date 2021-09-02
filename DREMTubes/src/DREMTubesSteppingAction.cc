@@ -65,8 +65,9 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
 //Define AuxSteppingAction() method
 //
 void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
-    	
-    // Get step info
+	  const G4int a = 1439;
+    G4cout<<fDetConstruction->GetTowerID( a )<<G4endl;	
+		// Get step info
     //
     G4VPhysicalVolume* PreStepVolume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();

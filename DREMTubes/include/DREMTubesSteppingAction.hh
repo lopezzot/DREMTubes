@@ -66,7 +66,7 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
                 
 				//Pointer to DREMTubesDetectorConstruction
 				//
-				const DREMTubesDetectorConstruction* fDetConstruction;
+			  const	DREMTubesDetectorConstruction* fDetConstruction;
 				
 				G4bool fFullOptic;
 
