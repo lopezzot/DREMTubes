@@ -112,7 +112,7 @@ inline G4int DREMTubesDetectorConstruction::GetTowerID( const G4int& cpno ) cons
 			else if ( column < 2 ) {TowerID = 4;}
 			else if ( column < 3 ) {TowerID = 6;}
 		}
-	  G4cout<<row<<" "<<column<<G4endl; 
+	  //G4cout<<row<<" "<<column<<G4endl; 
 		return TowerID;
 }
 

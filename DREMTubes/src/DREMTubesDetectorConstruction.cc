@@ -888,7 +888,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     /*G4VPhysicalVolume**/ fCTubePV = new G4PVPlacement(0,
                                                      G4ThreeVector(0.,0.,0.),
                                                      logic_Abs_C_fiber,
-                                                     "Abs_S_fiber",
+                                                     "Abs_C_fiber",
                                                      logic_C_fiber,
                                                      false,
                                                      0,

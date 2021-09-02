@@ -65,36 +65,40 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
 //Define AuxSteppingAction() method
 //
 void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
-	  const G4int a = 1439;
-    G4cout<<fDetConstruction->GetTowerID( a )<<G4endl;	
+	
 		// Get step info
     //
     G4VPhysicalVolume* PreStepVolume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
-    //G4VPhysicalVolume* PostStepVolume
-    //= step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
     G4double energydeposited = step->GetTotalEnergyDeposit();
     G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
-    G4int particlepdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
 
     //--------------------------------------------------
     //Store auxiliary information from event steps
     //--------------------------------------------------
 
-    if (PreStepVolume->GetName() == "leakageabsorber" ){
+    if ( PreStepVolume->GetName() == "leakageabsorber" ){
         fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
         step->GetTrack()->SetTrackStatus(fStopAndKill);
     } 
 
-    if ( PreStepVolume->GetName() != "World" 
-         && PreStepVolume->GetName() != "leakageabsorber" ) {
-            fEventAction->Addenergy(energydeposited); //energy deposited in calo
-    }
+    if ( PreStepVolume->GetName() == "Clad_S_fiber" ||
+				 PreStepVolume->GetName() == "Core_S_fiber" ||
+				 PreStepVolume->GetName() == "Abs_S_fiber"  ||
+				 PreStepVolume->GetName() == "Clad_C_fiber" ||
+		     PreStepVolume->GetName() == "Core_C_fiber" ||
+			   PreStepVolume->GetName() == "Abs_C_fiber"  ) {
+    
+				G4cout<<fDetConstruction->GetTowerID(
+						step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1))<<G4endl; 
+		}
 
     if ( PreStepVolume->GetName() != "World"
          && PreStepVolume->GetName() != "leakageabsorber") {
 
-        if (particlename == "e-" || particlename == "e+"){
+        fEventAction->Addenergy(energydeposited); //energy deposited in calo
+        
+				if (particlename == "e-" || particlename == "e+"){
             fEventAction->Addem(energydeposited); //energy deposited by em-component
         }
     }
@@ -102,7 +106,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     if ( step->GetTrack()->GetTrackID() == 1 &&
          step->GetTrack()->GetCurrentStepNumber() == 1){
         //Save primary particle energy and name
-        fEventAction->SavePrimaryPDGID(particlepdg);
+        fEventAction->SavePrimaryPDGID(step->GetTrack()->GetDefinition()->GetPDGEncoding());
         fEventAction->SavePrimaryEnergy(step->GetTrack()->GetKineticEnergy());
     }
 }
