@@ -14,10 +14,19 @@
 //
 #include "G4UserSteppingAction.hh"
 #include "G4Types.hh"
+
+//Forward declarations from Geant4
+//
 class G4OpBoundaryProcess;
 
+//Forward declarations from project files
+//
 class DREMTubesDetectorConstruction;
 class DREMTubesEventAction;
+
+//Includers from project files
+//
+#include "DREMTubesTowerHelper.hh"
 
 class DREMTubesSteppingAction : public G4UserSteppingAction {
     
@@ -25,6 +34,7 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
         //Constructor
         //
         DREMTubesSteppingAction(DREMTubesEventAction* eventAction,
+						                    const DREMTubesDetectorConstruction* detConstruction,
                                 const G4bool FullOptic );
         //De-constructor
         //
@@ -49,13 +59,21 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
         void SlowSteppingAction( const G4Step* step );
     
     private:
-        //Data members
-        //
+
         DREMTubesEventAction*  fEventAction;  
 
         G4OpBoundaryProcess* fOpProcess;
-        
-        G4bool fFullOptic;
+                
+				//Pointer to DREMTubesDetectorConstruction
+				//
+				const DREMTubesDetectorConstruction* fDetConstruction;
+				
+				G4bool fFullOptic;
+
+				//Pointer to only existing implementation (singleton)
+				//of DREMTubesTowerHelper
+				//
+				DREMTubesTowerHelper* fTowerHelper;
 };
 
 #endif

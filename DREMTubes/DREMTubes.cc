@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 
     runManager->SetUserInitialization(new DREMTubesPhysicsList(custom_pl, FullOptic ));
   
-    auto actionInitialization = new DREMTubesActionInitialization( FullOptic );
+    auto actionInitialization = new DREMTubesActionInitialization( DetConstruction, FullOptic );
     runManager->SetUserInitialization(actionInitialization);
   
     // Initialize visualization

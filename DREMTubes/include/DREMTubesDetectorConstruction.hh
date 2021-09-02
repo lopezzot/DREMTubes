@@ -17,6 +17,8 @@
 #include "G4Material.hh"
 #include "G4LogicalVolume.hh"
 
+//Forward declaration
+//
 class G4VPhysicalVolume;
 class G4GlobalMagFieldMessenger;
 
@@ -56,16 +58,59 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
                                             G4double claddingradiusmax,
                                             G4double claddingZ,
                                             G4Material* CladCherMaterial);
+        //Getters
+				//
+				const G4VPhysicalVolume* GetSCorePV() const;
+				const G4VPhysicalVolume* GetSCladPV() const;
+				const G4VPhysicalVolume* GetSTubePV() const;
+
+
+				const G4VPhysicalVolume* GetCCorePV() const;
+				const G4VPhysicalVolume* GetCCladPV() const;
+				const G4VPhysicalVolume* GetCTubePV() const;
 
     private:
         
-        // methods
+        //Mandatory method for Geant4
         //
         G4VPhysicalVolume* DefineVolumes();
-  
+        
+			  //Members
+				//
         G4bool  fCheckOverlaps; // option for checking volumes overlaps
+				
+				G4VPhysicalVolume* fSCorePV; //PV: core of S fibers
+				G4VPhysicalVolume* fSCladPV; //PV: clad of S fibers
+				G4VPhysicalVolume* fSTubePV; //PV: tube of S fibers
 
+				G4VPhysicalVolume* fCCorePV; //PV: core of C fibers
+				G4VPhysicalVolume* fCCladPV; //PV: clad of C fibers
+				G4VPhysicalVolume* fCTubePV; //PV: tube of C fibers
 };
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetSCorePV() const {
+		return fSCorePV;
+}
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetSCladPV() const {
+		return fSCladPV;
+}
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetSTubePV() const {
+		return fSTubePV;
+}
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetCCorePV() const {
+		return fCCorePV;
+}
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetCCladPV() const {
+		return fCCladPV;
+}
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetCTubePV() const {
+		return fCTubePV;
+}
 
 #endif
 

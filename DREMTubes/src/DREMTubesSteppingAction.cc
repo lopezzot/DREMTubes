@@ -25,13 +25,17 @@
 
 //Define constructor
 //
-DREMTubesSteppingAction::DREMTubesSteppingAction(
-    DREMTubesEventAction* eventAction,
-    const G4bool FullOptic)
+DREMTubesSteppingAction::DREMTubesSteppingAction( DREMTubesEventAction* eventAction,
+																									const DREMTubesDetectorConstruction* detConstruction,
+																									const G4bool FullOptic)
     : G4UserSteppingAction(),
     fEventAction(eventAction),
-    fFullOptic(FullOptic)
-{}
+		fDetConstruction(detConstruction),
+    fFullOptic(FullOptic) {
+		
+		fTowerHelper = DREMTubesTowerHelper::Instance(); 
+		
+}
 
 //Define de-constructor
 //
@@ -56,6 +60,50 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
     else {
         SlowSteppingAction( step );
     } 
+}
+
+//Define AuxSteppingAction() method
+//
+void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
+    	
+    // Get step info
+    //
+    G4VPhysicalVolume* PreStepVolume 
+        = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
+    //G4VPhysicalVolume* PostStepVolume
+    //= step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
+    G4double energydeposited = step->GetTotalEnergyDeposit();
+    G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
+    G4int particlepdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
+
+    //--------------------------------------------------
+    //Store auxiliary information from event steps
+    //--------------------------------------------------
+
+    if (PreStepVolume->GetName() == "leakageabsorber" ){
+        fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
+        step->GetTrack()->SetTrackStatus(fStopAndKill);
+    } 
+
+    if ( PreStepVolume->GetName() != "World" 
+         && PreStepVolume->GetName() != "leakageabsorber" ) {
+            fEventAction->Addenergy(energydeposited); //energy deposited in calo
+    }
+
+    if ( PreStepVolume->GetName() != "World"
+         && PreStepVolume->GetName() != "leakageabsorber") {
+
+        if (particlename == "e-" || particlename == "e+"){
+            fEventAction->Addem(energydeposited); //energy deposited by em-component
+        }
+    }
+   
+    if ( step->GetTrack()->GetTrackID() == 1 &&
+         step->GetTrack()->GetCurrentStepNumber() == 1){
+        //Save primary particle energy and name
+        fEventAction->SavePrimaryPDGID(particlepdg);
+        fEventAction->SavePrimaryEnergy(step->GetTrack()->GetKineticEnergy());
+    }
 }
 
 //Define SlowSteppingAction() method
@@ -149,50 +197,7 @@ void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
 
 }
 
-//Define AuxSteppingAction() method
-//
-void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
-    
-    // Get step info
-    //
-    G4VPhysicalVolume* PreStepVolume 
-        = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
-    //G4VPhysicalVolume* PostStepVolume
-    //= step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
-    G4double energydeposited = step->GetTotalEnergyDeposit();
-    G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
-    G4int particlepdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
 
-    //--------------------------------------------------
-    //Store auxiliary information from event steps
-    //--------------------------------------------------
-
-    if (PreStepVolume->GetName() == "leakageabsorber" ){
-        fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
-        step->GetTrack()->SetTrackStatus(fStopAndKill);
-    } 
-
-    if ( PreStepVolume->GetName() != "World" 
-         && PreStepVolume->GetName() != "leakageabsorber" ) {
-            fEventAction->Addenergy(energydeposited); //energy deposited in calo
-    }
-
-    if ( PreStepVolume->GetName() != "World"
-         && PreStepVolume->GetName() != "leakageabsorber") {
-
-        if (particlename == "e-" || particlename == "e+"){
-            fEventAction->Addem(energydeposited); //energy deposited by em-component
-        }
-    }
-   
-    if ( step->GetTrack()->GetTrackID() == 1 &&
-         step->GetTrack()->GetCurrentStepNumber() == 1){
-        //Save primary particle energy and name
-        fEventAction->SavePrimaryPDGID(particlepdg);
-        fEventAction->SavePrimaryEnergy(step->GetTrack()->GetKineticEnergy());
-    }
-
-}
 
 //Define FastSteppingAction() method
 //

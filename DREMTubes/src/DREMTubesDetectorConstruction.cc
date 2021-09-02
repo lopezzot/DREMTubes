@@ -42,7 +42,13 @@
 //
 DREMTubesDetectorConstruction::DREMTubesDetectorConstruction()
     : G4VUserDetectorConstruction(),
-    fCheckOverlaps(false){
+    fCheckOverlaps(false),
+		fSCorePV(nullptr),
+		fSCladPV(nullptr),
+		fSTubePV(nullptr),
+		fCCorePV(nullptr),
+		fCCladPV(nullptr),
+		fCTubePV(nullptr) {
 }
 
 //De-constructor
@@ -585,7 +591,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     OpSurfacedefault -> SetFinish(polishedbackpainted); 
     // Painted from inside the fibers, light is absorbed
 
-
     // Tubes with scintillating fibers and SiPM next to them
     //
     // Attention: I place an optical surface painted (blacked) from the moduleequippedPV 
@@ -594,14 +599,15 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //G4VPhysicalVolume* physi_S_fiber[NofFibersrow][NofFiberscolumn];
     //G4VPhysicalVolume* physi_SiPM[NofFibersrow][NofFiberscolumn];  
     //G4LogicalBorderSurface* logic_OpSurface_defaultAir[NofFibersrow][NofFiberscolumn];
-
-    G4int copynumber=0;
+		
+    G4int copynumber = 0;
 
     for(int row=0; row<NofFibersrow; row++){
         
         std::stringstream S_fiber_row;
         S_fiber_row.str("");
         S_fiber_row << row;
+
         for(int column=0; column<NofFiberscolumn; column++){
             
             std::stringstream S_fiber_column;
@@ -609,16 +615,16 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             S_fiber_column << column;
             std::string S_name;
             std::string SiPM_name;
-            S_name = "S_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str(); 
+            S_name = "S_row_" + S_fiber_row.str() + "_column_" + S_fiber_column.str(); 
             SiPM_name = "S_SiPM"; 
-            //SiPM_name =    "SiPMS_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str();
+            //SiPM_name = "SiPMS_row" + S_fiber_row.str() + "_column_" + S_fiber_column.str();
 
             G4double S_x, S_y;
             G4ThreeVector vec_S_fiber;
             G4ThreeVector vec_SiPM;
 
             if(column%2==0){
-                S_x = -moduleX/2 + tuberadius + (tuberadius*2+2*tolerance)*row;
+                S_x = +moduleX/2 - tuberadius - (tuberadius*2+2*tolerance)*row;
                 S_y = -moduleY/2 + tuberadius + (1.733+2*tolerance*mm)*(column);
             
                 vec_S_fiber.setX(S_x);
@@ -629,7 +635,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                 vec_SiPM.setY(S_y);
                 vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
             
-                copynumber = (NofFiberscolumn*row+column);
+                copynumber = ((NofFiberscolumn/2)*row+column/2);
 
                 auto logic_S_fiber = constructscinfiber(tolerance,
                                                         tuberadius,
@@ -687,7 +693,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             C_fiber_column << column;
             std::string C_name;
             std::string SiPM_name;
-            C_name = "C_row" + C_fiber_row.str() + "_column_" + C_fiber_column.str(); 
+            C_name = "C_row_" + C_fiber_row.str() + "_column_" + C_fiber_column.str(); 
             SiPM_name = "C_SiPM"; 
             //SiPM_name = "SiPMC_row" + C_fiber_row.str() + "_column_" + C_fiber_column.str();
 
@@ -696,8 +702,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
             G4ThreeVector vec_SiPM;
 
             if(column%2 != 0){
-                C_x =
-                 -moduleX/2 + tuberadius + tuberadius + (tuberadius*2+2*tolerance)*row;
+                C_x = moduleX/2 - tuberadius - tuberadius - (tuberadius*2+2*tolerance)*row;
                 C_y = -moduleY/2 + tuberadius + (1.733+2*tolerance*mm)*column;
          
                 vec_C_fiber.setX(C_x);
@@ -708,7 +713,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                 vec_SiPM.setY(C_y);
                 vec_SiPM.setZ(fiberZ/2+SiPMZ/2-0.18);
 
-                copynumber = (NofFiberscolumn*row+column);
+                copynumber = ((NofFiberscolumn/2)*row+column/2);
                         
                 auto logic_C_fiber = constructcherfiber(tolerance,
                                                         tuberadius,
@@ -746,9 +751,9 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
         };
     };
 
-  // Return physical world
-  //
-  return worldPV;
+    // Return physical world
+    //
+    return worldPV;
 
 }
 
@@ -773,6 +778,20 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     G4LogicalVolume* logic_S_fiber = new G4LogicalVolume(S_fiber,
                                                          absorberMaterial,
                                                          "S_fiber");
+	
+		G4Tubs* Abs_S_fiber = new G4Tubs("Abs_S_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
+
+    G4LogicalVolume* logic_Abs_S_fiber = new G4LogicalVolume(Abs_S_fiber,
+																														 absorberMaterial,
+                                                             "Abs_S_fiber");
+    /*G4VPhysicalVolume**/ fSTubePV = new G4PVPlacement(0,
+                                                     G4ThreeVector(0.,0.,0.),
+                                                     logic_Abs_S_fiber,
+                                                     "Abs_S_fiber",
+                                                     logic_S_fiber,
+                                                     false,
+                                                     0,
+                                                     fCheckOverlaps);
 
     G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., 
                                       coreradius, coreZ/2, 0., 2.*pi);
@@ -792,7 +811,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     vec_Core_S.setY(0.);
     vec_Core_S.setZ(0.); 
                              
-    /*G4VPhysicalVolume* Core_S_PV =*/ new G4PVPlacement(0,
+    /*G4VPhysicalVolume**/ fSCorePV = new G4PVPlacement(0,
                                                      vec_Core_S,
                                                      logic_Core_S_fiber,
                                                      "Core_S_fiber",
@@ -821,7 +840,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     vec_Clad_S.setY(0.);
     vec_Clad_S.setZ(0.); 
                              
-    /*G4VPhysicalVolume* Clad_S_PV =*/ new G4PVPlacement(0,
+    /*G4VPhysicalVolume**/ fSCladPV = new G4PVPlacement(0,
                                                      vec_Clad_S,
                                                      logic_Clad_S_fiber,
                                                      "Clad_S_fiber",
@@ -835,7 +854,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
     TubeVisAtt->SetVisibility(true);
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
-    logic_S_fiber->SetVisAttributes(TubeVisAtt);
+    logic_Abs_S_fiber->SetVisAttributes(TubeVisAtt);
     
     return logic_S_fiber;
 
@@ -861,6 +880,20 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
                                                          absorberMaterial,
                                                          "C_fiber");
 
+		G4Tubs* Abs_C_fiber = new G4Tubs("Abs_C_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
+
+    G4LogicalVolume* logic_Abs_C_fiber = new G4LogicalVolume(Abs_C_fiber,
+																														 absorberMaterial,
+                                                             "Abs_C_fiber");
+    /*G4VPhysicalVolume**/ fCTubePV = new G4PVPlacement(0,
+                                                     G4ThreeVector(0.,0.,0.),
+                                                     logic_Abs_C_fiber,
+                                                     "Abs_S_fiber",
+                                                     logic_C_fiber,
+                                                     false,
+                                                     0,
+                                                     fCheckOverlaps);
+
     G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., 
         coreradius, coreZ/2, 0., 2.*pi);
 
@@ -879,7 +912,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     vec_Core_C.setY(0.);
     vec_Core_C.setZ(0.); 
                              
-    /*G4VPhysicalVolume* Core_C_PV =*/ new G4PVPlacement(0,
+    /*G4VPhysicalVolume**/ fCCorePV = new G4PVPlacement(0,
                                                     vec_Core_C,
                                                     logic_Core_C_fiber,
                                                     "Core_C_fiber",
@@ -907,7 +940,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     vec_Clad_C.setY(0.);
     vec_Clad_C.setZ(0.); 
                              
-    /*G4VPhysicalVolume* Clad_C_PV =*/ new G4PVPlacement(0,
+    /*G4VPhysicalVolume**/ fCCladPV = new G4PVPlacement(0,
                                                      vec_Clad_C,
                                                      logic_Clad_C_fiber,
                                                      "Clad_C_fiber",
@@ -920,7 +953,7 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
     TubeVisAtt->SetVisibility(true);
     TubeVisAtt->SetForceWireframe(true);
     TubeVisAtt->SetForceSolid(true);
-    logic_C_fiber->SetVisAttributes(TubeVisAtt);
+    logic_Abs_C_fiber->SetVisAttributes(TubeVisAtt);
 
     return logic_C_fiber;
 

@@ -15,9 +15,11 @@
 
 //Constructor
 //
-DREMTubesActionInitialization::DREMTubesActionInitialization( const G4bool FullOptic )
+DREMTubesActionInitialization::DREMTubesActionInitialization
+															( DREMTubesDetectorConstruction* detConstruction, const G4bool FullOptic )
     : G4VUserActionInitialization(),
-    fFullOptic( FullOptic )      
+    fFullOptic( FullOptic ),
+    fDetConstruction( detConstruction )		
 {}
 
 //De-constructor
@@ -41,7 +43,7 @@ void DREMTubesActionInitialization::Build() const {
     auto eventAction = new DREMTubesEventAction;
     SetUserAction(new DREMTubesRunAction( eventAction ));
     SetUserAction(eventAction);
-    SetUserAction(new DREMTubesSteppingAction(eventAction, fFullOptic));
+    SetUserAction(new DREMTubesSteppingAction(eventAction, fDetConstruction, fFullOptic));
 
 }  
 
