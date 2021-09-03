@@ -42,16 +42,24 @@ class DREMTubesEventAction : public G4UserEventAction {
         void SavePrimaryEnergy(G4double primaryparticleenergy);
         void AddEscapedEnergy(G4double escapedenergy);
 
-        //to save vectors in ntuple
+        //Save vectors in ntuple
+				//
         std::vector<G4double>& GetVectorSignals() {return VectorSignals;} 
         std::vector<G4double>& GetVectorSignalsCher() {return VectorSignalsCher;}
+				std::vector<G4double>& GetVecTowerE() {return VecTowerE;}
+				std::vector<G4double>& GetVecSPMT() {return VecSPMT;}
+				std::vector<G4double>& GetVecCPMT() {return VecCPMT;}
 
-        //to fill vectors
+        //Fill vector of scintillating fibers with energy deposition
+				//
         void AddVectorScinEnergy(G4double de, G4int fiber); 
-        //fill vector of scintillating fibers with energy deposition
+        //Fill vector of cherenkov fibers with chernekov photoelectrons
+        //
         void AddVectorCherPE(G4int fiber, G4int n);
-        //fill vector of cherenkov fibers with chernekov photoelectrons
-    
+        //Fill vector of energy in each tower
+				//
+				void AddVecTowerE(G4int TowerID, G4double de);
+
     private:
         G4double  EnergyScin; //Energy in scintillating fibers
         G4double  EnergyCher; //Energy in Cherenkov fibers
@@ -74,6 +82,9 @@ class DREMTubesEventAction : public G4UserEventAction {
 				//Vector of PMTs filled with Cherenkov signals
 				//
 				std::vector<G4double> VecCPMT;
+				//Vector of energy deposited in towers
+				//
+				std::vector<G4double> VecTowerE;
 
 };
 
@@ -97,6 +108,10 @@ inline void DREMTubesEventAction::AddVectorScinEnergy(G4double de, G4int fiber) 
 
 inline void DREMTubesEventAction::AddVectorCherPE(G4int fiber, G4int n) {
     VectorSignalsCher.at(fiber) = VectorSignalsCher.at(fiber) + n;
+}
+
+inline void DREMTubesEventAction::AddVecTowerE(G4int TowerID, G4double de) {
+		VecTowerE.at(TowerID) += de;
 }
 
 inline void DREMTubesEventAction::AddScin(G4double de){

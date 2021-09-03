@@ -70,34 +70,35 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 	
 		// Get step info
     //
-    G4VPhysicalVolume* PreStepVolume 
+    G4VPhysicalVolume* volume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
-    G4double energydeposited = step->GetTotalEnergyDeposit();
+    G4double edep = step->GetTotalEnergyDeposit();
 
     //--------------------------------------------------
     //Store auxiliary information from event steps
     //--------------------------------------------------
 
-    if ( PreStepVolume->GetName() == "leakageabsorber" ){
+    if ( volume->GetName() == "leakageabsorber" ){
         fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
         step->GetTrack()->SetTrackStatus(fStopAndKill);
     } 
 
-    if ( PreStepVolume->GetName() == "Clad_S_fiber" ||
-				 PreStepVolume->GetName() == "Core_S_fiber" ||
-				 PreStepVolume->GetName() == "Abs_S_fiber"  ||
-				 PreStepVolume->GetName() == "Clad_C_fiber" ||
-		     PreStepVolume->GetName() == "Core_C_fiber" ||
-			   PreStepVolume->GetName() == "Abs_C_fiber"  ) {
-    
-				G4cout<<fDetConstruction->GetTowerID(
-						step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1))<<G4endl; 
+    if ( volume->GetName() == "Clad_S_fiber" ||
+				 volume->GetName() == "Core_S_fiber" ||
+				 volume->GetName() == "Abs_S_fiber"  ||
+				 volume->GetName() == "Clad_C_fiber" ||
+		     volume->GetName() == "Core_C_fiber" ||
+			   volume->GetName() == "Abs_C_fiber"  ) {
+         
+		    fEventAction->AddVecTowerE(	
+					fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
+				  edep );
 		}
 
-    if ( PreStepVolume->GetName() != "World"
-         && PreStepVolume->GetName() != "leakageabsorber") {
+    if ( volume->GetName() != "World" ||
+         volume->GetName() != "leakageabsorber") {
 
-        fEventAction->Addenergy(energydeposited); //energy deposited in calo
+        fEventAction->Addenergy(edep); //energy deposited in calo
         
     }
    

@@ -45,20 +45,26 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     //Define ntuple structure
     //
     analysisManager->CreateNtuple("DREMTubesout", "DREMTubesoutput");
-    analysisManager->CreateNtupleDColumn("Energyem");
-    analysisManager->CreateNtupleDColumn("EnergyScin");
-    analysisManager->CreateNtupleDColumn("EnergyCher");
-    analysisManager->CreateNtupleDColumn("NofCherenkovDetected"); 
-    analysisManager->CreateNtupleDColumn("EnergyTot");
-    analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");
-    analysisManager->CreateNtupleIColumn("PrimaryPDGID");
-    analysisManager->CreateNtupleDColumn("EscapedEnergy");
+    analysisManager->CreateNtupleDColumn("EnergyScin");                     //0
+    analysisManager->CreateNtupleDColumn("EnergyCher");                     //1
+    analysisManager->CreateNtupleDColumn("NofCherenkovDetected");           //2
+		analysisManager->CreateNtupleDColumn("NofScinDet");                     //3
+    analysisManager->CreateNtupleDColumn("EnergyTot");                      //4
+    analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");          //5
+    analysisManager->CreateNtupleIColumn("PrimaryPDGID");                   //6
+    analysisManager->CreateNtupleDColumn("EscapedEnergy");                  //7
     analysisManager->CreateNtupleDColumn
         ("VectorSignals", fEventAction->GetVectorSignals());
     analysisManager->CreateNtupleDColumn
         ("VectorSignalsCher", fEventAction->GetVectorSignalsCher());
-    analysisManager->FinishNtuple();
-  
+    analysisManager->CreateNtupleDColumn
+			  ("VecTowerE", fEventAction->GetVecTowerE());
+		analysisManager->CreateNtupleDColumn
+			  ("VecSPMT", fEventAction->GetVecSPMT());
+		analysisManager->CreateNtupleDColumn
+			  ("VecCPMT", fEventAction->GetVecCPMT());
+		analysisManager->FinishNtuple();
+      
 }
 
 //Define de-constructor
