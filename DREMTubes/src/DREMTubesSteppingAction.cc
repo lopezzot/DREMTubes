@@ -17,6 +17,8 @@
 #include "G4Step.hh"
 #include "G4RunManager.hh"
 #include "G4OpBoundaryProcess.hh"
+#include "G4Electron.hh"
+#include "G4Positron.hh"
 
 //Includers from C++
 //
@@ -71,7 +73,6 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     G4VPhysicalVolume* PreStepVolume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
     G4double energydeposited = step->GetTotalEnergyDeposit();
-    G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
 
     //--------------------------------------------------
     //Store auxiliary information from event steps
@@ -98,9 +99,6 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 
         fEventAction->Addenergy(energydeposited); //energy deposited in calo
         
-				if (particlename == "e-" || particlename == "e+"){
-            fEventAction->Addem(energydeposited); //energy deposited by em-component
-        }
     }
    
     if ( step->GetTrack()->GetTrackID() == 1 &&

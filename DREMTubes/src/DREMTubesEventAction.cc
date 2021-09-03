@@ -27,12 +27,10 @@
 //
 DREMTubesEventAction::DREMTubesEventAction()
     : G4UserEventAction(),
-    Energyem(0.),
-    Energyem2(0.),
     EnergyScin(0.),
     EnergyCher(0.),
     NofCherenkovDetected(0),
-    //NofScintillationDetected(0),
+    NofScinDet(0),
     EnergyTot(0.),
     PrimaryPDGID(0),
     PrimaryParticleEnergy(0.),
@@ -51,8 +49,6 @@ void DREMTubesEventAction::BeginOfEventAction(const G4Event*) {
     
     //Initialize data memebers at each event
     //
-    Energyem = 0.;
-    Energyem2 = 0.;
     EnergyScin = 0.;
     EnergyCher = 0.;
     NofCherenkovDetected = 0;
@@ -91,16 +87,13 @@ void DREMTubesEventAction::EndOfEventAction(const G4Event* ) {
     //Fill ntuple event by event
     //entries with vectors are automatically filled
     //
-    analysisManager->FillNtupleDColumn(0, Energyem);
     analysisManager->FillNtupleDColumn(1, EnergyScin);
     analysisManager->FillNtupleDColumn(2, EnergyCher);
     analysisManager->FillNtupleDColumn(3, NofCherenkovDetected);
     analysisManager->FillNtupleDColumn(4, EnergyTot);
     analysisManager->FillNtupleDColumn(5, PrimaryParticleEnergy);
     analysisManager->FillNtupleIColumn(6, PrimaryPDGID);
-    //analysisManager->FillNtupleSColumn(7, AbsorberMaterial);
     analysisManager->FillNtupleDColumn(7, EscapedEnergy);
-    //analysisManager->FillNtupleDColumn(9, Energyem2);
     analysisManager->AddNtupleRow();
 
     G4int tot_S = 0;
