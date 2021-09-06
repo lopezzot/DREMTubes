@@ -86,7 +86,9 @@ void DREMTubesEventAction::EndOfEventAction(const G4Event* ) {
     analysisManager->FillNtupleIColumn(6, PrimaryPDGID);
     analysisManager->FillNtupleDColumn(7, EscapedEnergy);
     analysisManager->AddNtupleRow();
+		//Vector entries in ntuple are automatically filled
 
+		/*
     G4int tot_S = 0;
     G4int tot_C = 0;
     for(unsigned int i=0; i<VectorSignals.size(); i++){
@@ -98,7 +100,7 @@ void DREMTubesEventAction::EndOfEventAction(const G4Event* ) {
     }
 
     G4cout<<"Tot S "<<tot_S<<" Tot C "<<tot_C<<G4endl;
-
+		*/
 }
 
 //**************************************************

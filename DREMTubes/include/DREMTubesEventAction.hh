@@ -59,6 +59,12 @@ class DREMTubesEventAction : public G4UserEventAction {
         //Fill vector of energy in each tower
 				//
 				void AddVecTowerE(G4int TowerID, G4double de);
+        //Fill vector of signals in scintillating PMTs
+				//
+				void AddVecSPMT(G4int PMTID, G4double de);
+				//Fill vector of signals in Cherenkov PMTs
+				//
+				void AddVecCPMT(G4int PMTID, G4double de);
 
     private:
         G4double  EnergyScin; //Energy in scintillating fibers
@@ -114,6 +120,13 @@ inline void DREMTubesEventAction::AddVecTowerE(G4int TowerID, G4double de) {
 		VecTowerE.at(TowerID) += de;
 }
 
+inline void DREMTubesEventAction::AddVecSPMT(G4int PMTID, G4double de) {
+		VecSPMT.at(PMTID) += de;
+}
+
+inline void DREMTubesEventAction::AddVecCPMT(G4int PMTID, G4double de) {
+		VecCPMT.at(PMTID) += de;
+}
 inline void DREMTubesEventAction::AddScin(G4double de){
   EnergyScin += de;
 }

@@ -17,6 +17,7 @@
 #include "G4Step.hh"
 #include "G4RunManager.hh"
 #include "G4OpBoundaryProcess.hh"
+#include "G4OpticalPhoton.hh"
 
 //Includers from C++
 //
@@ -58,7 +59,9 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
     //Save slow signal information
     //
     else {
-        SlowSteppingAction( step );
+				G4cout<<"ERROR: FULL OPTICS NOT SUPPORTED IN THIS VERSION"<<G4endl;
+				abort();
+        //SlowSteppingAction( step );
     } 
 }
 
@@ -97,7 +100,6 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 				  edep );
 		}
 	
-
     if ( volume != fDetConstruction->GetWorldPV() ||
          volume != fDetConstruction->GetLeakCntPV() ) {
 
@@ -222,101 +224,87 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
     
     // Get step info
     //
-    G4VPhysicalVolume* PreStepVolume 
+		G4VPhysicalVolume* volume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
-    //G4VPhysicalVolume* PostStepVolume
-    //= step->GetPostStepPoint()->GetTouchableHandle()->GetVolume();
-    G4double energydeposited = step->GetTotalEnergyDeposit();
-    G4String particlename = step->GetTrack()->GetDefinition()->GetParticleName();
+    G4double edep = step->GetTotalEnergyDeposit();
     G4double steplength = step->GetStepLength();
-    double k_B = 0.126; //Birks constant
     
     //--------------------------------------------------
     //Store information from Scintillation and Cherenkov
     //signals
     //--------------------------------------------------
-    
+   
     std::string Fiber;
     std::string S_fiber = "S_fiber";
     std::string C_fiber = "C_fiber";
-    Fiber = PreStepVolume->GetName(); //name of current step fiber
+    Fiber = volume->GetName(); 
+    G4int TowerID;
 
-    G4int copynumber;
-  
-    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber
-        G4double saturatedenergydeposited = 0.;
-        copynumber = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-        if(step->GetTrack()->GetDefinition()->GetPDGCharge() != 0.) {
-            if (steplength != 0) {
-                saturatedenergydeposited =
-                    (energydeposited/steplength) /
-                    ( 1+k_B*(energydeposited/steplength) ) * steplength;
-            }
-        }
-        fEventAction->AddScin(energydeposited); 
-        std::poisson_distribution<int> scin_distribution(
-                saturatedenergydeposited*3.78);
-        int s_signal = scin_distribution(generator);
-        fEventAction->AddVectorScinEnergy(s_signal,copynumber);
-        //energy deposited in any scintillating fiber (saturated)
+    if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
+
+			if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) {
+				step->GetTrack()->SetTrackStatus( fStopAndKill ); 
+			}
+
+			if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 ||
+				 step->GetStepLength() == 0 ) { return; }
+				 
+			TowerID = fDetConstruction->GetTowerID(
+					step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+			fEventAction->AddScin(edep);
+			G4int signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ), 
+					                                            step->GetTrack()->GetCurrentStepNumber() );
+			if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
+			else { //fEventAction->AddVectorScinEnergy(s_signal,copynumber);
+		 	}
     }
 
-    if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber
-        fEventAction->AddCher(energydeposited);
-    }
-    
-    G4OpBoundaryProcessStatus theStatus = Undefined;
+    if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber/tube
 
-    G4ProcessManager* OpManager =
-        G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+				fEventAction->AddCher(edep);
 
-    if (OpManager) {
-        G4int MAXofPostStepLoops =
-              OpManager->GetPostStepProcessVector()->entries();
-        G4ProcessVector* fPostStepDoItVector =
-              OpManager->GetPostStepProcessVector(typeDoIt);
+				if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ){
+					
+						G4OpBoundaryProcessStatus theStatus = Undefined;
 
-        for ( G4int i=0; i<MAXofPostStepLoops; i++) {
-            G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
-            fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-            if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
-        }
-    }
+						G4ProcessManager* OpManager =
+							G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
 
-    if( particlename == "opticalphoton" ) { //optical photons
+						if (OpManager) {
+								G4int MAXofPostStepLoops =
+								OpManager->GetPostStepProcessVector()->entries();
+								G4ProcessVector* fPostStepDoItVector =
+								OpManager->GetPostStepProcessVector(typeDoIt);
 
-        switch ( theStatus ){
+								for ( G4int i=0; i<MAXofPostStepLoops; i++) {
+										G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+										fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+										if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
+								}
+						}
 
-        case TotalInternalReflection: //photon reflected inside fiber
-            Fiber = PreStepVolume->GetName();
-            
-            if(strstr(Fiber.c_str(),S_fiber.c_str())){ //scintillating fibre
-                step->GetTrack()->SetTrackStatus(fStopAndKill);
-            }
+						switch ( theStatus ){
+								
+								case TotalInternalReflection: {
+										G4int c_signal = fSignalHelper->SmearCSignal( step->GetTrack()->GetCurrentStepNumber() );
+										fEventAction->AddCherenkov( c_signal );
+										
+										TowerID = fDetConstruction->GetTowerID(
+												step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));		
+										if ( TowerID != 0 ) { fEventAction->AddVecCPMT( TowerID, c_signal ); }
+										else { /*fEventAction->AddVectorCherPE(copynumber, c_signal);*/ }
 
-            if( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fibre
-               copynumber = 
-                   step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
-	       int c_signal = cher_distribution(generator);
-               fEventAction->AddCherenkov(c_signal); 
-               fEventAction->AddVectorCherPE(copynumber, c_signal);
-               step->GetTrack()->SetTrackStatus(fStopAndKill); 
-            }
-            break;
+										step->GetTrack()->SetTrackStatus( fStopAndKill );
+								}
+								default:
+										step->GetTrack()->SetTrackStatus( fStopAndKill );
 
-        case Detection:
-            //To be used for SiPM simulation (optional)
-            //
-            break;
+					  } //end of swich cases
 
-        default: 
-            step->GetTrack()->SetTrackStatus(fStopAndKill);
-            break;
+			  }	//end of optical photon
 
-        } //end of switch cases
-
-    }//end of optical photon loop
-
+    } //end of Cherenkov fiber
+   
 }
 
 //**************************************************
