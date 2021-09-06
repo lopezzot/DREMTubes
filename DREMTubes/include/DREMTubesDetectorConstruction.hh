@@ -61,6 +61,7 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
         //Getters
 				//
 				const G4VPhysicalVolume* GetLeakCntPV() const;
+				const G4VPhysicalVolume* GetWorldPV() const;
 
 				//Other methods
 				//
@@ -77,7 +78,7 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
         G4bool  fCheckOverlaps; // option for checking volumes overlaps
 				
 				G4VPhysicalVolume* fLeakCntPV; //PV: lekage counter
-
+				G4VPhysicalVolume* fWorldPV;   //PV: wourld volume
 };
 
 inline G4int DREMTubesDetectorConstruction::GetTowerID( const G4int& cpno ) const {
@@ -106,6 +107,10 @@ inline G4int DREMTubesDetectorConstruction::GetTowerID( const G4int& cpno ) cons
 
 inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetLeakCntPV() const {
 		return fLeakCntPV;
+}
+
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetWorldPV() const {
+		return fWorldPV;
 }
 
 #endif

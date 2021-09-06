@@ -17,8 +17,6 @@
 #include "G4Step.hh"
 #include "G4RunManager.hh"
 #include "G4OpBoundaryProcess.hh"
-#include "G4Electron.hh"
-#include "G4Positron.hh"
 
 //Includers from C++
 //
@@ -98,17 +96,19 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 					fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
 				  edep );
 		}
+	
 
-    if ( volume->GetName() != "World" ||
-         volume->GetName() != "leakageabsorber") {
+    if ( volume != fDetConstruction->GetWorldPV() ||
+         volume != fDetConstruction->GetLeakCntPV() ) {
 
-        fEventAction->Addenergy(edep); //energy deposited in calo
+        fEventAction->Addenergy(edep); 
         
     }
    
     if ( step->GetTrack()->GetTrackID() == 1 &&
          step->GetTrack()->GetCurrentStepNumber() == 1){
         //Save primary particle energy and name
+				//
         fEventAction->SavePrimaryPDGID(step->GetTrack()->GetDefinition()->GetPDGEncoding());
         fEventAction->SavePrimaryEnergy(step->GetTrack()->GetVertexKineticEnergy());
     }

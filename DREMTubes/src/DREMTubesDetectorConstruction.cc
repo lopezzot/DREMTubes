@@ -43,7 +43,8 @@
 DREMTubesDetectorConstruction::DREMTubesDetectorConstruction()
     : G4VUserDetectorConstruction(),
     fCheckOverlaps(false),
-		fLeakCntPV(nullptr) {
+		fLeakCntPV(nullptr),
+    fWorldPV(nullptr) {
 }
 
 //De-constructor
@@ -380,14 +381,14 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
   
     worldLV->SetVisAttributes(G4VisAttributes::Invisible);
 
-    G4VPhysicalVolume* worldPV = new G4PVPlacement( 0,                // no rotation
-                                                    G4ThreeVector(),  // at (0,0,0)
-                                                    worldLV,          // its logical
-                                                    "World",          // its name
-                                                    0,                // its mother
-                                                    false,            // no boolean oper 
-                                                    0,                // copy number
-                                                    fCheckOverlaps);  // check overlaps 
+    fWorldPV = new G4PVPlacement( 0,                // no rotation
+                                  G4ThreeVector(),  // at (0,0,0)
+                                  worldLV,          // its logical
+                                  "World",          // its name
+                                  0,                // its mother
+                                  false,            // no boolean oper 
+                                  0,                // copy number
+                                  fCheckOverlaps);  // check overlaps 
 
     //Absorber to calculate leakage
 		//
@@ -748,7 +749,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     // Return physical world
     //
-    return worldPV;
+    return fWorldPV;
 
 }
 
