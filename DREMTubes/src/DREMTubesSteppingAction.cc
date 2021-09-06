@@ -110,7 +110,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
          step->GetTrack()->GetCurrentStepNumber() == 1){
         //Save primary particle energy and name
         fEventAction->SavePrimaryPDGID(step->GetTrack()->GetDefinition()->GetPDGEncoding());
-        fEventAction->SavePrimaryEnergy(step->GetTrack()->GetKineticEnergy());
+        fEventAction->SavePrimaryEnergy(step->GetTrack()->GetVertexKineticEnergy());
     }
 }
 
