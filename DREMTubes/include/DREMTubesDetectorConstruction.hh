@@ -60,15 +60,8 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
                                             G4Material* CladCherMaterial);
         //Getters
 				//
-				const G4VPhysicalVolume* GetSCorePV() const;
-				const G4VPhysicalVolume* GetSCladPV() const;
-				const G4VPhysicalVolume* GetSTubePV() const;
+				const G4VPhysicalVolume* GetLeakCntPV() const;
 
-
-				const G4VPhysicalVolume* GetCCorePV() const;
-				const G4VPhysicalVolume* GetCCladPV() const;
-				const G4VPhysicalVolume* GetCTubePV() const;
-				
 				//Other methods
 				//
 				G4int GetTowerID( const G4int& cpno ) const;
@@ -83,13 +76,8 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
 				//
         G4bool  fCheckOverlaps; // option for checking volumes overlaps
 				
-				G4VPhysicalVolume* fSCorePV; //PV: core of S fibers
-				G4VPhysicalVolume* fSCladPV; //PV: clad of S fibers
-				G4VPhysicalVolume* fSTubePV; //PV: tube of S fibers
+				G4VPhysicalVolume* fLeakCntPV; //PV: lekage counter
 
-				G4VPhysicalVolume* fCCorePV; //PV: core of C fibers
-				G4VPhysicalVolume* fCCladPV; //PV: clad of C fibers
-				G4VPhysicalVolume* fCTubePV; //PV: tube of C fibers
 };
 
 inline G4int DREMTubesDetectorConstruction::GetTowerID( const G4int& cpno ) const {
@@ -116,28 +104,8 @@ inline G4int DREMTubesDetectorConstruction::GetTowerID( const G4int& cpno ) cons
 		return TowerID;
 }
 
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetSCorePV() const {
-		return fSCorePV;
-}
-
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetSCladPV() const {
-		return fSCladPV;
-}
-
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetSTubePV() const {
-		return fSTubePV;
-}
-
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetCCorePV() const {
-		return fCCorePV;
-}
-
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetCCladPV() const {
-		return fCCladPV;
-}
-
-inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetCTubePV() const {
-		return fCTubePV;
+inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetLeakCntPV() const {
+		return fLeakCntPV;
 }
 
 #endif

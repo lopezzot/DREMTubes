@@ -78,7 +78,11 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     //Store auxiliary information from event steps
     //--------------------------------------------------
 
-    if ( volume->GetName() == "leakageabsorber" ){
+    if ( volume == fDetConstruction->GetLeakCntPV() ){
+			  //Take care operator== works with pointers only
+				//if there is a single placement of the volume
+				//use names or cpNo if not the case
+				//
         fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
         step->GetTrack()->SetTrackStatus(fStopAndKill);
     } 
