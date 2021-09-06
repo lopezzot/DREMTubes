@@ -1,6 +1,6 @@
 //**************************************************
-// \file DREMTubesTowerHelper.hh
-// \brief: Definition of DREMTubesTowerHelper class
+// \file DREMTubesSignalHelper.hh
+// \brief: Definition of DREMTubesSignalHelper class
 // \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
 //          @lopezzot
 // \start date: 1 September 2021
@@ -8,24 +8,22 @@
 
 //Prevent including header multiple times
 //
-#ifndef DREMTubesTowerHelper_h
-#define DREMTubesTowerHelper_h
+#ifndef DREMTubesSignalHelper_h
+#define DREMTubesSignalHelper_h
 
-#include "G4ThreeVector.hh"
-
-class DREMTubesTowerHelper {
+class DREMTubesSignalHelper {
 
 		private:
 
-				static DREMTubesTowerHelper* instance;
+				static DREMTubesSignalHelper* instance;
 
 				//Private constructor (singleton)
 				//
-				DREMTubesTowerHelper();
+				DREMTubesSignalHelper();
 
 		public:
 
-				static DREMTubesTowerHelper* Instance();
+				static DREMTubesSignalHelper* Instance();
 
 };
 

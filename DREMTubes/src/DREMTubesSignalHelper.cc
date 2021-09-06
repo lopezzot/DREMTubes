@@ -1,6 +1,6 @@
 //**************************************************
-// \file DREMTubesTowerHelper.cc
-// \brief: Implementation of DREMTubesTowerHelper class
+// \file DREMTubesSignalHelper.cc
+// \brief: Implementation of DREMTubesSignalHelper class
 // \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
 //          @lopezzot
 // \start date: 1 September 2021
@@ -10,23 +10,21 @@
 
 //Includers from project files
 //
-#include "DREMTubesTowerHelper.hh"
+#include "DREMTubesSignalHelper.hh"
 
-DREMTubesTowerHelper* DREMTubesTowerHelper::instance = 0;
+DREMTubesSignalHelper* DREMTubesSignalHelper::instance = 0;
 
 //Define (private) constructor (singleton)
 //
-DREMTubesTowerHelper::DREMTubesTowerHelper(){}
+DREMTubesSignalHelper::DREMTubesSignalHelper(){}
 
 //Define Instance() method
 //
-DREMTubesTowerHelper* DREMTubesTowerHelper::Instance(){
+DREMTubesSignalHelper* DREMTubesSignalHelper::Instance(){
 		if (instance==0){
-				instance = new DREMTubesTowerHelper;
+				instance = new DREMTubesSignalHelper;
 		}
-		return DREMTubesTowerHelper::instance;
-}
-
+		return DREMTubesSignalHelper::instance;
 }
 
 //**************************************************

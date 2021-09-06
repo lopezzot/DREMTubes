@@ -26,7 +26,7 @@ class DREMTubesEventAction;
 
 //Includers from project files
 //
-#include "DREMTubesTowerHelper.hh"
+#include "DREMTubesSignalHelper.hh"
 
 class DREMTubesSteppingAction : public G4UserSteppingAction {
     
@@ -73,7 +73,7 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
 				//Pointer to only existing implementation (singleton)
 				//of DREMTubesTowerHelper
 				//
-				DREMTubesTowerHelper* fTowerHelper;
+				DREMTubesSignalHelper* fSignalHelper;
 };
 
 #endif

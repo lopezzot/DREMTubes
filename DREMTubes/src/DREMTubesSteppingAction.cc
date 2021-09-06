@@ -33,7 +33,7 @@ DREMTubesSteppingAction::DREMTubesSteppingAction( DREMTubesEventAction* eventAct
 		fDetConstruction(detConstruction),
     fFullOptic(FullOptic) {
 		
-		fTowerHelper = DREMTubesTowerHelper::Instance(); 
+		fSignalHelper = DREMTubesSignalHelper::Instance(); 
 		
 }
 
