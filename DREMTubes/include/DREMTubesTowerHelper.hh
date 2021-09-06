@@ -27,7 +27,6 @@ class DREMTubesTowerHelper {
 
 				static DREMTubesTowerHelper* Instance();
 
-        G4int TowerID( const G4ThreeVector& relPos );
 };
 
 #endif

@@ -27,12 +27,6 @@ DREMTubesTowerHelper* DREMTubesTowerHelper::Instance(){
 		return DREMTubesTowerHelper::instance;
 }
 
-//Defint TowerID() method
-//
-G4int DREMTubesTowerHelper::TowerID( const G4ThreeVector& relPos ){
-		std::cout<<relPos.getX()<<std::endl;
-		G4int i = 0;
-		return i;
 }
 
 //**************************************************
