@@ -1,7 +1,9 @@
 //**************************************************
 // \file DREMTubesEventAction.cc
-// \brief: Implementation of DREMTubesEventAction class
-// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \brief: Implementation of DREMTubesEventAction 
+//         class
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
+//          @lopezzot
 // \start date: 7 July 2021
 //**************************************************
 

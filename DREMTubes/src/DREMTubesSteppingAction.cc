@@ -1,7 +1,9 @@
 //**************************************************
 // \file DREMTubesSteppingAction.cc
-// \brief: Implementation of DREMTubesSteppingAction.cc
-// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \brief: Implementation of 
+//         DREMTubesSteppingAction.cc
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
+//          @lopezzot
 // \start date: 7 July 2021
 //**************************************************
 
@@ -94,17 +96,13 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 				 volume->GetName() == "Clad_C_fiber" ||
 		     volume->GetName() == "Core_C_fiber" ||
 			   volume->GetName() == "Abs_C_fiber"  ) {
-         
 		    fEventAction->AddVecTowerE(	
 					fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
 				  edep );
 		}
 	
     if ( volume != fDetConstruction->GetWorldPV() ||
-         volume != fDetConstruction->GetLeakCntPV() ) {
-
-        fEventAction->Addenergy(edep); 
-        
+         volume != fDetConstruction->GetLeakCntPV() ) { fEventAction->Addenergy(edep); 
     }
    
     if ( step->GetTrack()->GetTrackID() == 1 &&
@@ -115,7 +113,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
         fEventAction->SavePrimaryEnergy(step->GetTrack()->GetVertexKineticEnergy());
     }
 }
-
+/*
 //Define SlowSteppingAction() method
 //
 void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
@@ -192,10 +190,10 @@ void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
                    
                 //Print info on Detection position and volumes
                 //
-                /*G4cout<<"Detection "<<step->GetPreStepPoint()->GetMaterial()->GetName()<<
-                    " "<<step->GetPostStepPoint()->GetMaterial()->GetName()<<
-                    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName()<<
-                    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber()<<G4endl;*/
+                //G4cout<<"Detection "<<step->GetPreStepPoint()->GetMaterial()->GetName()<<
+                //    " "<<step->GetPostStepPoint()->GetMaterial()->GetName()<<
+                //    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetVolume()->GetName()<<
+                //    " "<<step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber()<<G4endl;
             break;
            
             default: 
@@ -206,9 +204,7 @@ void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
     }//end of optical photon loop
 
 }
-
-
-
+*/
 //Define FastSteppingAction() method
 //
 void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) { 
@@ -247,7 +243,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 			}
 
 			if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 ||
-				 step->GetStepLength() == 0 ) { return; }
+				 step->GetStepLength() == 0. ) { return; } //not ionizing particle
 				 
 			TowerID = fDetConstruction->GetTowerID(
 					step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
@@ -255,8 +251,9 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 			G4int signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ), 
 					                                            step->GetTrack()->GetCurrentStepNumber() );
 			if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
-			else { //fEventAction->AddVectorScinEnergy(s_signal,copynumber);
-		 	}
+			else { //fEventAction->AddVectorScinEnergy(s_signal,copynumber); 
+			    fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+			}
     }
 
     if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber/tube

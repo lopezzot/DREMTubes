@@ -66,7 +66,7 @@ class DREMTubesDetectorConstruction : public G4VUserDetectorConstruction {
 				//Other methods
 				//
 				G4int GetTowerID( const G4int& cpno ) const;
-        
+        G4int GetSiPMID(const G4int& cpno ) const; 
     private:
         
         //Mandatory method for Geant4
@@ -103,6 +103,18 @@ inline G4int DREMTubesDetectorConstruction::GetTowerID( const G4int& cpno ) cons
 		}
 	  //G4cout<<row<<" "<<column<<G4endl; 
 		return TowerID;
+}
+
+inline G4int DREMTubesDetectorConstruction::GetSiPMID( const G4int& cpno ) const {
+		
+	  // For Tower0 tubes only
+		//
+		const G4int row = (cpno / 30);
+		const G4int column = ((cpno - (row*30)));
+		if (column-10>10){G4cout<<"scemo"<<G4endl;}
+		G4int index = (row-16)*10+(column-10);
+
+		return index;
 }
 
 inline const G4VPhysicalVolume* DREMTubesDetectorConstruction::GetLeakCntPV() const {

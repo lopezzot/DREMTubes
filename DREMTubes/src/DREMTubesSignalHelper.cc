@@ -1,6 +1,7 @@
 //**************************************************
 // \file DREMTubesSignalHelper.cc
-// \brief: Implementation of DREMTubesSignalHelper class
+// \brief: Implementation of DREMTubesSignalHelper
+//         class
 // \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
 //          @lopezzot
 // \start date: 1 September 2021
@@ -29,7 +30,6 @@ DREMTubesSignalHelper* DREMTubesSignalHelper::Instance(){
 //
 G4double DREMTubesSignalHelper::ApplyBirks( const G4double& de, const G4double& steplength ) {
 		
-			
 		const G4double k_B = 0.126; //Birks constant
 		return (de/steplength) / ( 1+k_B*(de/steplength) ) * steplength;
 
