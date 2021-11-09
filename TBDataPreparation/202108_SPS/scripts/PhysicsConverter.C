@@ -51,6 +51,7 @@ void PhysicsConverter(const string run){
   //
   SiPMCalibration sipmCalibration("RunXXX.json");
   PMTCalibration pmtCalibration("RunXXX.json");
+  DWCCalibration dwcCalibration("RunXXX.json");
 
   //Check entries in trees
   //
@@ -59,9 +60,9 @@ void PhysicsConverter(const string run){
   //Allocate branch pointers
   //
   int EventID;
-   PMTtree->SetBranchAddress("EventNumber",&EventID);
+  PMTtree->SetBranchAddress("EventNumber",&EventID);
   int ADCs[96];
-  PMTtree->SetBranchAddress("ADCs",ADCs);
+  PMTtree->SetBranchAddress("ADCs",&ADCs);
   SiPMtree->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
   SiPMtree->SetBranchAddress("HG_Board1",&ev->SiPMHighGain[64]);
   SiPMtree->SetBranchAddress("HG_Board2",&ev->SiPMHighGain[128]);
@@ -72,6 +73,8 @@ void PhysicsConverter(const string run){
   SiPMtree->SetBranchAddress("LG_Board2",&ev->SiPMLowGain[128]);
   SiPMtree->SetBranchAddress("LG_Board3",&ev->SiPMLowGain[192]);
   SiPMtree->SetBranchAddress("LG_Board4",&ev->SiPMLowGain[256]);
+  int TDCsval[48];
+  PMTtree->SetBranchAddress("TDCsval",&TDCsval);
 
   //Loop over events 
   //
@@ -102,10 +105,21 @@ void PhysicsConverter(const string run){
     evout->MCounter = ADCs[32];
     evout->C1 = ADCs[64];
     evout->C2 = ADCs[65];
+    //
+    ev->DWC1L=TDCsval[0];
+    ev->DWC1R=TDCsval[1];
+    ev->DWC1U=TDCsval[2];
+    ev->DWC1D=TDCsval[3];
+    ev->DWC2L=TDCsval[4];
+    ev->DWC2R=TDCsval[5];
+    ev->DWC2U=TDCsval[6];
+    ev->DWC2D=TDCsval[7];
+
     //Calibrate SiPMs and PMTs
     //
     ev->calibrate(sipmCalibration, evout);
     ev->calibratePMT(pmtCalibration, evout);
+    ev->calibrateDWC(dwcCalibration, evout);
     evout->CompSPMTene();
     evout->CompCPMTene();
     //std::cout<<ev->EventID<<" "<<ev->totSiPMPheS<<std::endl;
