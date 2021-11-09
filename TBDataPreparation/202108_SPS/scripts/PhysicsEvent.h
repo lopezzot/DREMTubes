@@ -54,24 +54,37 @@ PMTCalibration::PMTCalibration(const std::string& fname){
 
 class EventOut{
   public:
-	EventOut(){};
-	~EventOut(){};
-	uint32_t EventID;
+    EventOut(){};
+    ~EventOut(){};
+    uint32_t EventID;
 
-        float SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
-    	float CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
-        float SiPMPheC[160] = {0};
-        float SiPMPheS[160] = {0};
-        float totSiPMCene = 0.;
-        float totSiPMSene = 0.;
-        float SPMTenergy = 0.;
-        float CPMTenergy = 0.;
-        int PShower, MCounter, C1, C2;
+    float SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
+    float CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
+    float SiPMPheC[160] = {0};
+    float SiPMPheS[160] = {0};
+    float totSiPMCene = 0.;
+    float totSiPMSene = 0.;
+    float SPMTenergy = 0.;
+    float CPMTenergy = 0.;
+    int PShower, MCounter, C1, C2;
     	
-    	void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
-        void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
+    void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
+    void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
+    void clearevout();	  
 };
 
+void EventOut::clearevout(){
+  EventID = 0;
+  SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8 = 0.;
+  CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8 = 0.;
+  std::fill(std::begin(SiPMPheC), std::end(SiPMPheC), 0.);
+  std::fill(std::begin(SiPMPheS), std::end(SiPMPheS), 0.);
+  totSiPMCene = 0.;
+  totSiPMSene = 0.;
+  SPMTenergy = 0.;
+  CPMTenergy = 0.;
+  PShower, MCounter, C1, C2 = 0;
+}
 
 class Event{
 

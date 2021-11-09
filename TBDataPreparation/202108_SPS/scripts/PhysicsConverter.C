@@ -116,6 +116,9 @@ void PhysicsConverter(const string run){
     //
     evout->totSiPMCene = 0;
     evout->totSiPMSene = 0;
+    //Clear evout (set all data members to 0)
+    //
+    evout->clearevout();
   }
 
   //Write and close Outfile
