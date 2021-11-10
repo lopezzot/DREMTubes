@@ -134,6 +134,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4Material* absorberMaterial = nistManager->FindOrBuildMaterial("G4_Cu");
     G4Material* SiMaterial = nistManager->FindOrBuildMaterial("G4_Si");
     G4Material* LeadMaterial = nistManager->FindOrBuildMaterial("G4_Pb");
+		G4Material* PSScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
     G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
     G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
     G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
@@ -427,7 +428,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
 		auto PSScinSolid = new G4Box("Preshower_scin", PSX/2., PSY/2., PSZ/4.);
 
-		auto PSScinLV = new G4LogicalVolume(PSScinSolid, ScinMaterial, "Preshower_scin");
+		auto PSScinLV = new G4LogicalVolume(PSScinSolid, PSScinMaterial, "Preshower_scin");
 
 								new G4PVPlacement( 0, 
 			                             G4ThreeVector(0.,0.,PSZ/4.),
@@ -445,7 +446,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 		//Absorber to calculate leakage
 		//
     G4VSolid* leakageabsorber = new G4Sphere("leakageabsorber",                        
-        1000., 1100., 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
+        7.*m, 7.1*m, 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
     
     G4LogicalVolume* leakageabsorberLV = new G4LogicalVolume(leakageabsorber,
                                                              defaultMaterial,  
