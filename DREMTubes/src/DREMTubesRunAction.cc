@@ -47,7 +47,7 @@ DREMTubesRunAction::DREMTubesRunAction( DREMTubesEventAction* eventAction )
     analysisManager->CreateNtuple("DREMTubesout", "DREMTubesoutput");
     analysisManager->CreateNtupleDColumn("EnergyScin");                     //0
     analysisManager->CreateNtupleDColumn("EnergyCher");                     //1
-    analysisManager->CreateNtupleDColumn("NofCherenkovDetected");           //2
+    analysisManager->CreateNtupleDColumn("NofCherDet");                     //2
 		analysisManager->CreateNtupleDColumn("NofScinDet");                     //3
     analysisManager->CreateNtupleDColumn("EnergyTot");                      //4
     analysisManager->CreateNtupleDColumn("PrimaryParticleEnergy");          //5

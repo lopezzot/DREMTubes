@@ -11,6 +11,9 @@
 //
 #include "DREMTubesSignalHelper.hh"
 
+//Includers from Geant4
+#include "G4Poisson.hh"
+
 DREMTubesSignalHelper* DREMTubesSignalHelper::instance = 0;
 
 //Define (private) constructor (singleton)
@@ -37,32 +40,17 @@ G4double DREMTubesSignalHelper::ApplyBirks( const G4double& de, const G4double& 
 
 //Define SmearSSignal() method
 //
-G4int DREMTubesSignalHelper::SmearSSignal( const G4double& satde, const G4int& rndseed ) {
+G4int DREMTubesSignalHelper::SmearSSignal( const G4double& satde ) {
 		
-		//Random seed and random number generator
-    //
-    std::default_random_engine generator(rndseed);
-	 
-		//Poisson distribution and Poissonian smearing
-		//
-		std::poisson_distribution<int> scin_distr(satde*3.78);
-    return scin_distr(generator);
+    return G4Poisson(satde*0.5);
 		
 }
 
 //Define SmearCSignal() method
 //
-G4int DREMTubesSignalHelper::SmearCSignal( const G4int& rndseed ){
+G4int DREMTubesSignalHelper::SmearCSignal( ){
 		
-		//Random seed and random number generator
-    //
-    std::default_random_engine generator(rndseed);
-
-		//Poisson distribution and Poissonian smearing
-		//Shift from 200 Cp.e./GeV to 50 Cp.e./GeV
-	  //
-    std::poisson_distribution<int> cher_distr(0.155); 
-		return cher_distr(generator);
+		return G4Poisson(0.18);
 
 }
 

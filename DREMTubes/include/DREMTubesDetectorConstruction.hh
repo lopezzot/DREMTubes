@@ -111,8 +111,12 @@ inline G4int DREMTubesDetectorConstruction::GetSiPMID( const G4int& cpno ) const
 		//
 		const G4int row = (cpno / 30);
 		const G4int column = ((cpno - (row*30)));
-		if (column-10>10){G4cout<<"scemo"<<G4endl;}
 		G4int index = (row-16)*10+(column-10);
+		
+		if (index > 160) {
+			G4cout<<"ERROR in SiPM indexing!!!"<<G4endl;
+			abort();
+		}
 
 		return index;
 }

@@ -34,8 +34,6 @@ class DREMTubesEventAction : public G4UserEventAction {
     
         void AddScin(G4double de);//Add energy in scintillating fibers
         void AddCher(G4double de);//Add energy in Cherenkov fibers
-        void AddCherenkov(G4int n);//Add cherenkov photoelectron
-        //void AddScintillation();
         void Addenergy(G4double de);//Add energy depositedin calo
         void SavePrimaryPDGID(G4int pdgid);
         void SaveAbsorberMaterial(G4String AbsorberMaterialName);
@@ -52,10 +50,10 @@ class DREMTubesEventAction : public G4UserEventAction {
 
         //Fill vector of scintillating fibers with energy deposition
 				//
-        void AddVectorScinEnergy(G4double de, G4int fiber); 
+        void AddVectorScin(G4double de, G4int fiber); 
         //Fill vector of cherenkov fibers with chernekov photoelectrons
         //
-        void AddVectorCherPE(G4int fiber, G4int n);
+        void AddVectorCher(G4int fiber, G4int n);
         //Fill vector of energy in each tower
 				//
 				void AddVecTowerE(G4int TowerID, G4double de);
@@ -69,7 +67,7 @@ class DREMTubesEventAction : public G4UserEventAction {
     private:
         G4double  EnergyScin; //Energy in scintillating fibers
         G4double  EnergyCher; //Energy in Cherenkov fibers
-        G4int     NofCherenkovDetected; //Number of Cherenkov p.e. detected 
+        G4int     NofCherDet; //Number of Cherenkov p.e. detected 
 				G4int     NofScinDet; //Number of Scintillating p.e. detected
         G4double  EnergyTot;  //Total energy deposited (does not count invisibile energy)
         G4int     PrimaryPDGID; //PDGID of primary particle
@@ -108,11 +106,11 @@ inline void DREMTubesEventAction::SavePrimaryEnergy(G4double primaryparticleener
   PrimaryParticleEnergy = primaryparticleenergy;
 }
 
-inline void DREMTubesEventAction::AddVectorScinEnergy(G4double de, G4int fiber) {
+inline void DREMTubesEventAction::AddVectorScin(G4double de, G4int fiber) {
     VectorSignals.at(fiber) += de;
 }
 
-inline void DREMTubesEventAction::AddVectorCherPE(G4int fiber, G4int n) {
+inline void DREMTubesEventAction::AddVectorCher(G4int fiber, G4int n) {
     VectorSignalsCher.at(fiber) = VectorSignalsCher.at(fiber) + n;
 }
 
@@ -133,10 +131,6 @@ inline void DREMTubesEventAction::AddScin(G4double de){
 
 inline void DREMTubesEventAction::AddCher(G4double de){
   EnergyCher += de;
-}
-
-inline void DREMTubesEventAction::AddCherenkov(G4int n){
-  NofCherenkovDetected = NofCherenkovDetected +n;
 }
 
 inline void DREMTubesEventAction::Addenergy(G4double de){

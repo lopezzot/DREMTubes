@@ -21,11 +21,6 @@
 #include "G4OpBoundaryProcess.hh"
 #include "G4OpticalPhoton.hh"
 
-//Includers from C++
-//
-#include <chrono>
-#include <random>
-
 //Define constructor
 //
 DREMTubesSteppingAction::DREMTubesSteppingAction( DREMTubesEventAction* eventAction,
@@ -70,7 +65,7 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
 //Define AuxSteppingAction() method
 //
 void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
-	
+
 		// Get step info
     //
     G4VPhysicalVolume* volume 
@@ -208,16 +203,7 @@ void DREMTubesSteppingAction::SlowSteppingAction( const G4Step* step ){
 //Define FastSteppingAction() method
 //
 void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) { 
-
-    //Random seed and random number generator
-    //
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::default_random_engine generator(seed);
-    
-    //Shift from 200 Cp.e./GeV to 50 Cp.e./GeV
-    //
-    std::poisson_distribution<int> cher_distribution(0.155); 
-    
+		
     // Get step info
     //
 		G4VPhysicalVolume* volume 
@@ -235,6 +221,8 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
     std::string C_fiber = "C_fiber";
     Fiber = volume->GetName(); 
     G4int TowerID;
+		G4int SiPMID = 900;
+    G4int signalhit = 0;
 
     if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
 
@@ -242,17 +230,15 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 				step->GetTrack()->SetTrackStatus( fStopAndKill ); 
 			}
 
-			if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 ||
-				 step->GetStepLength() == 0. ) { return; } //not ionizing particle
+			if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle
 				 
-			TowerID = fDetConstruction->GetTowerID(
-					step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+			TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
 			fEventAction->AddScin(edep);
-			G4int signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ), 
-					                                            step->GetTrack()->GetCurrentStepNumber() );
+			signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
 			if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
-			else { //fEventAction->AddVectorScinEnergy(s_signal,copynumber); 
-			    fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+			else { 
+					SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+					fEventAction->AddVectorScin( signalhit, SiPMID ); 
 			}
     }
 
@@ -283,13 +269,15 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 						switch ( theStatus ){
 								
 								case TotalInternalReflection: {
-										G4int c_signal = fSignalHelper->SmearCSignal( step->GetTrack()->GetCurrentStepNumber() );
-										fEventAction->AddCherenkov( c_signal );
+										G4int c_signal = fSignalHelper->SmearCSignal( );
 										
 										TowerID = fDetConstruction->GetTowerID(
 												step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));		
 										if ( TowerID != 0 ) { fEventAction->AddVecCPMT( TowerID, c_signal ); }
-										else { /*fEventAction->AddVectorCherPE(copynumber, c_signal);*/ }
+										else { 
+												SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+												fEventAction->AddVectorCher(SiPMID, c_signal);
+									  }
 
 										step->GetTrack()->SetTrackStatus( fStopAndKill );
 								}

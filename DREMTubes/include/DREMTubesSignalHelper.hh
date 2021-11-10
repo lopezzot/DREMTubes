@@ -15,11 +15,6 @@
 //
 #include "globals.hh"
 
-//Includers from C++
-//
-#include <chrono>
-#include <random>
-
 class DREMTubesSignalHelper {
 
 		private:
@@ -36,9 +31,9 @@ class DREMTubesSignalHelper {
 
 				G4double ApplyBirks( const G4double& de, const G4double& steplength );
 
-				G4int SmearSSignal( const G4double& de, const G4int& rndseed );
+				G4int SmearSSignal( const G4double& de );
 
-				G4int SmearCSignal( const G4int& rndseed );
+				G4int SmearCSignal( );
 
 };
 
