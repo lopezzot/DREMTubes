@@ -366,11 +366,11 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4double moduleequippedX = moduleX; 
     G4double moduleequippedY = moduleY;
 
-		//Preshower dimensions
-		//
-		G4double PSX = 9.2*cm;
-	  G4double PSY =	9.2*cm;
-		G4double PSZ = 1.*cm;
+    //Preshower dimensions
+    //
+    G4double PSX = 9.2*cm;
+    G4double PSY = 9.2*cm;
+    G4double PSZ = 1.*cm;
 
     // Building geometries
     //
@@ -393,20 +393,20 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                   0,                // copy number
                                   fCheckOverlaps);  // check overlaps 
 
-		//Preshower
-		//
-		auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
+    //Preshower
+    //
+    auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
 
-		auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
+    auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
 
-								new G4PVPlacement( 0, 
-			                             G4ThreeVector(0.,0.,-250*cm),
-																	 PSLV,
-																	 "Preshower",
-																	 worldLV,
-																	 false,
-																	 0,
-																	 fCheckOverlaps);	 
+    new G4PVPlacement( 0, 
+		       G4ThreeVector(0.,0.,-250*cm),
+		       PSLV,
+		       "Preshower",
+		       worldLV,
+		       false,
+		       0,
+		       fCheckOverlaps);	 
 
 		auto PSLeadSolid = new G4Box("Preshower_pb", PSX/2., PSY/2., PSZ/4.);
 
