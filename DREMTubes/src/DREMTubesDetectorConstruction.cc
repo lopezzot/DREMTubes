@@ -37,6 +37,7 @@
 #include "G4GeometryTolerance.hh"
 #include "G4LogicalBorderSurface.hh"
 #include "G4Sphere.hh"
+#include "G4Colour.hh"
 
 //Constructor
 //
@@ -93,12 +94,6 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //Materials 
     //
     auto nistManager = G4NistManager::Instance();
-    nistManager->FindOrBuildMaterial("G4_Cu");
-    //nistManager->FindOrBuildMaterial("G4_Fe");
-    //nistManager->FindOrBuildMaterial("G4_Pb");
-    nistManager->FindOrBuildMaterial("G4_Si");
-    //nistManager->FindOrBuildMaterial("G4_Galactic");
-    nistManager->FindOrBuildMaterial("G4_AIR");
 
     // Polystyrene from elements (C5H5)
     G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
@@ -135,12 +130,13 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     // Assign material to the calorimeter volumes
     //
-    G4Material* defaultMaterial = G4Material::GetMaterial("G4_AIR"); 
-    G4Material* absorberMaterial = G4Material::GetMaterial("G4_Cu"); 
+    G4Material* defaultMaterial = nistManager->FindOrBuildMaterial("G4_AIR");
+    G4Material* absorberMaterial = nistManager->FindOrBuildMaterial("G4_Cu");
+    G4Material* SiMaterial = nistManager->FindOrBuildMaterial("G4_Si");
+    G4Material* LeadMaterial = nistManager->FindOrBuildMaterial("G4_Pb");
     G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
     G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
     G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
-    G4Material* SiMaterial = G4Material::GetMaterial("G4_Si");
     G4Material* CladCherMaterial = G4Material::GetMaterial("Fluorinated_Polymer");
 
     //--------------------------------------------------
@@ -369,6 +365,12 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4double moduleequippedX = moduleX; 
     G4double moduleequippedY = moduleY;
 
+		//Preshower dimensions
+		//
+		G4double PSX = 9.2*cm;
+	  G4double PSY =	9.2*cm;
+		G4double PSZ = 1.*cm;
+
     // Building geometries
     //
     // World
@@ -390,7 +392,57 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                   0,                // copy number
                                   fCheckOverlaps);  // check overlaps 
 
-    //Absorber to calculate leakage
+		//Preshower
+		//
+		auto PSSolid = new G4Box("Preshower", PSX/2., PSY/2., PSZ/2.);
+
+		auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
+
+								new G4PVPlacement( 0, 
+			                             G4ThreeVector(0.,0.,-250*cm),
+																	 PSLV,
+																	 "Preshower",
+																	 worldLV,
+																	 false,
+																	 0,
+																	 fCheckOverlaps);	 
+
+		auto PSLeadSolid = new G4Box("Preshower_pb", PSX/2., PSY/2., PSZ/4.);
+
+		auto PSLeadLV = new G4LogicalVolume(PSLeadSolid, LeadMaterial, "Preshower_pb");
+
+								new G4PVPlacement( 0, 
+			                             G4ThreeVector(0.,0.,-PSZ/4.),
+																	 PSLeadLV,
+																	 "Preshower_pb",
+																	 PSLV,
+																	 false,
+																	 0,
+																	 fCheckOverlaps);	 
+
+    G4VisAttributes* PbVisAtt = new G4VisAttributes( G4Colour::Grey() );
+    PbVisAtt->SetVisibility(true);
+    PbVisAtt->SetForceSolid(true);
+    PSLeadLV->SetVisAttributes( PbVisAtt );
+
+		auto PSScinSolid = new G4Box("Preshower_scin", PSX/2., PSY/2., PSZ/4.);
+
+		auto PSScinLV = new G4LogicalVolume(PSScinSolid, ScinMaterial, "Preshower_scin");
+
+								new G4PVPlacement( 0, 
+			                             G4ThreeVector(0.,0.,PSZ/4.),
+																	 PSScinLV,
+																	 "Preshower_scin",
+																	 PSLV,
+																	 false,
+																	 0,
+																	 fCheckOverlaps);	 
+
+    G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
+    PSScinVisAtt->SetVisibility(true);
+    PSScinLV->SetVisAttributes( PSScinVisAtt );
+    
+		//Absorber to calculate leakage
 		//
     G4VSolid* leakageabsorber = new G4Sphere("leakageabsorber",                        
         1000., 1100., 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
@@ -457,7 +509,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     // Calorimeter placement (with rotation wrt beam axis)
     //
     G4RotationMatrix rotm  = G4RotationMatrix();
-    rotm.rotateY(0.0*deg);  
+    rotm.rotateY(1.0*deg);  
     rotm.rotateX(0.0*deg);  
     G4ThreeVector position;
     position.setX(0.);
