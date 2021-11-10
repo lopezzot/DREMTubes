@@ -408,43 +408,43 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 		       0,
 		       fCheckOverlaps);	 
 
-		auto PSLeadSolid = new G4Box("Preshower_pb", PSX/2., PSY/2., PSZ/4.);
+    auto PSLeadSolid = new G4Box("Preshower_pb", PSX/2., PSY/2., PSZ/4.);
 
-		auto PSLeadLV = new G4LogicalVolume(PSLeadSolid, LeadMaterial, "Preshower_pb");
+    auto PSLeadLV = new G4LogicalVolume(PSLeadSolid, LeadMaterial, "Preshower_pb");
 
-								new G4PVPlacement( 0, 
-			                             G4ThreeVector(0.,0.,-PSZ/4.),
-																	 PSLeadLV,
-																	 "Preshower_pb",
-																	 PSLV,
-																	 false,
-																	 0,
-																	 fCheckOverlaps);	 
+    new G4PVPlacement( 0, 
+		       G4ThreeVector(0.,0.,-PSZ/4.),
+		       PSLeadLV,
+		       "Preshower_pb",
+		       PSLV,
+		       false,
+		       0,
+		       fCheckOverlaps);	 
 
     G4VisAttributes* PbVisAtt = new G4VisAttributes( G4Colour::Grey() );
     PbVisAtt->SetVisibility(true);
     PbVisAtt->SetForceSolid(true);
     PSLeadLV->SetVisAttributes( PbVisAtt );
 
-		auto PSScinSolid = new G4Box("Preshower_scin", PSX/2., PSY/2., PSZ/4.);
+    auto PSScinSolid = new G4Box("Preshower_scin", PSX/2., PSY/2., PSZ/4.);
 
-		auto PSScinLV = new G4LogicalVolume(PSScinSolid, PSScinMaterial, "Preshower_scin");
+    auto PSScinLV = new G4LogicalVolume(PSScinSolid, PSScinMaterial, "Preshower_scin");
 
-								new G4PVPlacement( 0, 
-			                             G4ThreeVector(0.,0.,PSZ/4.),
-																	 PSScinLV,
-																	 "Preshower_scin",
-																	 PSLV,
-																	 false,
-																	 0,
-																	 fCheckOverlaps);	 
+    new G4PVPlacement( 0, 
+		       G4ThreeVector(0.,0.,PSZ/4.),
+                       PSScinLV,
+	               "Preshower_scin",
+                       PSLV,
+                       false,	
+                       0,
+                       fCheckOverlaps);	 
 
     G4VisAttributes* PSScinVisAtt = new G4VisAttributes( G4Colour::Cyan() );
     PSScinVisAtt->SetVisibility(true);
     PSScinLV->SetVisAttributes( PSScinVisAtt );
     
-		//Absorber to calculate leakage
-		//
+    //Absorber to calculate leakage
+    //
     G4VSolid* leakageabsorber = new G4Sphere("leakageabsorber",                        
         7.*m, 7.1*m, 0.*deg, 360.*deg, 0.*deg, 180.*deg); 
     
