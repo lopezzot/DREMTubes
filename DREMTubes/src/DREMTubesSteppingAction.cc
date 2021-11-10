@@ -95,8 +95,12 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 					fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
 				  edep );
 		}
-	
-    if ( volume != fDetConstruction->GetWorldPV() ||
+    	
+		if ( volume->GetName() == "Preshower_scin" ){
+				fEventAction->AddPSEnergy( edep );
+		}
+    
+		if ( volume != fDetConstruction->GetWorldPV() ||
          volume != fDetConstruction->GetLeakCntPV() ) { fEventAction->Addenergy(edep); 
     }
    

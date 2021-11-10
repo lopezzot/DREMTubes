@@ -39,6 +39,7 @@ class DREMTubesEventAction : public G4UserEventAction {
         void SaveAbsorberMaterial(G4String AbsorberMaterialName);
         void SavePrimaryEnergy(G4double primaryparticleenergy);
         void AddEscapedEnergy(G4double escapedenergy);
+        void AddPSEnergy(G4double de);
 
         //Save vectors in ntuple
 				//
@@ -72,7 +73,8 @@ class DREMTubesEventAction : public G4UserEventAction {
         G4double  EnergyTot;  //Total energy deposited (does not count invisibile energy)
         G4int     PrimaryPDGID; //PDGID of primary particle
         G4double  PrimaryParticleEnergy; //Primary particle energy
-        G4double EscapedEnergy; //Energy deposited in leakage absorber
+        G4double  EscapedEnergy; //Energy deposited in leakage absorber
+				G4double  PSEnergy;
 
         //Vector of SiPMs filled with scintillating signals
 				//
@@ -137,6 +139,9 @@ inline void DREMTubesEventAction::Addenergy(G4double de){
   EnergyTot += de;
 }
 
+inline void DREMTubesEventAction::AddPSEnergy(G4double de){
+	PSEnergy += de;
+}
 #endif
 
 //**************************************************
