@@ -24,14 +24,14 @@
 //Define constructor
 //
 DREMTubesSteppingAction::DREMTubesSteppingAction( DREMTubesEventAction* eventAction,
-																									const DREMTubesDetectorConstruction* detConstruction,
-																									const G4bool FullOptic)
+						  const DREMTubesDetectorConstruction* detConstruction,
+                                                  const G4bool FullOptic)
     : G4UserSteppingAction(),
     fEventAction(eventAction),
-		fDetConstruction(detConstruction),
+    fDetConstruction(detConstruction),
     fFullOptic(FullOptic) {
 		
-		fSignalHelper = DREMTubesSignalHelper::Instance(); 
+        fSignalHelper = DREMTubesSignalHelper::Instance(); 
 		
 }
 
@@ -56,17 +56,18 @@ void DREMTubesSteppingAction::UserSteppingAction( const G4Step* step ) {
     //Save slow signal information
     //
     else {
-				G4cout<<"ERROR: FULL OPTICS NOT SUPPORTED IN THIS VERSION"<<G4endl;
-				abort();
+        G4cout<<"ERROR: FULL OPTICS NOT SUPPORTED IN THIS VERSION"<<G4endl;
+	abort();
         //SlowSteppingAction( step );
     } 
+
 }
 
 //Define AuxSteppingAction() method
 //
 void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 
-		// Get step info
+    // Get step info
     //
     G4VPhysicalVolume* volume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
@@ -77,37 +78,36 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
     //--------------------------------------------------
 
     if ( volume == fDetConstruction->GetLeakCntPV() ){
-			  //Take care operator== works with pointers only
-				//if there is a single placement of the volume
-				//use names or cpNo if not the case
-				//
+        //Take care operator== works with pointers only
+	//if there is a single placement of the volume
+	//use names or cpNo if not the case
+	//
         fEventAction->AddEscapedEnergy(step->GetTrack()->GetKineticEnergy());
         step->GetTrack()->SetTrackStatus(fStopAndKill);
     } 
 
     if ( volume->GetName() == "Clad_S_fiber" ||
-				 volume->GetName() == "Core_S_fiber" ||
-				 volume->GetName() == "Abs_S_fiber"  ||
-				 volume->GetName() == "Clad_C_fiber" ||
-		     volume->GetName() == "Core_C_fiber" ||
-			   volume->GetName() == "Abs_C_fiber"  ) {
-		    fEventAction->AddVecTowerE(	
-					fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
+         volume->GetName() == "Core_S_fiber" ||
+	 volume->GetName() == "Abs_S_fiber"  ||
+	 volume->GetName() == "Clad_C_fiber" ||
+	 volume->GetName() == "Core_C_fiber" ||
+         volume->GetName() == "Abs_C_fiber"  ) {
+        fEventAction->AddVecTowerE(fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
 				  edep );
-		}
+    }
     	
-		if ( volume->GetName() == "Preshower_scin" ){
-				fEventAction->AddPSEnergy( edep );
-		}
+    if ( volume->GetName() == "Preshower_scin" ){
+        fEventAction->AddPSEnergy( edep );
+    }
     
-		if ( volume != fDetConstruction->GetWorldPV() ||
-         volume != fDetConstruction->GetLeakCntPV() ) { fEventAction->Addenergy(edep); 
+    if ( volume != fDetConstruction->GetWorldPV() ||
+        volume != fDetConstruction->GetLeakCntPV() ) { fEventAction->Addenergy(edep); 
     }
    
     if ( step->GetTrack()->GetTrackID() == 1 &&
-         step->GetTrack()->GetCurrentStepNumber() == 1){
+        step->GetTrack()->GetCurrentStepNumber() == 1){
         //Save primary particle energy and name
-				//
+        //
         fEventAction->SavePrimaryPDGID(step->GetTrack()->GetDefinition()->GetPDGEncoding());
         fEventAction->SavePrimaryEnergy(step->GetTrack()->GetVertexKineticEnergy());
     }
@@ -210,7 +210,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 		
     // Get step info
     //
-		G4VPhysicalVolume* volume 
+    G4VPhysicalVolume* volume 
         = step->GetPreStepPoint()->GetTouchableHandle()->GetVolume();
     G4double edep = step->GetTotalEnergyDeposit();
     G4double steplength = step->GetStepLength();
@@ -225,72 +225,65 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
     std::string C_fiber = "C_fiber";
     Fiber = volume->GetName(); 
     G4int TowerID;
-		G4int SiPMID = 900;
+    G4int SiPMID = 900;
     G4int signalhit = 0;
 
     if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
 
-			if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) {
-				step->GetTrack()->SetTrackStatus( fStopAndKill ); 
-			}
+        if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) {
+            step->GetTrack()->SetTrackStatus( fStopAndKill ); 
+	}
 
-			if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle
+	if ( step->GetTrack()->GetDefinition()->GetPDGCharge() == 0 || step->GetStepLength() == 0. ) { return; } //not ionizing particle
 				 
-			TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-			fEventAction->AddScin(edep);
-			signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
-			if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
-			else { 
-					SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-					fEventAction->AddVectorScin( signalhit, SiPMID ); 
-			}
+	TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+	fEventAction->AddScin(edep);
+	signalhit = fSignalHelper->SmearSSignal( fSignalHelper->ApplyBirks( edep, steplength ) );
+	if ( TowerID != 0 ) { fEventAction->AddVecSPMT( TowerID, signalhit ); }
+	else { 
+            SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+	    fEventAction->AddVectorScin( signalhit, SiPMID ); 
+        }
     }
 
     if ( strstr( Fiber.c_str(), C_fiber.c_str() ) ) { //Cherenkov fiber/tube
 
-				fEventAction->AddCher(edep);
+        fEventAction->AddCher(edep);
 
-				if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ){
+	if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ){
 					
-						G4OpBoundaryProcessStatus theStatus = Undefined;
+	    G4OpBoundaryProcessStatus theStatus = Undefined;
 
-						G4ProcessManager* OpManager =
-							G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
+	    G4ProcessManager* OpManager = G4OpticalPhoton::OpticalPhoton()->GetProcessManager();
 
-						if (OpManager) {
-								G4int MAXofPostStepLoops =
-								OpManager->GetPostStepProcessVector()->entries();
-								G4ProcessVector* fPostStepDoItVector =
-								OpManager->GetPostStepProcessVector(typeDoIt);
+	    if (OpManager) {
+    	        G4int MAXofPostStepLoops = OpManager->GetPostStepProcessVector()->entries();
+		G4ProcessVector* fPostStepDoItVector = OpManager->GetPostStepProcessVector(typeDoIt);
 
-								for ( G4int i=0; i<MAXofPostStepLoops; i++) {
-										G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
-										fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
-										if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
-								}
-						}
+		for ( G4int i=0; i<MAXofPostStepLoops; i++) {
+		    G4VProcess* fCurrentProcess = (*fPostStepDoItVector)[i];
+		    fOpProcess = dynamic_cast<G4OpBoundaryProcess*>(fCurrentProcess);
+		    if (fOpProcess) { theStatus = fOpProcess->GetStatus(); break; }
+		}
+	    }
 
-						switch ( theStatus ){
+	    switch ( theStatus ){
 								
-								case TotalInternalReflection: {
-										G4int c_signal = fSignalHelper->SmearCSignal( );
-										
-										TowerID = fDetConstruction->GetTowerID(
-												step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));		
-										if ( TowerID != 0 ) { fEventAction->AddVecCPMT( TowerID, c_signal ); }
-										else { 
-												SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
-												fEventAction->AddVectorCher(SiPMID, c_signal);
-									  }
+	        case TotalInternalReflection: {
+		    G4int c_signal = fSignalHelper->SmearCSignal( );								
+		    TowerID = fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));		
+		    if ( TowerID != 0 ) { fEventAction->AddVecCPMT( TowerID, c_signal ); }
+		    else { 
+		        SiPMID = fDetConstruction->GetSiPMID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1));
+			fEventAction->AddVectorCher(SiPMID, c_signal);
+	            }
+		    step->GetTrack()->SetTrackStatus( fStopAndKill );
+		}
+		default:
+		    step->GetTrack()->SetTrackStatus( fStopAndKill );
+	    } //end of swich cases
 
-										step->GetTrack()->SetTrackStatus( fStopAndKill );
-								}
-								default:
-										step->GetTrack()->SetTrackStatus( fStopAndKill );
-
-					  } //end of swich cases
-
-			  }	//end of optical photon
+        }	//end of optical photon
 
     } //end of Cherenkov fiber
    
