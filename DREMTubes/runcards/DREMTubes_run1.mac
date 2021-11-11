@@ -1,9 +1,11 @@
 /run/initialize
-/gps/particle e+
-/gps/energy 10. GeV
-/gps/direction 0 0 1
-/gps/position 0 0 -300 cm
 /vis/filtering/trajectories/create/particleFilter
 /vis/filtering/trajectories/particleFilter-0/add e-
 /vis/filtering/trajectories/particleFilter-0/add e+
+/gps/particle e+
+/gps/direction 0 0 1
+/gps/position 0 0 -300 cm
+
+
+/gps/energy 10. GeV
 /run/beamOn 1000
