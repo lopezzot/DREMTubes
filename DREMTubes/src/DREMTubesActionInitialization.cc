@@ -15,8 +15,7 @@
 
 //Constructor
 //
-DREMTubesActionInitialization::DREMTubesActionInitialization
-															( DREMTubesDetectorConstruction* detConstruction, const G4bool FullOptic )
+DREMTubesActionInitialization::DREMTubesActionInitialization( DREMTubesDetectorConstruction* detConstruction, const G4bool FullOptic )
     : G4VUserActionInitialization(),
     fFullOptic( FullOptic ),
     fDetConstruction( detConstruction )		

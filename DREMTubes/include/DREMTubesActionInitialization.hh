@@ -39,7 +39,7 @@ class DREMTubesActionInitialization : public G4VUserActionInitialization {
 
         G4bool fFullOptic;
 
-				DREMTubesDetectorConstruction* fDetConstruction;
+	DREMTubesDetectorConstruction* fDetConstruction;
 
 };
 

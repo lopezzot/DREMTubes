@@ -63,7 +63,7 @@ class DREMTubesEventAction : public G4UserEventAction {
     	void AddVecSPMT(G4int PMTID, G4double de);
     	//Fill vector of signals in Cherenkov PMTs
         //
-				void AddVecCPMT(G4int PMTID, G4double de);
+	void AddVecCPMT(G4int PMTID, G4double de);
 
     private:
         G4double  EnergyScin; //Energy in scintillating fibers

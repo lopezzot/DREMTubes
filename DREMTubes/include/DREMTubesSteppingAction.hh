@@ -1,7 +1,8 @@
 //**************************************************
 // \file DREMTubesSteppingAction.hh
 // \brief: Definition of DREMTubesSteppingAction.hh
-// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) 
+//          @lopezzot
 // \start date: 7 July 2021
 //**************************************************
 
@@ -34,7 +35,7 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
         //Constructor
         //
         DREMTubesSteppingAction(DREMTubesEventAction* eventAction,
-						                    const DREMTubesDetectorConstruction* detConstruction,
+				const DREMTubesDetectorConstruction* detConstruction,
                                 const G4bool FullOptic );
         //De-constructor
         //
@@ -64,16 +65,17 @@ class DREMTubesSteppingAction : public G4UserSteppingAction {
 
         G4OpBoundaryProcess* fOpProcess;
                 
-				//Pointer to DREMTubesDetectorConstruction
-				//
-			  const	DREMTubesDetectorConstruction* fDetConstruction;
+	//Pointer to DREMTubesDetectorConstruction
+	//
+        const DREMTubesDetectorConstruction* fDetConstruction;
 				
-				G4bool fFullOptic;
+	G4bool fFullOptic;
 
-				//Pointer to only existing implementation (singleton)
-				//of DREMTubesTowerHelper
-				//
-				DREMTubesSignalHelper* fSignalHelper;
+        //Pointer to only existing implementation (singleton)
+    	//of DREMTubesTowerHelper
+    	//
+        DREMTubesSignalHelper* fSignalHelper;
+
 };
 
 #endif

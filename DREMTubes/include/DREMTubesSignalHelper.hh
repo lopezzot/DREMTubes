@@ -17,23 +17,23 @@
 
 class DREMTubesSignalHelper {
 
-		private:
+    private:
 
-				static DREMTubesSignalHelper* instance;
+        static DREMTubesSignalHelper* instance;
 
-				//Private constructor (singleton)
-				//
-				DREMTubesSignalHelper();
+	//Private constructor (singleton)
+        //
+	DREMTubesSignalHelper();
 
-		public:
+    public:
 
-				static DREMTubesSignalHelper* Instance();
+    	static DREMTubesSignalHelper* Instance();
 
-				G4double ApplyBirks( const G4double& de, const G4double& steplength );
+    	G4double ApplyBirks( const G4double& de, const G4double& steplength );
 
-				G4int SmearSSignal( const G4double& de );
+	G4int SmearSSignal( const G4double& de );
 
-				G4int SmearCSignal( );
+    	G4int SmearCSignal( );
 
 };
 
