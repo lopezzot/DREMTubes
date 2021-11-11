@@ -96,7 +96,7 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 				  edep );
     }
     	
-    if ( volume->GetName() == "Preshower_scin" ){
+    if ( volume->GetName() == "Preshower_scin" || volume->GetName() == "Preshower_pb" ){
         fEventAction->AddPSEnergy( edep );
     }
     
