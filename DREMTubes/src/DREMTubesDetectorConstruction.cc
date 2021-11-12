@@ -131,10 +131,11 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     // Assign material to the calorimeter volumes
     //
     G4Material* defaultMaterial = nistManager->FindOrBuildMaterial("G4_AIR");
-    G4Material* absorberMaterial = nistManager->FindOrBuildMaterial("G4_Cu");
+    //G4Material* absorberMaterial = nistManager->FindOrBuildMaterial("G4_Cu");
     G4Material* SiMaterial = nistManager->FindOrBuildMaterial("G4_Si");
     G4Material* LeadMaterial = nistManager->FindOrBuildMaterial("G4_Pb");
-		G4Material* PSScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
+    G4Material* PSScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
+    G4Material* absorberMaterial = G4Material::GetMaterial("Cu260");
     G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
     G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
     G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
