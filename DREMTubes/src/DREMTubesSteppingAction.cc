@@ -100,9 +100,10 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
         fEventAction->AddPSEnergy( edep );
     }
     
-    if ( volume != fDetConstruction->GetWorldPV() ||
-        volume != fDetConstruction->GetLeakCntPV() ) { fEventAction->Addenergy(edep); 
-    }
+    if ( volume != fDetConstruction->GetWorldPV() &&
+         volume != fDetConstruction->GetLeakCntPV() &&
+         volume->GetName() != "Preshower_scin" &&
+         volume->GetName() != "Preshower_pb" ) { fEventAction->Addenergy(edep); }
    
     if ( step->GetTrack()->GetTrackID() == 1 &&
         step->GetTrack()->GetCurrentStepNumber() == 1){
@@ -283,7 +284,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
 		    step->GetTrack()->SetTrackStatus( fStopAndKill );
 	    } //end of swich cases
 
-        }	//end of optical photon
+        } //end of optical photon
 
     } //end of Cherenkov fiber
    
