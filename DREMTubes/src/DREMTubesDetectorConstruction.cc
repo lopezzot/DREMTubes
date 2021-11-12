@@ -65,6 +65,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     //Define Elements, Mixtures and Materials
     //--------------------------------------------------
 
+    auto nistManager = G4NistManager::Instance();
+
     //Elements
     //
     G4String name, symbol;    
@@ -85,15 +87,16 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     a = 18.9984*g/mole;
     G4Element* elF  = new G4Element("Fluorine",symbol="F" , z= 9., a); //Fluorine
 
-    a = 63.546*g/mole;
-    G4Element* elCu = new G4Element("Copper", symbol="Cu", z=29., a); //Copper
+    //a = 63.546*g/mole;
+    //G4Element* elCu = new G4Element("Copper", symbol="Cu", z=29., a); //Copper
+    auto elCu = nistManager->FindOrBuildElement(29, true);
 
-    a = 65.38*g/mole;
-    G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
+    //a = 65.38*g/mole;
+    //G4Element* elZn = new G4Element("Zinc", symbol="Zn", z=30., a); //Zinc
+    auto elZn = nistManager->FindOrBuildElement(30, true);
 
     //Materials 
     //
-    auto nistManager = G4NistManager::Instance();
 
     // Polystyrene from elements (C5H5)
     G4Material* Polystyrene = new G4Material("Polystyrene", 1.05*g/cm3, 2);
@@ -121,12 +124,13 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     // Mixtures
     //
-    // Cu260 (Brass)
+
+    // CuZn37 (Brass)
     //
-    const double BrassDensity = 8.53*g/cm3;
-    auto Cu260 = new G4Material(name="Brass", BrassDensity, 2);
-    Cu260->AddElement(elCu, 70*perCent);
-    Cu260->AddElement(elZn, 30*perCent);
+    const double BrassDensity = 8.44*g/cm3;
+    auto CuZn37 = new G4Material(name="Brass", BrassDensity, 2);
+    CuZn37->AddElement(elCu, 0.7);
+    CuZn37->AddElement(elZn, 0.3);
 
     // Assign material to the calorimeter volumes
     //
@@ -135,7 +139,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     G4Material* SiMaterial = nistManager->FindOrBuildMaterial("G4_Si");
     G4Material* LeadMaterial = nistManager->FindOrBuildMaterial("G4_Pb");
     G4Material* PSScinMaterial = nistManager->FindOrBuildMaterial("G4_POLYSTYRENE");
-    G4Material* absorberMaterial = G4Material::GetMaterial("Cu260");
+    G4Material* absorberMaterial = G4Material::GetMaterial("Brass");
     G4Material* ScinMaterial = G4Material::GetMaterial("Polystyrene");
     G4Material* CherMaterial = G4Material::GetMaterial("PMMA");
     G4Material* GlassMaterial = G4Material::GetMaterial("Glass");
@@ -456,12 +460,12 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     leakageabsorberLV->SetVisAttributes(G4VisAttributes::Invisible);   
 
     fLeakCntPV = new G4PVPlacement( 0, G4ThreeVector(),
-				leakageabsorberLV,         
-        "leakageabsorber",
-        worldLV,               
-        false,          
-        0,               
-        fCheckOverlaps); 
+				    leakageabsorberLV,         
+                                    "leakageabsorber",
+                                    worldLV,               
+                                    false,          
+                                    0,               
+                                    fCheckOverlaps); 
    
     // Module equipped (with SiPM)
     //
