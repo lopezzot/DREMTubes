@@ -4,8 +4,11 @@
 /vis/filtering/trajectories/particleFilter-0/add e+
 /gps/particle e+
 /gps/direction 0 0 1
-/gps/position 0 0 -300 cm
+/gps/position 0 0 -250 cm
+/gps/pos/type Plane
+/gps/pos/shape Circle
+/gps/pos/radius 0.5 cm
 
-
+#Run 0
 /gps/energy 10. GeV
 /run/beamOn 1000
