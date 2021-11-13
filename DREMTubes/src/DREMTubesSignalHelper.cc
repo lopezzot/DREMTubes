@@ -23,18 +23,18 @@ DREMTubesSignalHelper::DREMTubesSignalHelper(){}
 //Define Instance() method
 //
 DREMTubesSignalHelper* DREMTubesSignalHelper::Instance(){
-		if (instance==0){
-				instance = new DREMTubesSignalHelper;
-		}
-		return DREMTubesSignalHelper::instance;
+    if (instance==0){
+        instance = new DREMTubesSignalHelper;
+    }
+    return DREMTubesSignalHelper::instance;
 }
 
 //Define ApplyBirks() method
 //
 G4double DREMTubesSignalHelper::ApplyBirks( const G4double& de, const G4double& steplength ) {
 		
-		const G4double k_B = 0.126; //Birks constant
-		return (de/steplength) / ( 1+k_B*(de/steplength) ) * steplength;
+    const G4double k_B = 0.126; //Birks constant
+    return (de/steplength) / ( 1+k_B*(de/steplength) ) * steplength;
 
 }
 
@@ -42,7 +42,7 @@ G4double DREMTubesSignalHelper::ApplyBirks( const G4double& de, const G4double& 
 //
 G4int DREMTubesSignalHelper::SmearSSignal( const G4double& satde ) {
 		
-    return G4Poisson(satde*0.5);
+    return G4Poisson(satde*9.5);
 		
 }
 
@@ -50,7 +50,7 @@ G4int DREMTubesSignalHelper::SmearSSignal( const G4double& satde ) {
 //
 G4int DREMTubesSignalHelper::SmearCSignal( ){
 		
-		return G4Poisson(0.18);
+    return G4Poisson(0.153);
 
 }
 
