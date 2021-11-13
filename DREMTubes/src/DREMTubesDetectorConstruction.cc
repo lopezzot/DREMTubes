@@ -833,19 +833,19 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructscinfiber(double tolera
                                                          absorberMaterial,
                                                          "S_fiber");
 	
-		G4Tubs* Abs_S_fiber = new G4Tubs("Abs_S_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
+    G4Tubs* Abs_S_fiber = new G4Tubs("Abs_Scin_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
     G4LogicalVolume* logic_Abs_S_fiber = new G4LogicalVolume(Abs_S_fiber,
-																														 absorberMaterial,
-                                                             "Abs_S_fiber");
+                                                             absorberMaterial,
+                                                             "Abs_Scin_fiber");
     /*G4VPhysicalVolume* =*/ new G4PVPlacement(0,
-                                                     G4ThreeVector(0.,0.,0.),
-                                                     logic_Abs_S_fiber,
-                                                     "Abs_S_fiber",
-                                                     logic_S_fiber,
-                                                     false,
-                                                     0,
-                                                     fCheckOverlaps);
+                                               G4ThreeVector(0.,0.,0.),
+                                               logic_Abs_S_fiber,
+                                               "Abs_Scin_fiber",
+                                               logic_S_fiber,
+                                               false,
+                                               0,
+                                               fCheckOverlaps);
 
     G4Tubs* Core_S_fiber = new G4Tubs("Core_S_fiber", 0., 
                                       coreradius, coreZ/2, 0., 2.*pi);
@@ -934,22 +934,21 @@ G4LogicalVolume* DREMTubesDetectorConstruction::constructcherfiber(double tolera
                                                          absorberMaterial,
                                                          "C_fiber");
 
-		G4Tubs* Abs_C_fiber = new G4Tubs("Abs_C_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
+    G4Tubs* Abs_C_fiber = new G4Tubs("Abs_Cher_fiber", claddingradiusmax, tuberadius, fiberZ/2,0.,2.*pi);
 
     G4LogicalVolume* logic_Abs_C_fiber = new G4LogicalVolume(Abs_C_fiber,
-																														 absorberMaterial,
-                                                             "Abs_C_fiber");
+                                                             absorberMaterial,
+                                                             "Abs_Cher_fiber");
     /*G4VPhysicalVolume* =*/ new G4PVPlacement(0,
                                                      G4ThreeVector(0.,0.,0.),
                                                      logic_Abs_C_fiber,
-                                                     "Abs_C_fiber",
+                                                     "Abs_Cher_fiber",
                                                      logic_C_fiber,
                                                      false,
                                                      0,
                                                      fCheckOverlaps);
 
-    G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., 
-        coreradius, coreZ/2, 0., 2.*pi);
+    G4Tubs* Core_C_fiber = new G4Tubs("Core_C_fiber", 0., coreradius, coreZ/2, 0., 2.*pi);
 
     G4LogicalVolume* logic_Core_C_fiber = new G4LogicalVolume(Core_C_fiber,
                                                               CherMaterial,

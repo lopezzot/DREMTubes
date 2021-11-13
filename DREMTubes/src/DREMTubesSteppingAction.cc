@@ -88,10 +88,10 @@ void DREMTubesSteppingAction::AuxSteppingAction( const G4Step* step ) {
 
     if ( volume->GetName() == "Clad_S_fiber" ||
          volume->GetName() == "Core_S_fiber" ||
-	 volume->GetName() == "Abs_S_fiber"  ||
+	 volume->GetName() == "Abs_Scin_fiber"  ||
 	 volume->GetName() == "Clad_C_fiber" ||
 	 volume->GetName() == "Core_C_fiber" ||
-         volume->GetName() == "Abs_C_fiber"  ) {
+         volume->GetName() == "Abs_Cher_fiber"  ) {
         fEventAction->AddVecTowerE(fDetConstruction->GetTowerID(step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1)),
 				  edep );
     }
@@ -230,7 +230,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
     G4int signalhit = 0;
 
     if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
-
+        G4cout<<Fiber<<G4endl;
         if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) {
             step->GetTrack()->SetTrackStatus( fStopAndKill ); 
 	}
