@@ -230,7 +230,7 @@ void DREMTubesSteppingAction::FastSteppingAction( const G4Step* step ) {
     G4int signalhit = 0;
 
     if ( strstr( Fiber.c_str(), S_fiber.c_str() ) ) { //scintillating fiber/tube
-        G4cout<<Fiber<<G4endl;
+
         if ( step->GetTrack()->GetParticleDefinition() == G4OpticalPhoton::Definition() ) {
             step->GetTrack()->SetTrackStatus( fStopAndKill ); 
 	}
