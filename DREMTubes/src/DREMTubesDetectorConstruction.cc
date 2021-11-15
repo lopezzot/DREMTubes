@@ -405,7 +405,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
     auto PSLV = new G4LogicalVolume(PSSolid, defaultMaterial, "Preshower");
 
     new G4PVPlacement( 0, 
-		       G4ThreeVector(0.,0.,-250*cm),
+		       G4ThreeVector(0.,0.,-335.*cm),
 		       PSLV,
 		       "Preshower",
 		       worldLV,
