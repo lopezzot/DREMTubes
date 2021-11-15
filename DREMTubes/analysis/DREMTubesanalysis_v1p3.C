@@ -29,6 +29,10 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
     double ETowerercont[energies.size()];
     double zeros[energies.size()];
     memset( zeros, 0., energies.size()*sizeof(double));
+    double ESrec[energies.size()];
+    double ESerrec[energies.size()];
+    double ECrec[energies.size()];
+    double ECerrec[energies.size()];
 
     //For loop over Runs (energies)
     //
@@ -107,7 +111,12 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
 
         auto H1CSiPMresp = new TH1F("CSiPMresptot", "CSiPMresptot", 100, 0., 100.);
         H1CSiPMresp->GetXaxis()->SetTitle("Cherenkov response (SiPM) [#Cp.e./GeV]");
-        
+
+        auto H1ESrec = new TH1F("Srec", "Srec", 100, 0., energies[RunNo]*2.);
+        H1ESrec->GetXaxis()->SetTitle("Scintillation [GeV]");
+        auto H1ECrec = new TH1F("Crec", "Crec", 100, 0., energies[RunNo]*2.);
+        H1ECrec->GetXaxis()->SetTitle("Cherenkov [GeV]");
+
         //For loop over events
         //
         for ( unsigned int eventNo = 0; eventNo<tree->GetEntries(); eventNo++ ){
@@ -129,7 +138,11 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
             H1Cresp->Fill(Ctot/(edep/1000.));
 
             H1SSiPMresp->Fill(std::accumulate(SSiPM->begin(), SSiPM->end(),0.)/(edep/1000.));
-            H1CSiPMresp->Fill(std::accumulate(CSiPM->begin(), CSiPM->end(),0.)/(edep/1000.));}
+            H1CSiPMresp->Fill(std::accumulate(CSiPM->begin(), CSiPM->end(),0.)/(edep/1000.));
+
+            H1ESrec->Fill(Stot/217.501);
+            H1ECrec->Fill(Ctot/54.1621);
+            }
         } //end for loop events
 
         outputfile->cd(); 
@@ -144,6 +157,10 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
         H1TowersE->Write();
         H1Sresp->Write();
         H1Cresp->Write();
+        H1ESrec->Fit("gaus","Q");
+        H1ECrec->Fit("gaus","Q");
+        H1ESrec->Write();
+        H1ECrec->Write();
 
         Econt[RunNo] = H1Econt->GetMean();
         Eercont[RunNo] = H1Econt->GetMeanError();
@@ -222,6 +239,143 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
 
 };
 
+void analysisPS(const double& energy, const string& file ){
+
+    //Initiate objects through all the analysis
+    //
+    cout<<"DREMTubes analysis of preshower in e+ runs"<<endl;
+    auto outputfile = new TFile( "DREMTubesanalysisPS.root", "RECREATE" );
+    int psbins = 11;
+    double psarr[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21};
+    /*double Sresp[psbins];
+    double Serresp[psbins];
+    double Cresp[psbins];
+    double Cerresp[psbins];
+    double SSiPMresp[psbins];
+    double SSiPMerresp[psbins];
+    double CSiPMresp[psbins];
+    double CSiPMerresp[psbins];*/
+    double Econt[psbins];
+    double Eercont[psbins];
+    double zeros[psbins];
+    memset( zeros, 0., 11*sizeof(double));
+    /*double ETowercont[psbins];
+    double ETowerercont[psbins];
+    double ESrec[psbins];
+    double ESerrec[psbins];
+    double ECrec[psbins];
+    double ECerrec[psbins];*/
+
+    cout<<"---> Analysis e+ energy "<<energy<<endl;
+        
+    string filename = "run2/"+file;
+    TFile* infile = TFile::Open( filename.c_str(), "READ" );
+    TTree* tree = (TTree*)infile->Get( "DREMTubesout" );
+    int pdg; tree->SetBranchAddress( "PrimaryPDGID", &pdg );
+    double venergy; tree->SetBranchAddress( "PrimaryParticleEnergy", &venergy );
+    double lenergy; tree->SetBranchAddress( "EscapedEnergy", &lenergy );
+    double edep; tree->SetBranchAddress( "EnergyTot", &edep );
+    double Stot; tree->SetBranchAddress( "NofScinDet", &Stot );
+    double Ctot; tree->SetBranchAddress( "NofCherDet", &Ctot );
+    double PSdep; tree->SetBranchAddress( "PSEnergy", &PSdep );
+    vector<double>* TowerE = NULL; 
+    tree->SetBranchAddress( "VecTowerE", &TowerE );
+    vector<double>* SPMT = NULL; 
+    tree->SetBranchAddress( "VecSPMT", &SPMT );
+    vector<double>* CPMT = NULL; 
+    tree->SetBranchAddress( "VecCPMT", &CPMT );
+    vector<double>* SSiPM = NULL; 
+    tree->SetBranchAddress( "VectorSignals", &SSiPM );
+    vector<double>* CSiPM = NULL; 
+    tree->SetBranchAddress( "VectorSignalsCher", &CSiPM );
+        
+    TH1F Econtarr[11];
+    for ( unsigned int index = 0; index<11; index++ ){
+        Econtarr[index].SetTitle("Containment");
+        Econtarr[index].SetName("Containment");
+        Econtarr[index].SetBins(100, 0., 1.2);
+    }
+
+    //For loop over events
+    //
+    int index;
+    for ( unsigned int eventNo = 0; eventNo<tree->GetEntries(); eventNo++ ){
+        tree->GetEntry(eventNo);
+        index = (int)(PSdep-5.)/6.8;
+        if (index>10) index=10;
+        Econtarr[index].Fill(edep/(energy*1000.));
+    } //end for loop events
+
+    outputfile->cd(); 
+    for (unsigned int i=0; i<11; i++){
+        Econtarr[i].Write();
+        Econt[i]=Econtarr[i].GetMean();
+        Eercont[i]=Econtarr[i].GetMeanError();
+    }   
+    
+    // Finalize objects over multiple runs
+    //
+    
+    outputfile->cd();
+    auto G1Econt = new TGraphErrors( psbins, psarr, Econt, zeros, Eercont );
+    G1Econt->SetMarkerStyle(8); 
+    G1Econt->SetName("Energy containment");
+    G1Econt->SetTitle("Energy containment");
+    G1Econt->GetYaxis()->SetRangeUser(0.,1.2);
+    G1Econt->GetYaxis()->SetTitle("Energy containment");
+    G1Econt->GetXaxis()->SetTitle("[#MIPS]");
+    G1Econt->Write();
+    /*
+    auto G1ETowercont = new TGraphErrors( energies.size(), &energies[0], ETowercont, zeros, ETowerercont );
+    G1ETowercont->SetMarkerStyle(29); 
+    G1ETowercont->SetName("SiPM-Tower containment");
+    G1ETowercont->SetTitle("SiPM-Tower containment");
+    G1ETowercont->GetYaxis()->SetRangeUser(0.,1.2);
+    G1ETowercont->GetYaxis()->SetTitle("Energy containment");
+    G1ETowercont->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
+    G1ETowercont->Write();
+
+    auto G1Sresp = new TGraphErrors( energies.size(), &energies[0], Sresp, zeros, Serresp );
+    G1Sresp->SetMarkerStyle(8); 
+    G1Sresp->SetName("Sresp");
+    G1Sresp->SetTitle("Sres");
+    G1Sresp->GetYaxis()->SetRangeUser(0.,300.);
+    G1Sresp->GetYaxis()->SetTitle("[#Sp.e./GeV]");
+    G1Sresp->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
+    G1Sresp->Write();
+
+    auto G1Cresp = new TGraphErrors( energies.size(), &energies[0], Cresp, zeros, Cerresp );
+    G1Cresp->SetMarkerStyle(8); 
+    G1Cresp->SetName("Cresp");
+    G1Cresp->SetTitle("Cres");
+    G1Cresp->GetYaxis()->SetRangeUser(0.,300.);
+    G1Cresp->GetYaxis()->SetTitle("[#Cp.e./GeV]");
+    G1Cresp->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
+    G1Cresp->Write();
+
+    auto G1SSiPMresp = new TGraphErrors( energies.size(), &energies[0], SSiPMresp, zeros, SSiPMerresp );
+    G1SSiPMresp->SetMarkerStyle(29); 
+    G1SSiPMresp->SetName("SSiPMresp");
+    G1SSiPMresp->SetTitle("SSiPMres");
+    G1SSiPMresp->GetYaxis()->SetRangeUser(0.,300.);
+    G1SSiPMresp->GetYaxis()->SetTitle("[#Sp.e./GeV]");
+    G1SSiPMresp->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
+    G1SSiPMresp->Write();
+
+    auto G1CSiPMresp = new TGraphErrors( energies.size(), &energies[0], CSiPMresp, zeros, CSiPMerresp );
+    G1CSiPMresp->SetMarkerStyle(29); 
+    G1CSiPMresp->SetName("CSiPMresp");
+    G1CSiPMresp->SetTitle("CSiPMres");
+    G1CSiPMresp->GetYaxis()->SetRangeUser(0.,300.);
+    G1CSiPMresp->GetYaxis()->SetTitle("[#Cp.e./GeV]");
+    G1CSiPMresp->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
+    G1CSiPMresp->Write();
+
+    double avgSresp = std::accumulate(Sresp, Sresp+energies.size(), 0.)/energies.size();
+    double avgCresp = std::accumulate(Cresp, Cresp+energies.size(), 0.)/energies.size();
+    std::cout<<"Average response (p.e./GeV), S="<<avgSresp<<" C="<<avgCresp<<std::endl;
+    */
+};
 void DREMTubesanalysis_v1p3(){
     
     // Analysis of e+ data
@@ -232,7 +386,8 @@ void DREMTubesanalysis_v1p3(){
     for ( unsigned int i=0; i<5; i++ ){
         files.push_back( "DREMTubesout_Run"+std::to_string(i)+".root" );
     }
-    analysis( energies, files );
+    //analysis( energies, files );
+    analysisPS( 10., "DREMTubesout_Run0.root");
 
 }
 
