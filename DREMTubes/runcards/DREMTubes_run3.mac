@@ -11,16 +11,16 @@
 
 #Run 0
 /gps/energy 10. GeV
-/run/beamOn 20000
+/run/beamOn 50000
 #Run 1
 /gps/energy 30. GeV
-/run/beamOn 20000
+/run/beamOn 50000
 #Run 2
 /gps/energy 60. GeV
-/run/beamOn 20000
+/run/beamOn 50000
 #Run 3
 /gps/energy 80. GeV
-/run/beamOn 20000
+/run/beamOn 50000
 #Run 4
 /gps/energy 100. GeV
-/run/beamOn 20000
+/run/beamOn 50000

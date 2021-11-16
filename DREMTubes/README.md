@@ -1,6 +1,13 @@
 # DREMTubes
 **A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests.**
 
+<figure>
+<img src="./images/DREMTubes_movie.gif" alt="Trulli" style="width:100%">
+<figcaption align="center"><b>Fig. - 10 GeV positron passing through the preshower and the dual-readout calorimeter (2 events).</b></figcaption>
+</figure>
+
+<br/><br/>
+
 <!-- TABLE OF CONTENTS -->
 <details open="open">
   <summary>Table of Contents</summary>
@@ -81,7 +88,7 @@ Parser options
    source /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh 
    export CXX=`which g++`
    export CC=`which gcc`
-   cmake3 -DGeant4_DIR= /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.1 ../DREMTubes/
+   cmake3 -DGeant4_DIR= /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.1 ../../DREMTubes/
    make
    ```
 3. execute (example with DREMTubes_run.mac macro card, 2 threads and FTFP_BERT physics list)
@@ -98,16 +105,16 @@ Parser options
     ```sh
     mkdir DREMTubes-build; cd DREMTubes-build
     mkdir error log output
-    cp ../DREMTubes/scripts/DREMTubes_lxplus_10.7.p01.sh .
+    cp ../../DREMTubes/scripts/DREMTubes_lxplus_10.7.p01.sh .
     source DREMTubes_lxplus_10.7.p01.sh
     ```
 3. prepare for HTCondor submission (example with Geant4.10.07_p01, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
     ```sh
-    cp ../DREMTubes/scripts/DREMTubes_HTCondor_10.7.p01.sh .
+    cp ../../DREMTubes/scripts/DREMTubes_HTCondor_10.7.p01.sh .
     export MYHOME=`pwd`
     echo cd $MYHOME >> DREMTubes_HTCondor_10.7.p01.sh
     echo $MYHOME/DREMTubes -m $MYHOME/DREMTubes_run.mac -t 2 >> DREMTubes_HTCondor_10.7.p01.sh
-    cp ../DREMTubes/scripts/DREMTubes_HTCondor.sub .
+    cp ../../DREMTubes/scripts/DREMTubes_HTCondor.sub .
     sed -i '1 i executable = DREMTubes_HTCondor_10.7.p01.sh' DREMTubes_HTCondor.sub
     ```
 4. submit a job
