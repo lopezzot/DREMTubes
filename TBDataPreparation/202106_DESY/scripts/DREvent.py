@@ -43,9 +43,13 @@ def DRdecode(evLine):
   # Split sections
   strHeader  = evLine.split(":")[0]
   strPayload = evLine.split(":")[1]
-  strPayload = strPayload.replace("TDC", ":TDC")
-  strADCs    = strPayload.split(":")[0]
-  strTDCs    = strPayload.split(":")[1]
+  x=strPayload.find("TDC")
+  if(x>0):
+     strPayload = strPayload.replace("TDC", ":TDC")
+     strADCs    = strPayload.split(":")[0]
+     strTDCs    = strPayload.split(":")[1]
+  else:
+     strADCs = evLine.split(":")[1]
 	
   # Parse strHeader
   hList = strHeader.split()
@@ -67,19 +71,19 @@ def DRdecode(evLine):
       val= int(listADCs[i+1], 16)
       e.ADCs[ch]=val 
 
-  # Parse TDC  
+  if(x>0):
+     # Parse TDC  
+     strTDCs  = strTDCs[ strTDCs.find("val.s") + 6 : ]
+     listTDCs = strTDCs.split()
+     if len(listTDCs)>0:
+       for i in range(len(listTDCs)):
+         if i%3 ==0:
+           ch  = int( listTDCs[i+0], 10 )  # Channel
+           ver = int( listTDCs[i+1], 10 )  # Varification number
+           val = int( listTDCs[i+2], 10 )  # Value
+           e.TDCs[ch] = ( val, ver) 
 
-  strTDCs  = strTDCs[ strTDCs.find("val.s") + 6 : ]
-  listTDCs = strTDCs.split()
-  if len(listTDCs)>0:
-    for i in range(len(listTDCs)):
-      if i%3 ==0:
-        ch  = int( listTDCs[i+0], 10 )  # Channel
-        ver = int( listTDCs[i+1], 10 )  # Varification number
-        val = int( listTDCs[i+2], 10 )  # Value
-        e.TDCs[ch] = ( val, ver) 
   return e
-
 
 # Main for testing purpose
 if __name__ == "__main__":

@@ -22,7 +22,8 @@ class DRrootify:
         '''Class Constructor'''
         self.drfname = fname+".txt"
         self.drfile = TFile(fname+".root","RECREATE")
-        self.tbtree = TTree("DESY2021","DESY2021")
+        #self.runno = (fname.split(".")[1])[3:]
+	self.tbtree = TTree("DESY2021","DESY2021")
         self.EventNumber = array('i',[0])
         self.NumOfPhysEv = array('i',[0])
         self.NumOfPedeEv = array('i',[0])
@@ -44,9 +45,10 @@ class DRrootify:
     def ReadandRoot(self):
         '''Read ASCII files line by line and rootify'''
         print "--->Start rootification of "+self.drfname
+	#print self.runno
         for i, line in enumerate(open(self.drfname)):
             if i%5000 == 0 : print "------>At line "+str(i)+" of "+str(self.drfname)
-            evt = DREvent.DRdecode(line) 
+	    evt = DREvent.DRdecode(line) 
             self.EventNumber[0] = evt.EventNumber
             self.NumOfPhysEv[0] = evt.NumOfPhysEv
             self.NumOfPedeEv[0] = evt.NumOfPedeEv
@@ -56,7 +58,7 @@ class DRrootify:
 	    #	print evt.TriggerMask
             for counter, l in enumerate(evt.ADCs.items()):
                 self.ADCs[counter] = l[1]
-            for counter, l in enumerate(evt.TDCs.items()):
+	    for counter, l in enumerate(evt.TDCs.items()):
                 self.TDCsval[counter] = l[1][0]
                 self.TDCscheck[counter] = l[1][1]
             self.tbtree.Fill()
@@ -68,7 +70,7 @@ class DRrootify:
 
 #Quick test me
 #
-#fname = "/afs/cern.ch/user/g/gaudio/data/testroot_desy/desydata.run309"
+#fname = "/afs/cern.ch/user/g/gaudio/data/testroot_desy/desydata.run273"
 #dr = DRrootify(fname)
 #dr.ReadandRoot()
 #dr.Write()
@@ -82,6 +84,7 @@ datafls = [os.path.basename(x) for x in datafls]
 ntuplfls = [x.split(".root")[0]+".txt" for x in glob.glob(ntuplepath+"*.root")]
 ntuplfls = [os.path.basename(x) for x in ntuplfls]
 newfls = list(set(datafls)-set(ntuplfls))
+
 
 #Rootify those data
 #
