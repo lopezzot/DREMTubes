@@ -64,7 +64,7 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
         vector<double>* CSiPM = NULL; 
         tree->SetBranchAddress( "VectorSignalsCher", &CSiPM );
         
-        int nBins = 50;
+        int nBins = 30;
 
         auto H1Econt = new TH1F("Econt", "Econt", 100, 0., 1.2);
         H1Econt->GetXaxis()->SetTitle("Containment");
@@ -121,7 +121,6 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
         //
         for ( unsigned int eventNo = 0; eventNo<tree->GetEntries(); eventNo++ ){
             tree->GetEntry(eventNo);
-            if (PSdep<15.){
             H1Econt->Fill(edep/(energy*1000.));
             H1Stot->Fill(Stot);
             H1Ctot->Fill(Ctot);
@@ -142,7 +141,6 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
 
             H1ESrec->Fill(Stot/217.501);
             H1ECrec->Fill(Ctot/54.1621);
-            }
         } //end for loop events
 
         outputfile->cd(); 
@@ -210,7 +208,7 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
     G1Cresp->SetMarkerStyle(8); 
     G1Cresp->SetName("Cresp");
     G1Cresp->SetTitle("Cres");
-    G1Cresp->GetYaxis()->SetRangeUser(0.,300.);
+    G1Cresp->GetYaxis()->SetRangeUser(0.,100.);
     G1Cresp->GetYaxis()->SetTitle("[#Cp.e./GeV]");
     G1Cresp->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
     G1Cresp->Write();
@@ -228,7 +226,7 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
     G1CSiPMresp->SetMarkerStyle(29); 
     G1CSiPMresp->SetName("CSiPMresp");
     G1CSiPMresp->SetTitle("CSiPMres");
-    G1CSiPMresp->GetYaxis()->SetRangeUser(0.,300.);
+    G1CSiPMresp->GetYaxis()->SetRangeUser(0.,100.);
     G1CSiPMresp->GetYaxis()->SetTitle("[#Cp.e./GeV]");
     G1CSiPMresp->GetXaxis()->SetTitle("<E_{Beam}> [GeV]");
     G1CSiPMresp->Write();
@@ -238,7 +236,7 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
     std::cout<<"Average response (p.e./GeV), S="<<avgSresp<<" C="<<avgCresp<<std::endl;
 
 };
-
+/*
 void analysisPS(const double& energy, const string& file ){
 
     //Initiate objects through all the analysis
@@ -377,13 +375,13 @@ void analysisPS(const double& energy, const string& file ){
     
     // Finalize objects over multiple runs
     //
-    
     outputfile->cd();
+
     auto G1Econt = new TGraphErrors( psbins, psarr, Econt, zeros, Eercont );
     G1Econt->SetMarkerStyle(8); 
     G1Econt->SetName("Energy containment");
     G1Econt->SetTitle("Energy containment");
-    G1Econt->GetYaxis()->SetRangeUser(0.,1.2);
+    G1Econt->GetYaxis()->SetRangeUser(0.6,1.1);
     G1Econt->GetYaxis()->SetTitle("Energy containment");
     G1Econt->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1Econt->Write();
@@ -392,7 +390,7 @@ void analysisPS(const double& energy, const string& file ){
     G1EcontRMS->SetMarkerStyle(8); 
     G1EcontRMS->SetName("RMS energy containment");
     G1EcontRMS->SetTitle("RMS energy containment");
-    G1EcontRMS->GetYaxis()->SetRangeUser(0.,0.21);
+    G1EcontRMS->GetYaxis()->SetRangeUser(0.,0.12);
     G1EcontRMS->GetYaxis()->SetTitle("RMS energy containment");
     G1EcontRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1EcontRMS->Write();
@@ -401,7 +399,7 @@ void analysisPS(const double& energy, const string& file ){
     G1EStot->SetMarkerStyle(8); 
     G1EStot->SetName("Scintillation");
     G1EStot->SetTitle("Scintillation signal [p.e.]");
-    G1EStot->GetYaxis()->SetRangeUser(1000.,2500.);
+    G1EStot->GetYaxis()->SetRangeUser(1000.,2200.);
     G1EStot->GetYaxis()->SetTitle("Scintillation signal [p.e.]");
     G1EStot->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1EStot->Write();
@@ -410,7 +408,7 @@ void analysisPS(const double& energy, const string& file ){
     G1EStotRMS->SetMarkerStyle(8); 
     G1EStotRMS->SetName("RMS scintillation");
     G1EStotRMS->SetTitle("RMS scintillation signal [p.e.]");
-    G1EStotRMS->GetYaxis()->SetRangeUser(0.,400.);
+    G1EStotRMS->GetYaxis()->SetRangeUser(150.,400.);
     G1EStotRMS->GetYaxis()->SetTitle("RMS scintillation signal [p.e.]");
     G1EStotRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1EStotRMS->Write();
@@ -419,7 +417,7 @@ void analysisPS(const double& energy, const string& file ){
     G1ESSiPM->SetMarkerStyle(29); 
     G1ESSiPM->SetName("SiPM scintillation");
     G1ESSiPM->SetTitle("SiPM scintillation signal [p.e.]");
-    G1ESSiPM->GetYaxis()->SetRangeUser(1000.,2500.);
+    G1ESSiPM->GetYaxis()->SetRangeUser(1000.,2200.);
     G1ESSiPM->GetYaxis()->SetTitle("SiPM scintillation signal [p.e.]");
     G1ESSiPM->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ESSiPM->Write();
@@ -428,7 +426,7 @@ void analysisPS(const double& energy, const string& file ){
     G1ESSiPMRMS->SetMarkerStyle(29); 
     G1ESSiPMRMS->SetName("RMS SiPM scintillation");
     G1ESSiPMRMS->SetTitle("RMS SiPM scintillation signal [p.e.]");
-    G1ESSiPMRMS->GetYaxis()->SetRangeUser(0.,400.);
+    G1ESSiPMRMS->GetYaxis()->SetRangeUser(150.,400.);
     G1ESSiPMRMS->GetYaxis()->SetTitle("RMS SiPM scintillation signal [p.e.]");
     G1ESSiPMRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ESSiPMRMS->Write();
@@ -437,7 +435,7 @@ void analysisPS(const double& energy, const string& file ){
     G1ECtot->SetMarkerStyle(8); 
     G1ECtot->SetName("Cherenkov");
     G1ECtot->SetTitle("Cherenkov signal [p.e.]");
-    G1ECtot->GetYaxis()->SetRangeUser(0.,800.);
+    G1ECtot->GetYaxis()->SetRangeUser(200.,600.);
     G1ECtot->GetYaxis()->SetTitle("Cherenkov signal [p.e.]");
     G1ECtot->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ECtot->Write();
@@ -446,16 +444,16 @@ void analysisPS(const double& energy, const string& file ){
     G1ECtotRMS->SetMarkerStyle(8); 
     G1ECtotRMS->SetName("RMS Cherenkov");
     G1ECtotRMS->SetTitle("RMS Cherenkov signal [p.e.]");
-    G1ECtotRMS->GetYaxis()->SetRangeUser(0.,100.);
+    G1ECtotRMS->GetYaxis()->SetRangeUser(30.,100.);
     G1ECtotRMS->GetYaxis()->SetTitle("RMS Cherenkov signal [p.e.]");
     G1ECtotRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ECtotRMS->Write();
 
     auto G1ECSiPM = new TGraphErrors( psbins, psarr, ECSiPM, zeros, EerCSiPM );
     G1ECSiPM->SetMarkerStyle(29); 
-    G1ECSiPM->SetName("SiPM Ccintillation");
-    G1ECSiPM->SetTitle("SiPM Ccintillation signal [p.e.]");
-    G1ECSiPM->GetYaxis()->SetRangeUser(0.,800.);
+    G1ECSiPM->SetName("SiPM Cherenkov");
+    G1ECSiPM->SetTitle("SiPM Cherenkov signal [p.e.]");
+    G1ECSiPM->GetYaxis()->SetRangeUser(200.,600.);
     G1ECSiPM->GetYaxis()->SetTitle("SiPM Cherenkov signal [p.e.]");
     G1ECSiPM->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ECSiPM->Write();
@@ -464,12 +462,13 @@ void analysisPS(const double& energy, const string& file ){
     G1ECSiPMRMS->SetMarkerStyle(29); 
     G1ECSiPMRMS->SetName("RMS SiPM Cherenkov");
     G1ECSiPMRMS->SetTitle("RMS SiPM Cherenkov signal [p.e.]");
-    G1ECSiPMRMS->GetYaxis()->SetRangeUser(0.,100.);
+    G1ECSiPMRMS->GetYaxis()->SetRangeUser(30.,100.);
     G1ECSiPMRMS->GetYaxis()->SetTitle("RMS SiPM Cherenkov signal [p.e.]");
     G1ECSiPMRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ECSiPMRMS->Write();
-};
 
+};
+*/
 void DREMTubesanalysis_v1p3(){
     
     // Analysis of e+ data
@@ -480,8 +479,8 @@ void DREMTubesanalysis_v1p3(){
     for ( unsigned int i=0; i<5; i++ ){
         files.push_back( "DREMTubesout_Run"+std::to_string(i)+".root" );
     }
-    //analysis( energies, files );
-    analysisPS( 10., "DREMTubesout_Run0.root");
+    analysis( energies, files );
+    //analysisPS( 10., "DREMTubesout_Run0.root");
 
 }
 
