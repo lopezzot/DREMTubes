@@ -247,26 +247,32 @@ void analysisPS(const double& energy, const string& file ){
     auto outputfile = new TFile( "DREMTubesanalysisPS.root", "RECREATE" );
     int psbins = 11;
     double psarr[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21};
+
     double EStot[psbins];
     double EerStot[psbins];
     double EStotRMS[psbins];
     double EerStotRMS[psbins];
+    double ESSiPM[psbins];
+    double EerSSiPM[psbins];
+    double ESSiPMRMS[psbins];
+    double EerSSiPMRMS[psbins];
+
+    double ECSiPM[psbins];
+    double EerCSiPM[psbins];
+    double ECSiPMRMS[psbins];
+    double EerCSiPMRMS[psbins];
     double ECtot[psbins];
     double EerCtot[psbins];
     double ECtotRMS[psbins];
     double EerCtotRMS[psbins];
+    
     double Econt[psbins];
     double Eercont[psbins];
     double EcontRMS[psbins];
     double EercontRMS[psbins];
+    
     double zeros[psbins];
     memset( zeros, 0., 11*sizeof(double));
-    /*double ETowercont[psbins];
-    double ETowerercont[psbins];
-    double ESrec[psbins];
-    double ESerrec[psbins];
-    double ECrec[psbins];
-    double ECerrec[psbins];*/
 
     cout<<"---> Analysis: e+, energy "<<energy<<endl;
         
@@ -293,17 +299,35 @@ void analysisPS(const double& energy, const string& file ){
         
     TH1F Econtarr[11];
     TH1F EStotarr[11];
+    TH1F ESSiPMarr[11];
     TH1F ECtotarr[11];
+    TH1F ECSiPMarr[11];
+
     for ( unsigned int index = 0; index<11; index++ ){
-        Econtarr[index].SetTitle("Containment");
+        Econtarr[index].SetTitle("Energy Containment");
+        Econtarr[index].GetXaxis()->SetTitle("Energy containment");
         Econtarr[index].SetName("Containment");
         Econtarr[index].SetBins(100, 0., 1.2);
+
         EStotarr[index].SetTitle("Scintillation signal");
+        EStotarr[index].GetXaxis()->SetTitle("Scintillation [p.e.]");
         EStotarr[index].SetName("Scintillation signal");
         EStotarr[index].SetBins(100, 0., 200.*10.*2.);
+        
         ECtotarr[index].SetTitle("Cherenkov signal");
+        ECtotarr[index].SetTitle("Cherenkov signal [p.e.]");
         ECtotarr[index].SetName("Cherenkov signal");
         ECtotarr[index].SetBins(100, 0., 50.*10.*2.);
+        
+        ESSiPMarr[index].SetTitle("SiPM scintillation signal");
+        ESSiPMarr[index].GetXaxis()->SetTitle("SiPM scintillation [p.e.]");
+        ESSiPMarr[index].SetName("SiPM scintillation signal");
+        ESSiPMarr[index].SetBins(100, 0., 200.*10.*2.);
+        
+        ECSiPMarr[index].SetTitle("SiPM Cherenkov signal");
+        ECSiPMarr[index].GetXaxis()->SetTitle("SiPM Cherenkov [p.e.]");
+        ECSiPMarr[index].SetName("SiPM Cherenkov signal");
+        ECSiPMarr[index].SetBins(100, 0., 50.*10.*2.);
     }
 
     //For loop over events
@@ -316,6 +340,8 @@ void analysisPS(const double& energy, const string& file ){
         Econtarr[index].Fill(edep/(energy*1000.));
         EStotarr[index].Fill(Stot);
         ECtotarr[index].Fill(Ctot);
+        ESSiPMarr[index].Fill(std::accumulate(SSiPM->begin(), SSiPM->end(),0.));
+        ECSiPMarr[index].Fill(std::accumulate(CSiPM->begin(), CSiPM->end(),0.));
     } //end for loop events
 
     outputfile->cd(); 
@@ -325,16 +351,28 @@ void analysisPS(const double& energy, const string& file ){
         Eercont[i]=Econtarr[i].GetMeanError();
         EcontRMS[i]=Econtarr[i].GetRMS();
         EercontRMS[i]=Econtarr[i].GetRMSError();
+
         EStotarr[i].Write();
         EStot[i]=EStotarr[i].GetMean();
         EerStot[i]=EStotarr[i].GetMeanError();
         EStotRMS[i]=EStotarr[i].GetRMS();
         EerStotRMS[i]=EStotarr[i].GetRMSError();
+        ESSiPMarr[i].Write();
+        ESSiPM[i]=ESSiPMarr[i].GetMean();
+        EerSSiPM[i]=ESSiPMarr[i].GetMeanError();
+        ESSiPMRMS[i]=ESSiPMarr[i].GetRMS();
+        EerSSiPMRMS[i]=ESSiPMarr[i].GetRMSError();
+
         ECtotarr[i].Write();
         ECtot[i]=ECtotarr[i].GetMean();
         EerCtot[i]=ECtotarr[i].GetMeanError();
         ECtotRMS[i]=ECtotarr[i].GetRMS();
         EerCtotRMS[i]=ECtotarr[i].GetRMSError();
+        ECSiPMarr[i].Write();
+        ECSiPM[i]=ECSiPMarr[i].GetMean();
+        EerCSiPM[i]=ECSiPMarr[i].GetMeanError();
+        ECSiPMRMS[i]=ECSiPMarr[i].GetRMS();
+        EerCSiPMRMS[i]=ECSiPMarr[i].GetRMSError();
     }   
     
     // Finalize objects over multiple runs
@@ -355,7 +393,7 @@ void analysisPS(const double& energy, const string& file ){
     G1EcontRMS->SetName("RMS energy containment");
     G1EcontRMS->SetTitle("RMS energy containment");
     G1EcontRMS->GetYaxis()->SetRangeUser(0.,0.21);
-    G1EcontRMS->GetYaxis()->SetTitle("RMS Energy containment");
+    G1EcontRMS->GetYaxis()->SetTitle("RMS energy containment");
     G1EcontRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1EcontRMS->Write();
 
@@ -363,19 +401,37 @@ void analysisPS(const double& energy, const string& file ){
     G1EStot->SetMarkerStyle(8); 
     G1EStot->SetName("Scintillation");
     G1EStot->SetTitle("Scintillation signal [p.e.]");
-    G1EStot->GetYaxis()->SetRangeUser(1500.,2500.);
+    G1EStot->GetYaxis()->SetRangeUser(1000.,2500.);
     G1EStot->GetYaxis()->SetTitle("Scintillation signal [p.e.]");
     G1EStot->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1EStot->Write();
 
     auto G1EStotRMS = new TGraphErrors( psbins, psarr, EStotRMS, zeros, EerStotRMS );
     G1EStotRMS->SetMarkerStyle(8); 
-    G1EStotRMS->SetName("RMS Scintillation");
-    G1EStotRMS->SetTitle("RMS Scintillation signal [p.e.]");
+    G1EStotRMS->SetName("RMS scintillation");
+    G1EStotRMS->SetTitle("RMS scintillation signal [p.e.]");
     G1EStotRMS->GetYaxis()->SetRangeUser(0.,400.);
-    G1EStotRMS->GetYaxis()->SetTitle("RMS Scintillation signal [p.e.]");
+    G1EStotRMS->GetYaxis()->SetTitle("RMS scintillation signal [p.e.]");
     G1EStotRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1EStotRMS->Write();
+    
+    auto G1ESSiPM = new TGraphErrors( psbins, psarr, ESSiPM, zeros, EerSSiPM );
+    G1ESSiPM->SetMarkerStyle(29); 
+    G1ESSiPM->SetName("SiPM scintillation");
+    G1ESSiPM->SetTitle("SiPM scintillation signal [p.e.]");
+    G1ESSiPM->GetYaxis()->SetRangeUser(1000.,2500.);
+    G1ESSiPM->GetYaxis()->SetTitle("SiPM scintillation signal [p.e.]");
+    G1ESSiPM->GetXaxis()->SetTitle("Preshower signal [a.u.]");
+    G1ESSiPM->Write();
+
+    auto G1ESSiPMRMS = new TGraphErrors( psbins, psarr, ESSiPMRMS, zeros, EerSSiPMRMS );
+    G1ESSiPMRMS->SetMarkerStyle(29); 
+    G1ESSiPMRMS->SetName("RMS SiPM scintillation");
+    G1ESSiPMRMS->SetTitle("RMS SiPM scintillation signal [p.e.]");
+    G1ESSiPMRMS->GetYaxis()->SetRangeUser(0.,400.);
+    G1ESSiPMRMS->GetYaxis()->SetTitle("RMS SiPM scintillation signal [p.e.]");
+    G1ESSiPMRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
+    G1ESSiPMRMS->Write();
 
     auto G1ECtot = new TGraphErrors( psbins, psarr, ECtot, zeros, EerCtot );
     G1ECtot->SetMarkerStyle(8); 
@@ -395,6 +451,23 @@ void analysisPS(const double& energy, const string& file ){
     G1ECtotRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
     G1ECtotRMS->Write();
 
+    auto G1ECSiPM = new TGraphErrors( psbins, psarr, ECSiPM, zeros, EerCSiPM );
+    G1ECSiPM->SetMarkerStyle(29); 
+    G1ECSiPM->SetName("SiPM Ccintillation");
+    G1ECSiPM->SetTitle("SiPM Ccintillation signal [p.e.]");
+    G1ECSiPM->GetYaxis()->SetRangeUser(0.,800.);
+    G1ECSiPM->GetYaxis()->SetTitle("SiPM Cherenkov signal [p.e.]");
+    G1ECSiPM->GetXaxis()->SetTitle("Preshower signal [a.u.]");
+    G1ECSiPM->Write();
+
+    auto G1ECSiPMRMS = new TGraphErrors( psbins, psarr, ECSiPMRMS, zeros, EerCSiPMRMS );
+    G1ECSiPMRMS->SetMarkerStyle(29); 
+    G1ECSiPMRMS->SetName("RMS SiPM Cherenkov");
+    G1ECSiPMRMS->SetTitle("RMS SiPM Cherenkov signal [p.e.]");
+    G1ECSiPMRMS->GetYaxis()->SetRangeUser(0.,100.);
+    G1ECSiPMRMS->GetYaxis()->SetTitle("RMS SiPM Cherenkov signal [p.e.]");
+    G1ECSiPMRMS->GetXaxis()->SetTitle("Preshower signal [a.u.]");
+    G1ECSiPMRMS->Write();
 };
 
 void DREMTubesanalysis_v1p3(){
