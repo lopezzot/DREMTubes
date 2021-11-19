@@ -35,7 +35,7 @@ Coding began on July 7, 2021.
 <!--Authors and contacts-->
 ## Authors and contacts
 - (CERN EP-SFT) Lorenzo Pezzotti (lorenzo.pezzotti@cern.ch), Alberto Ribon
-- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri, Roberto Ferrari (roberto.ferrari@cern.ch)
+- (University of Pavia and INFN Pavia) Jinky Agarwala, Gabriella Gaudio, Andrea Negri, Roberto Ferrari (roberto.ferrari@cern.ch), Giacomo Polesello
 - (University of Insubria and INFN Milano) Romualdo Santoro (romualdo.santoro@uninsubria.it), Edoardo Proserpio, Simona Cometti, Agnese Giaz
 - (University of Sussex) Iacopo Vivarelli (iacopo.vivarelli@cern.ch)
 
