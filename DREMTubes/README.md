@@ -20,6 +20,7 @@
         <li><a href="#selected-presentations">Selected presentations</a></li>
       </ul>
     </li>
+    <li><a href="#available-datasets-and-analyses">Available datasets and analyses</a></li>
     <li>
       <a href="#how-to">How to</a>
       <ul>
@@ -46,7 +47,15 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 ## Documentation and results
 
 ### Selected presentations
+- Dual-Readout Calorimetry Meeting 19/11/2021, **Results from the CERN TB Geant4 simulation** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1097245/contributions/4619316/attachments/2347762/4003816/lopezzot_DRSW_17_11_2021.pdf)
+- Dual-Readout Calorimetry Meeting 13/10/2021, **Status of 2021 Test Beam(s) SW** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1086651/contributions/4569695/attachments/2327255/3964777/lopezzot_DR_SW_13_10_2021.pdf)
 - Dual-Readout Calorimetry Meeting 21/7/2021, **DREMTubes: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
+
+<!--Available datasets and analyses-->
+### Available datasets and analyses
+| DREMTubes         | Reproduce data | Reproduce analysis | Comments     |
+| -------------     | ----------     | -----------        | -----------  |
+| v1.3 Dataset #1 <br /> tag 1.3_1 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 17/11/2021 <br /> | ./DREMTubes -m runcards/DREMTubes_run3.mac | root -l DREMTubesanalysis_v1p3.C | Produced data and results shown in the presentation on 19/11/2021 by Lorenzo |
 
 <!--How to:-->
 ## How to
