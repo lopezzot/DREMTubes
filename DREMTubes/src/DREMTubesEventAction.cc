@@ -1,7 +1,9 @@
 //**************************************************
 // \file DREMTubesEventAction.cc
-// \brief: Implementation of DREMTubesEventAction class
-// \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
+// \brief: Implementation of DREMTubesEventAction 
+//         class
+// \author: Lorenzo Pezzotti (CERN EP-SFT-sim)
+//          @lopezzot
 // \start date: 7 July 2021
 //**************************************************
 
@@ -27,19 +29,21 @@
 //
 DREMTubesEventAction::DREMTubesEventAction()
     : G4UserEventAction(),
-    Energyem(0.),
-    Energyem2(0.),
     EnergyScin(0.),
     EnergyCher(0.),
-    NofCherenkovDetected(0),
-    //NofScintillationDetected(0),
+    NofCherDet(0),
+    NofScinDet(0),
     EnergyTot(0.),
     PrimaryPDGID(0),
     PrimaryParticleEnergy(0.),
     EscapedEnergy(0.),
+    PSEnergy(0.),
     VectorSignals(0.),
-    VectorSignalsCher(0.)
-{}
+    VectorSignalsCher(0.),
+    VecSPMT(0.),
+    VecCPMT(0.),
+    VecTowerE(0.) {
+}
 
 //Define de-constructor
 //
@@ -49,38 +53,29 @@ DREMTubesEventAction::~DREMTubesEventAction() {}
 //
 void DREMTubesEventAction::BeginOfEventAction(const G4Event*) {  
     
-    //Initialize data memebers at each event
+    //Initialize data memebers at begin of each event
     //
-    Energyem = 0.;
-    Energyem2 = 0.;
     EnergyScin = 0.;
     EnergyCher = 0.;
-    NofCherenkovDetected = 0;
-    EscapedEnergy = 0;
-    //NofScintillationDetected = 0;
-    EnergyTot = 0;
-    /*for(int i=0;i<64;i++){
-        Signalfibre[i]=0;
-    }*///only if you want to use SignalFibre[64]
-    for (unsigned int i=0;i<VectorSignals.size();i++){
-        VectorSignals.at(i)=0.;
-    }
-    for (unsigned int i=0;i<VectorSignalsCher.size();i++){
-        VectorSignalsCher.at(i)=0.;
-    }
-    PrimaryParticleEnergy = 0;  
-    for(int i=0;i<2880;i++){
-        if(VectorSignals.size() < 2880){
-            VectorSignals.push_back(0.);
-        }
-    }
-    //VectorSignals.at(i)=0;}
-    for(int k=0;k<2880;k++){
-        if(VectorSignalsCher.size() < 2880){
-            VectorSignalsCher.push_back(0.);
-        }
-    }
-    //VectorSignalsCher[k]=0;}  
+    NofCherDet = 0;
+    NofScinDet = 0;
+    EnergyTot = 0.;
+    PrimaryPDGID = 0;
+    PrimaryParticleEnergy = 0.;
+    EscapedEnergy = 0.;
+    PSEnergy = 0.;
+
+    VectorSignals.clear();
+    VectorSignalsCher.clear();
+    VecSPMT.clear();
+    VecCPMT.clear();
+    VecTowerE.clear();
+
+    VectorSignals.assign(160, 0.);
+    VectorSignalsCher.assign(160, 0.);
+    VecSPMT.assign(9, 0.);
+    VecCPMT.assign(9, 0.);
+    VecTowerE.assign(9, 0.);
 
 }
 
@@ -88,32 +83,27 @@ void DREMTubesEventAction::EndOfEventAction(const G4Event* ) {
  
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
+    //Add all p.e. in Scin and Cher fibers before calibration
+    //
+    for (auto& n : VectorSignals) NofScinDet += n;
+    for (auto& n : VecSPMT) NofScinDet += n;
+    for (auto& n : VectorSignalsCher) NofCherDet += n;
+    for (auto& n : VecCPMT) NofCherDet += n;
+
     //Fill ntuple event by event
     //entries with vectors are automatically filled
     //
-    analysisManager->FillNtupleDColumn(0, Energyem);
-    analysisManager->FillNtupleDColumn(1, EnergyScin);
-    analysisManager->FillNtupleDColumn(2, EnergyCher);
-    analysisManager->FillNtupleDColumn(3, NofCherenkovDetected);
+    analysisManager->FillNtupleDColumn(0, EnergyScin);
+    analysisManager->FillNtupleDColumn(1, EnergyCher);
+    analysisManager->FillNtupleDColumn(2, NofCherDet);
+    analysisManager->FillNtupleDColumn(3, NofScinDet);
     analysisManager->FillNtupleDColumn(4, EnergyTot);
     analysisManager->FillNtupleDColumn(5, PrimaryParticleEnergy);
     analysisManager->FillNtupleIColumn(6, PrimaryPDGID);
-    //analysisManager->FillNtupleSColumn(7, AbsorberMaterial);
     analysisManager->FillNtupleDColumn(7, EscapedEnergy);
-    //analysisManager->FillNtupleDColumn(9, Energyem2);
+    analysisManager->FillNtupleDColumn(8, PSEnergy);
     analysisManager->AddNtupleRow();
-
-    G4int tot_S = 0;
-    G4int tot_C = 0;
-    for(unsigned int i=0; i<VectorSignals.size(); i++){
-        tot_S += VectorSignals.at(i);
-    }
-
-    for(unsigned int i=0; i<VectorSignalsCher.size(); i++){
-        tot_C += VectorSignalsCher.at(i);
-    }
-
-    G4cout<<"Tot S "<<tot_S<<" Tot C "<<tot_C<<G4endl;
+    //Vector entries in ntuple are automatically filled
 
 }
 

@@ -1,6 +1,6 @@
 ##**************************************************
 ## \file CMakeLists.txt
-## \brief: CMakeLists of G4DREMTubes project
+## \brief: CMakeLists of DREMTubes project
 ## \author: Lorenzo Pezzotti (CERN EP-SFT-sim) @lopezzot
 ## \start date: 7 July 2021
 ##**************************************************

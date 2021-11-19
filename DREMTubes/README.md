@@ -1,6 +1,13 @@
 # DREMTubes
 **A Geant4 simulation of the 2020 Dual-Readout em-sized tubes prototype beam tests.**
 
+<figure>
+<img src="./images/DREMTubes_movie.gif" alt="Trulli" style="width:100%">
+<figcaption align="center"><b>Fig. - 10 GeV positron passing through the preshower and the dual-readout calorimeter (2 events).</b></figcaption>
+</figure>
+
+<br/><br/>
+
 <!-- TABLE OF CONTENTS -->
 <details open="open">
   <summary>Table of Contents</summary>
@@ -13,6 +20,7 @@
         <li><a href="#selected-presentations">Selected presentations</a></li>
       </ul>
     </li>
+    <li><a href="#available-datasets-and-analyses">Available datasets and analyses</a></li>
     <li>
       <a href="#how-to">How to</a>
       <ul>
@@ -39,7 +47,15 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 ## Documentation and results
 
 ### Selected presentations
+- Dual-Readout Calorimetry Meeting 19/11/2021, **Results from the CERN TB Geant4 simulation** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1097245/contributions/4619316/attachments/2347762/4003816/lopezzot_DRSW_17_11_2021.pdf)
+- Dual-Readout Calorimetry Meeting 13/10/2021, **Status of 2021 Test Beam(s) SW** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1086651/contributions/4569695/attachments/2327255/3964777/lopezzot_DR_SW_13_10_2021.pdf)
 - Dual-Readout Calorimetry Meeting 21/7/2021, **DREMTubes: A Geant4 simulation of the DR tubes prototype 2021 beam tests** [![Website shields.io](https://img.shields.io/website-up-down-green-red/http/shields.io.svg)](https://indico.cern.ch/event/1061304/contributions/4460441/attachments/2285253/3883980/DR_lopezzot_21_7_2021.pdf)
+
+<!--Available datasets and analyses-->
+### Available datasets and analyses
+| DREMTubes         | Reproduce data | Reproduce analysis | Comments     |
+| -------------     | ----------     | -----------        | -----------  |
+| v1.3 Dataset #1 <br /> tag 1.3_1 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 17/11/2021 <br /> | ./DREMTubes -m runcards/DREMTubes_run3.mac | root -l DREMTubesanalysis_v1p3.C | Produced data and results shown in the presentation on 19/11/2021 by Lorenzo. Assuming root files from Geant4 are within run3/ folder as pointed in root macro. |
 
 <!--How to:-->
 ## How to
@@ -81,7 +97,7 @@ Parser options
    source /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/CMake-setup.sh 
    export CXX=`which g++`
    export CC=`which gcc`
-   cmake3 -DGeant4_DIR= /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.1 ../DREMTubes/
+   cmake3 -DGeant4_DIR= /cvmfs/geant4.cern.ch/geant4/10.7.p01/x86_64-centos7-gcc8-optdeb-MT/lib64/Geant4-10.7.1 ../../DREMTubes/
    make
    ```
 3. execute (example with DREMTubes_run.mac macro card, 2 threads and FTFP_BERT physics list)
@@ -98,16 +114,16 @@ Parser options
     ```sh
     mkdir DREMTubes-build; cd DREMTubes-build
     mkdir error log output
-    cp ../DREMTubes/scripts/DREMTubes_lxplus_10.7.p01.sh .
+    cp ../../DREMTubes/scripts/DREMTubes_lxplus_10.7.p01.sh .
     source DREMTubes_lxplus_10.7.p01.sh
     ```
 3. prepare for HTCondor submission (example with Geant4.10.07_p01, DREMTubes_run.mac, 2 threads, FTFP_BERT physics list)
     ```sh
-    cp ../DREMTubes/scripts/DREMTubes_HTCondor_10.7.p01.sh .
+    cp ../../DREMTubes/scripts/DREMTubes_HTCondor_10.7.p01.sh .
     export MYHOME=`pwd`
     echo cd $MYHOME >> DREMTubes_HTCondor_10.7.p01.sh
     echo $MYHOME/DREMTubes -m $MYHOME/DREMTubes_run.mac -t 2 >> DREMTubes_HTCondor_10.7.p01.sh
-    cp ../DREMTubes/scripts/DREMTubes_HTCondor.sub .
+    cp ../../DREMTubes/scripts/DREMTubes_HTCondor.sub .
     sed -i '1 i executable = DREMTubes_HTCondor_10.7.p01.sh' DREMTubes_HTCondor.sub
     ```
 4. submit a job

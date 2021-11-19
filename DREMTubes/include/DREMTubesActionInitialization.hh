@@ -15,12 +15,21 @@
 #include "G4VUserActionInitialization.hh"
 #include "G4Types.hh"
 
+//Includers from C++
+//
+#include <chrono>
+#include <random>
+
+//Forward declaration
+//
+class DREMTubesDetectorConstruction;
+
 class DREMTubesActionInitialization : public G4VUserActionInitialization {
     
     public:
         //Constructor
         //
-        DREMTubesActionInitialization( const G4bool FullOptic );
+        DREMTubesActionInitialization(DREMTubesDetectorConstruction*, const G4bool FullOptic );
         virtual ~DREMTubesActionInitialization();
 
         virtual void BuildForMaster() const;
@@ -29,6 +38,8 @@ class DREMTubesActionInitialization : public G4VUserActionInitialization {
     private:
 
         G4bool fFullOptic;
+
+	DREMTubesDetectorConstruction* fDetConstruction;
 
 };
 

@@ -15,6 +15,6 @@
 /gps/pos/radius 0.01 cm
 /random/setSeeds 1.2 2.5
 #
-/run/beamOn 6000
+/run/beamOn 100
 
 
