@@ -6,8 +6,14 @@
 // \start date: 15 Novemeber 2021
 //**************************************************
 
+// Includers from C++
+//
 #include <string>
 #include <array>
+
+//Includers from project files
+//
+#include "edisplay.h"
 
 void analysis( const vector<double>& energies, const vector<string>& files ){
 
@@ -479,9 +485,11 @@ void DREMTubesanalysis_v1p3(){
     for ( unsigned int i=0; i<5; i++ ){
         files.push_back( "DREMTubesout_Run"+std::to_string(i)+".root" );
     }
-    analysis( energies, files );
+    //analysis( energies, files );
     //analysisPS( 10., "DREMTubesout_Run0.root");
-
+    //edisplay( 10., "DREMTubesout_Run0.root");
+    //eradius( 10., "DREMTubesout_Run0.root");
+    eradius( 10., "test.root");
 }
 
 //**************************************************
