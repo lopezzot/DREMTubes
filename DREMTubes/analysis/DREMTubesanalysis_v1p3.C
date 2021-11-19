@@ -242,7 +242,7 @@ void analysis( const vector<double>& energies, const vector<string>& files ){
     std::cout<<"Average response (p.e./GeV), S="<<avgSresp<<" C="<<avgCresp<<std::endl;
 
 };
-/*
+
 void analysisPS(const double& energy, const string& file ){
 
     //Initiate objects through all the analysis
@@ -474,7 +474,7 @@ void analysisPS(const double& energy, const string& file ){
     G1ECSiPMRMS->Write();
 
 };
-*/
+
 void DREMTubesanalysis_v1p3(){
     
     // Analysis of e+ data
@@ -485,11 +485,11 @@ void DREMTubesanalysis_v1p3(){
     for ( unsigned int i=0; i<5; i++ ){
         files.push_back( "DREMTubesout_Run"+std::to_string(i)+".root" );
     }
-    //analysis( energies, files );
-    //analysisPS( 10., "DREMTubesout_Run0.root");
+    analysis( energies, files );
+    analysisPS( 10., "DREMTubesout_Run0.root");
     //edisplay( 10., "DREMTubesout_Run0.root");
     //eradius( 10., "DREMTubesout_Run0.root");
-    eradius( 10., "test.root");
+    //eradius( 10., "test.root");
 }
 
 //**************************************************
