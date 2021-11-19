@@ -51,6 +51,22 @@ PMTCalibration::PMTCalibration(const std::string& fname){
     PMTCpk = jFile["Calibrations"]["PMT"]["PMTC_pk"];
 }
 
+struct DWCCalibration{
+    std::array<double,4> DWC_sl, DWC_offs;
+    std::array<double,1> DWC_tons;
+    std::array<double,2> DWC_z;
+    DWCCalibration(const std::string&);
+};
+
+DWCCalibration::DWCCalibration(const std::string& fname){
+    std::ifstream inFile(fname,std::ifstream::in);
+    json jFile;
+    inFile >> jFile;
+    DWC_sl = jFile["Calibrations"]["DWC"]["DWC_sl"];
+    DWC_offs = jFile["Calibrations"]["DWC"]["DWC_offs"];
+    DWC_tons = jFile["Calibrations"]["DWC"]["DWC_tons"];
+    DWC_z = jFile["Calibrations"]["DWC"]["DWC_z"];
+}
 
 class EventOut{
   public:
@@ -62,67 +78,85 @@ class EventOut{
     	float CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
         float SiPMPheC[160] = {0};
         float SiPMPheS[160] = {0};
-        float totSiPMCene = 0.;
-        float totSiPMSene = 0.;
-        float SPMTenergy = 0.;
-        float CPMTenergy = 0.;
-        int PShower, MCounter, C1, C2;
-    	
-    	void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
-        void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
+	float totSiPMCene = 0.;
+	float totSiPMSene = 0.;
+	int NSiPMZero= 0.;
+	float SPMTenergy = 0.;
+	float CPMTenergy = 0.;
+	float XDWC1,XDWC2,YDWC1,YDWC2;
+	int PShower, MCounter, C1, C2;
+
+	void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
+	void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
 };
 
 
 class Event{
 
-  public:
-    //Constructor and de-constructor
-    //
-    Event(){};
-    ~Event(){};
+	public:
+		//Constructor and de-constructor
+		//
+		Event(){};
+		~Event(){};
 
-    //Data members
-    //
-    int SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
-    int CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
-    
-    UShort_t SiPMHighGain[320];
-    UShort_t SiPMLowGain[320];
+		//Data members
+		//
+		int SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
+		int CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
+		int DWC1L, DWC1R, DWC1U, DWC1D, DWC2L, DWC2R, DWC2U, DWC2D;
 
-    void calibrate(const SiPMCalibration&, EventOut*);
-    void calibratePMT(const PMTCalibration&, EventOut*);
-    	
+		UShort_t SiPMHighGain[320];
+		UShort_t SiPMLowGain[320];
+
+		void calibrate(const SiPMCalibration&, EventOut*);
+		void calibratePMT(const PMTCalibration&, EventOut*);
+		void calibrateDWC(const DWCCalibration&, EventOut*);
+
 };
 
 void Event::calibrate(const SiPMCalibration& calibration, EventOut* evout){
 
-    //SiPM calibration
-    //
-    int ccount = 0;
-    int scount = 0;
-    // TODO: please find a way to avoid theese counters :)
-    for(uint16_t i=0;i<320;++i){      
-        // If SiPM is 0 do not subtract pede and leave 0! (board was not triggered)
-        if (SiPMHighGain[i] > 0){
-            double highGainPe = (SiPMHighGain[i] - calibration.highGainPedestal[i]) / calibration.highGainDpp[i];
-            double lowGainPe = (SiPMLowGain[i] - calibration.lowGainPedestal[i]) / calibration.lowGainDpp[i];
-            double SiPMPhe = highGainPe * (int)(highGainPe < 140.) + lowGainPe * (int)(highGainPe > 140.);
-	    //std::cout<<"sipm "<<i<<" hg "<<SiPMHighGain[i]<<" lg "<<SiPMLowGain[i]<<" hgpe "<<highGainPe<<" lgpe "<<lowGainPe<<" phe "<<SiPMPhe<<" hgped "<<calibration.highGainPedestal[i]<<" hgdpp "<<calibration.highGainDpp[i]<<" lgped "<<calibration.lowGainPedestal[i]<<" hgdpp "<<calibration.lowGainDpp[i]<<std::endl;
-            // use HG if pe < 140 else use LG. Use bool casting to avoid if/else branching
-            if((i / 16) % 2 == 0){
-                // Cher
-                evout->SiPMPheC[ccount] = SiPMPhe/calibration.PheGeVC[0];
-		evout->totSiPMCene += SiPMPhe/calibration.PheGeVC[0];
-                ccount++;
-            } else {
-                // Scin
-            	evout->SiPMPheS[scount] = SiPMPhe/calibration.PheGeVS[0];
-		evout->totSiPMSene += SiPMPhe/calibration.PheGeVS[0];
-            	scount++;
-            }
-        }
-    }
-   
+	//SiPM calibration
+	//
+	int ccount = 0;
+	int scount = 0;
+	int nmiss=0;
+	for(uint16_t i=0;i<320;++i){      
+		//  encode row and columns from i 
+		//  and zero output vectors
+		int column=i%16;
+		int row=i/16;
+		int ind=(row/2)*16+column;
+		if(row % 2 == 0)evout->SiPMPheC[ind]=0;
+		if(row % 2 == 1)evout->SiPMPheS[ind]=0;
+		// Count cells where Sipm is zero
+		if (SiPMHighGain[i] <= 0) nmiss++;
+		// If SiPM is 0 do not subtract pede and leave 0! (board was not triggered)
+		//          cout << " Missing cell  " << i << endl;
+		if (SiPMHighGain[i] > 0){
+			double highGainPe = (SiPMHighGain[i] - calibration.highGainPedestal[i]) / calibration.highGainDpp[i];
+			double lowGainPe = (SiPMLowGain[i] - calibration.lowGainPedestal[i]) / calibration.lowGainDpp[i];
+			double SiPMPhe = highGainPe * (int)(highGainPe < 140.) + lowGainPe * (int)(highGainPe > 140.);
+			//std::cout<<"sipm "<<i<<" hg "<<SiPMHighGain[i]<<" lg "<<SiPMLowGain[i]<<" hgpe "<<highGainPe<<" lgpe "<<lowGainPe<<" phe "<<SiPMPhe<<" hgped "<<calibration.highGainPedestal[i]<<" hgdpp "<<calibration.highGainDpp[i]<<" lgped "<<calibration.lowGainPedestal[i]<<" hgdpp "<<calibration.lowGainDpp[i]<<std::endl;
+			// use HG if pe < 140 else use LG. Use bool casting to avoid if/else branching
+			if(row % 2 == 0){
+				// Cher
+				evout->SiPMPheC[ind] = SiPMPhe/calibration.PheGeVC[0];
+				evout->totSiPMCene += SiPMPhe/calibration.PheGeVC[0];
+//				if(ind != ccount && nmiss==0)
+//					cout << " ind " << ind << " ccount " << ccount << endl;
+				ccount++;
+			} else {
+				// Scin
+				evout->SiPMPheS[ind] = SiPMPhe/calibration.PheGeVS[0];
+				evout->totSiPMSene += SiPMPhe/calibration.PheGeVS[0];
+//				if(ind != scount && nmiss==0)
+//					cout << " ind " << ind << " scount " << scount << endl;
+				scount++;
+			}
+		}
+	}
+	evout->NSiPMZero=nmiss;
 }
 
 void Event::calibratePMT(const PMTCalibration& pmtcalibration, EventOut* evout){
@@ -148,6 +182,12 @@ void Event::calibratePMT(const PMTCalibration& pmtcalibration, EventOut* evout){
     evout->CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 14./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[7]);
 }
 
+void Event::calibrateDWC(const DWCCalibration& dwccalibration, EventOut* evout){
+    evout->XDWC1 = (DWC1R-DWC1L)*dwccalibration.DWC_sl[0]*dwccalibration.DWC_tons[0]+dwccalibration.DWC_offs[0];
+    evout->YDWC1 = (DWC1D-DWC1U)*dwccalibration.DWC_sl[1]*dwccalibration.DWC_tons[0]+dwccalibration.DWC_offs[1];
+    evout->XDWC2 = (DWC2R-DWC2L)*dwccalibration.DWC_sl[2]*dwccalibration.DWC_tons[0]+dwccalibration.DWC_offs[2];
+    evout->YDWC2 = (DWC2D-DWC2U)*dwccalibration.DWC_sl[3]*dwccalibration.DWC_tons[0]+dwccalibration.DWC_offs[3];
+}
 #endif
 
 //**************************************************
