@@ -11,6 +11,7 @@
 // Usage: root -l .x 'PhysicsAnalysis.C("669")'
 
 #include "../../TBDataPreparation/202108_SPS/scripts/PhysicsEvent.h"
+#include "../../DREMTubes/analysis/v1.4/edisplay.h" 
 #include <TFile.h>
 #include <TH2F.h>
 #include <TTree.h>
@@ -20,75 +21,59 @@
 #include <string>
 ClassImp(EventOut);
 
-/* clang-format off */
 void ImageAnalysis(const string run){
-  /* clang-format on */
 
-  // std::string infile =
-  // "/eos/user/i/ideadr/TB2021_H8/recoNtuple/physics_sps2021_run"+run+".root";
-  std::string infile =
-      "/Users/lorenzo/Desktop/tbntuples/recoNtuple/physics_sps2021_run669.root";
-  std::cout << "Using file: " << infile << std::endl;
-  char cinfile[infile.size() + 1];
-  strcpy(cinfile, infile.c_str());
+    // std::string infile =
+    // "/eos/user/i/ideadr/TB2021_H8/recoNtuple/physics_sps2021_run"+run+".root";
+    std::string infile =
+          "/Users/lorenzo/Desktop/tbntuples/recoNtuple/physics_sps2021_run669.root";
+    std::cout << "Using file: " << infile << std::endl;
+    char cinfile[infile.size() + 1];
+    strcpy(cinfile, infile.c_str());
 
-  auto file = new TFile(cinfile);
-  auto *tree = (TTree *)file->Get("Ftree");
-  auto evt = new EventOut();
-  tree->SetBranchAddress("Events", &evt);
-  auto outfile = new TFile("out.root", "RECREATE");
+    auto file = new TFile(cinfile);
+    auto *tree = (TTree *)file->Get("Ftree");
+    auto evt = new EventOut();
+    tree->SetBranchAddress("Events", &evt);
+    auto outfile = new TFile("out.root", "RECREATE");
 
-  auto SPMTplot = new TH2F("SPMTplot", "SPMTplot", 3, 0., 105., 3, 0., 105.);
-  SPMTplot->SetDirectory(outfile);
-  auto CPMTplot = new TH2F("CPMTplot", "CPMTplot", 3, 0., 105., 3, 0., 105.);
-  CPMTplot->SetDirectory(outfile);
-  auto SSiPMplot =
-      new TH2F("SSiPMplot", "SSiPMplot", 160 * 3, 0., 105., 160 * 3, 0., 105);
-  SSiPMplot->SetDirectory(outfile);
+    auto SPMTplot = new TH2F("SPMTplot", "SPMTplot", 3, 0., 96., 3, 0., 96.);
+    SPMTplot->SetDirectory(outfile);
+    auto CPMTplot = new TH2F("CPMTplot", "CPMTplot", 3, 0., 96., 3, 0., 96.);
+    CPMTplot->SetDirectory(outfile);
 
-  for (unsigned int i = 0; i < 100; i++) {
-    tree->GetEntry(i);
-    if (evt->PShower > 500) {
-      SPMTplot->Fill(17.5, 17.5, evt->SPMT3);
-      SPMTplot->Fill(52.5, 17.5, evt->SPMT2);
-      SPMTplot->Fill(87.5, 17.5, evt->SPMT1);
-      SPMTplot->Fill(17.5, 52.5, evt->SPMT5);
-      SPMTplot->Fill(87.5, 52.5, evt->SPMT4);
-      SPMTplot->Fill(17.5, 87.5, evt->SPMT8);
-      SPMTplot->Fill(52.5, 87.5, evt->SPMT7);
-      SPMTplot->Fill(87.5, 87.5, evt->SPMT6);
-      CPMTplot->Fill(17.5, 17.5, evt->CPMT3);
-      CPMTplot->Fill(52.5, 17.5, evt->CPMT2);
-      CPMTplot->Fill(87.5, 17.5, evt->CPMT1);
-      CPMTplot->Fill(17.5, 52.5, evt->CPMT5);
-      CPMTplot->Fill(87.5, 52.5, evt->CPMT4);
-      CPMTplot->Fill(17.5, 87.5, evt->CPMT8);
-      CPMTplot->Fill(52.5, 87.5, evt->CPMT7);
-      CPMTplot->Fill(87.5, 87.5, evt->CPMT6);
+    for (unsigned int i = 0; i < 100; i++) {
+        tree->GetEntry(i);
+        if (true) {
+        
+            SPMTplot->Fill(PMTmap(1)[0], PMTmap(1)[1], evt->SPMT1);
+            SPMTplot->Fill(PMTmap(2)[0], PMTmap(2)[1], evt->SPMT2);
+            SPMTplot->Fill(PMTmap(3)[0], PMTmap(3)[1], evt->SPMT3);
+            SPMTplot->Fill(PMTmap(4)[0], PMTmap(4)[1], evt->SPMT4);
+            SPMTplot->Fill(PMTmap(5)[0], PMTmap(5)[1], evt->SPMT5);
+            SPMTplot->Fill(PMTmap(6)[0], PMTmap(6)[1], evt->SPMT6);
+            SPMTplot->Fill(PMTmap(7)[0], PMTmap(7)[1], evt->SPMT7);
+            SPMTplot->Fill(PMTmap(8)[0], PMTmap(8)[1], evt->SPMT8);
 
-      SPMTplot->Write("SPMTplot");
-      SPMTplot->Reset();
-      CPMTplot->Write("CPMTplot");
-      CPMTplot->Reset();
+            CPMTplot->Fill(PMTmap(1)[0], PMTmap(1)[1], evt->CPMT1);
+            CPMTplot->Fill(PMTmap(2)[0], PMTmap(2)[1], evt->CPMT2);
+            CPMTplot->Fill(PMTmap(3)[0], PMTmap(3)[1], evt->CPMT3);
+            CPMTplot->Fill(PMTmap(4)[0], PMTmap(4)[1], evt->CPMT4);
+            CPMTplot->Fill(PMTmap(5)[0], PMTmap(5)[1], evt->CPMT5);
+            CPMTplot->Fill(PMTmap(6)[0], PMTmap(6)[1], evt->CPMT6);
+            CPMTplot->Fill(PMTmap(7)[0], PMTmap(7)[1], evt->CPMT7);
+            CPMTplot->Fill(PMTmap(8)[0], PMTmap(8)[1], evt->CPMT8);
 
-      // for(unsigned int index=0; index<160; index++){
-      //	double* pos = GetSSiPMPos(index);
-      //}
+            SPMTplot->Write("SPMTplot");
+            SPMTplot->Reset();
+            CPMTplot->Write("CPMTplot");
+            CPMTplot->Reset();
+
+        }
     }
-  }
-  outfile->Close();
-}
 
-/*double* GetSSiPMPos(int index){
-        double SSiPMPos[2];
-        const int size = 160;
-        const int raw = size / index;
-        const int column = index - 20*raw;
-        double x = 35.-1.+column*2.;
-        double y = 35.+1+raw*1.5;
-        SSiPMPos[0]=x;
-        SSiPMPos[1]=y;
-        return SSiPMPos;
-}*/
+    outfile->Close();
+
+}
 
 //**************************************************
