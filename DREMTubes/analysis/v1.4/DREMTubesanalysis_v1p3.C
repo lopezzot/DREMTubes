@@ -487,8 +487,8 @@ void DREMTubesanalysis_v1p3(){
     }
     //analysis( energies, files );
     //analysisPS( 10., "DREMTubesout_Run0.root");
-    edisplay( 10., "DREMTubesout_Run0.root");
-    //eradius( 10., "DREMTubesout_Run0.root");
+    //edisplay( 10., "DREMTubesout_Run0.root");
+    eradius( 10., "DREMTubesout_Run0.root");
     //eradius( 10., "test.root");
 }
 

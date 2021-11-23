@@ -124,16 +124,17 @@ void eradius( const double& energy, const string& file ){
     vector<double>* CSiPM = NULL; 
     tree->SetBranchAddress( "VectorSignalsCher", &CSiPM );
 
-    double radialprof[15] = {};
-    double fibers[15] = {};
-    double lateralprof[15] = {};
-    double cumulativeprof[15] = {};
-    double radii[15] = {};
+    const int points = 13;
+    double radialprof[points] = {};
+    double fibers[points] = {};
+    double lateralprof[points] = {};
+    double cumulativeprof[points] = {};
+    double radii[points] = {};
     
-    double cradialprof[15] = {};
-    double cfibers[15] = {};
-    double clateralprof[15] = {};
-    double ccumulativeprof[15] = {};
+    double cradialprof[points] = {};
+    double cfibers[points] = {};
+    double clateralprof[points] = {};
+    double ccumulativeprof[points] = {};
 
     int entries = tree->GetEntries();
     int cutentries = 0;
@@ -144,29 +145,33 @@ void eradius( const double& energy, const string& file ){
     for (unsigned int entry=0; entry<entries; entry++){
         tree->GetEntry(entry);
         if (PSdep<10.){
-            cutentries += 1; 
             auto sbar = GetSbar(*SSiPM);
             auto cbar = GetCbar(*CSiPM);
-            totS = std::accumulate(SSiPM->begin(), SSiPM->end(), 0.);
-            totC = std::accumulate(CSiPM->begin(), CSiPM->end(), 0.);
-            for (unsigned int index=0; index<160; index++){
-                auto r = Getdist( SSiPMmap(index), sbar );
-                auto cr= Getdist( CSiPMmap(index), cbar );
-                int newindex = std::round(r/pitch);
-                int cnewindex = std::round(cr/pitch);
-                if (newindex <= 15){
-                    radialprof[newindex] += SSiPM->at(index)/totS;
-                    fibers[newindex] += 1;
-                }
-                if (cnewindex <= 15){
-                    cradialprof[cnewindex] += CSiPM->at(index)/totC;
-                    cfibers[cnewindex] += 1;
+            if (47.<sbar[0] && sbar[0]<49. && 47.<sbar[1] && sbar[1]<49. &&
+                47.<cbar[0] && cbar[0]<49. && 47.<cbar[1] && cbar[1]<49.){
+
+                cutentries += 1; 
+                totS = std::accumulate(SSiPM->begin(), SSiPM->end(), 0.);
+                totC = std::accumulate(CSiPM->begin(), CSiPM->end(), 0.);
+                for (unsigned int index=0; index<160; index++){
+                    auto r = Getdist( SSiPMmap(index), sbar );
+                    auto cr= Getdist( CSiPMmap(index), cbar );
+                    int newindex = std::round(r/pitch);
+                    int cnewindex = std::round(cr/pitch);
+                    if (newindex <= points){
+                        radialprof[newindex] += SSiPM->at(index)/totS;
+                        fibers[newindex] += 1;
+                    }
+                    if (cnewindex <= points){
+                        cradialprof[cnewindex] += CSiPM->at(index)/totC;
+                        cfibers[cnewindex] += 1;
+                    }
                 }
             }
         }
     }
 
-    for (unsigned int i=0; i<15; i++){
+    for (unsigned int i=0; i<points; i++){
         radialprof[i] = radialprof[i]/cutentries;
         fibers[i] = fibers[i]/cutentries;
         cradialprof[i] = cradialprof[i]/cutentries;
@@ -177,7 +182,7 @@ void eradius( const double& energy, const string& file ){
     //cout<<"Fibers:"<<endl;
     //for (auto& n : fibers){cout<<n<<endl;}
 
-    for (unsigned int i=0; i<15; i++){lateralprof[i]=radialprof[i]/fibers[i];}
+    for (unsigned int i=0; i<points; i++){lateralprof[i]=radialprof[i]/fibers[i];}
     double counter = 0;
     int index = 0;
     for (auto& n : radialprof){
@@ -186,7 +191,7 @@ void eradius( const double& energy, const string& file ){
         index += 1;
     } 
 
-    for (unsigned int i=0; i<15; i++){clateralprof[i]=cradialprof[i]/cfibers[i];}
+    for (unsigned int i=0; i<points; i++){clateralprof[i]=cradialprof[i]/cfibers[i];}
     double ccounter = 0;
     int cindex = 0;
     for (auto& n : cradialprof){
@@ -209,15 +214,15 @@ void eradius( const double& energy, const string& file ){
     cout<<"Cherenkov Cumulative profile:"<<endl;
     for (auto& n : ccumulativeprof){cout<<n<<endl;}
 
-    auto Gr1 = new TGraph(15, radii, lateralprof);
+    auto Gr1 = new TGraph(points, radii, lateralprof);
     Gr1->SetTitle("lateralprof");
     Gr1->SetName("lateralprof");
     Gr1->SetMarkerStyle(20);
-    auto Gr2 = new TGraph(15, radii, radialprof);
+    auto Gr2 = new TGraph(points, radii, radialprof);
     Gr2->SetTitle("radialprof");
     Gr2->SetName("radialprof");
     Gr2->SetMarkerStyle(20);
-    auto Gr3 = new TGraph(15, radii, cumulativeprof);
+    auto Gr3 = new TGraph(points, radii, cumulativeprof);
     Gr3->SetTitle("cumulativeprof");
     Gr3->SetName("cumulativeprof");
     Gr3->SetMarkerStyle(20);
@@ -226,15 +231,15 @@ void eradius( const double& energy, const string& file ){
     Gr2->Write();
     Gr3->Write();
 
-    auto CGr1 = new TGraph(15, radii, clateralprof);
+    auto CGr1 = new TGraph(points, radii, clateralprof);
     CGr1->SetTitle("cherlateralprof");
     CGr1->SetName("cherlateralprof");
     CGr1->SetMarkerStyle(29);
-    auto CGr2 = new TGraph(15, radii, cradialprof);
+    auto CGr2 = new TGraph(points, radii, cradialprof);
     CGr2->SetTitle("cherradialprof");
     CGr2->SetName("cherradialprof");
     CGr2->SetMarkerStyle(29);
-    auto CGr3 = new TGraph(15, radii, ccumulativeprof);
+    auto CGr3 = new TGraph(points, radii, ccumulativeprof);
     CGr3->SetTitle("chercumulativeprof");
     CGr3->SetName("chercumulativeprof");
     CGr3->SetMarkerStyle(29);
