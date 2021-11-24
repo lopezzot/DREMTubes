@@ -31,7 +31,7 @@ double* SSiPMmap(const int& index) {
     int row = index / 10;
     int column = (index - 10*row);
     SSiPMpos[0] = 1.0+2.0*row+96./3.;
-    SSiPMpos[1] = 1.0+2.*1.72*column+96./3.;
+    SSiPMpos[1] = 1.0+2.*1.73*column+96./3.;
     //cout<<SSiPMpos[0]<<" "<<SSiPMpos[1]<<endl;
     return SSiPMpos;
 };
@@ -42,7 +42,7 @@ double* CSiPMmap(const int& index){
     int row = index / 10;
     int column = (index - 10*row);
     CSiPMpos[0] = 2.+2.0*row+96./3.;
-    CSiPMpos[1] = 1.72+2.*1.72*column+96./3.;
+    CSiPMpos[1] = 1.73+2.*1.73*column+96./3.;
     
     return CSiPMpos;
 };
@@ -100,7 +100,7 @@ void eradius( const double& energy, const string& file ){
     cout<<"DREMTubes analysis:"<<endl;
     cout<<"---> Analysis e+ at energy (GeV) "<<energy<<endl;  
         
-    string filename = "run3/"+file;
+    string filename = "run5/"+file;
     TFile* infile = TFile::Open( filename.c_str(), "READ" );
     TTree* tree = (TTree*)infile->Get( "DREMTubesout" );
 
@@ -126,14 +126,21 @@ void eradius( const double& energy, const string& file ){
 
     const int points = 13;
     double radialprof[points] = {};
+    double radialprofer[points] = {};
+    TH1F radprofh1[points]; for (auto& n : radprofh1){n.SetBins(1000,0.,1.0);}
     double fibers[points] = {};
     double lateralprof[points] = {};
+    double lateralprofer[points] = {};
     double cumulativeprof[points] = {};
     double radii[points] = {};
-    
+    double radiier[points]; std::fill(radiier, radiier+points, 1.); 
+
     double cradialprof[points] = {};
+    double cradialprofer[points] = {};
+    TH1F cradprofh1[points]; for (auto& n : cradprofh1){n.SetBins(1000,0.,1.0);}
     double cfibers[points] = {};
     double clateralprof[points] = {};
+    double clateralprofer[points] = {};
     double ccumulativeprof[points] = {};
 
     int entries = tree->GetEntries();
@@ -141,16 +148,19 @@ void eradius( const double& energy, const string& file ){
     int pitch = 2;
     double totS = 0.;
     double totC = 0.;
+    double center[2] = {42.9,49.44};
+    double maxdist=10.;
+
+    auto barh2 = new TH2F("bar","bar",200,0.,96.,200,0.,96.);
 
     for (unsigned int entry=0; entry<entries; entry++){
         tree->GetEntry(entry);
         if (PSdep<10.){
             auto sbar = GetSbar(*SSiPM);
             auto cbar = GetCbar(*CSiPM);
-            if (47.<sbar[0] && sbar[0]<49. && 47.<sbar[1] && sbar[1]<49. &&
-                47.<cbar[0] && cbar[0]<49. && 47.<cbar[1] && cbar[1]<49.){
-
+            if (Getdist(center, sbar)<maxdist && Getdist(center, cbar)<maxdist) {
                 cutentries += 1; 
+                barh2->Fill(sbar[0],sbar[1]);
                 totS = std::accumulate(SSiPM->begin(), SSiPM->end(), 0.);
                 totC = std::accumulate(CSiPM->begin(), CSiPM->end(), 0.);
                 for (unsigned int index=0; index<160; index++){
@@ -167,22 +177,32 @@ void eradius( const double& energy, const string& file ){
                         cfibers[cnewindex] += 1;
                     }
                 }
+                for(unsigned int i=0; i<points; i++){radprofh1[i].Fill(radialprof[i]);}
+                for(unsigned int i=0; i<points; i++){radialprof[i]=0.;}
+                for(unsigned int i=0; i<points; i++){cradprofh1[i].Fill(cradialprof[i]);}
+                for(unsigned int i=0; i<points; i++){cradialprof[i]=0.;}
             }
         }
     }
-
+    barh2->Write();
     for (unsigned int i=0; i<points; i++){
-        radialprof[i] = radialprof[i]/cutentries;
+        radprofh1[i].Write();
+        radialprof[i] = radprofh1[i].GetMean();
+        radialprofer[i] = radprofh1[i].GetMeanError();
         fibers[i] = fibers[i]/cutentries;
-        cradialprof[i] = cradialprof[i]/cutentries;
+        cradialprof[i] = cradprofh1[i].GetMean();
+        cradialprofer[i] = cradprofh1[i].GetMeanError();
         cfibers[i] = cfibers[i]/cutentries;
         radii[i] = pitch/2.+pitch*i;
     }
 
-    //cout<<"Fibers:"<<endl;
-    //for (auto& n : fibers){cout<<n<<endl;}
+    cout<<"Fibers:"<<endl;
+    for (auto& n : fibers){cout<<n<<endl;}
 
-    for (unsigned int i=0; i<points; i++){lateralprof[i]=radialprof[i]/fibers[i];}
+    for (unsigned int i=0; i<points; i++){
+        lateralprof[i]=radialprof[i]/fibers[i];
+        lateralprofer[i]=radialprofer[i]/fibers[i];
+    }
     double counter = 0;
     int index = 0;
     for (auto& n : radialprof){
@@ -191,7 +211,10 @@ void eradius( const double& energy, const string& file ){
         index += 1;
     } 
 
-    for (unsigned int i=0; i<points; i++){clateralprof[i]=cradialprof[i]/cfibers[i];}
+    for (unsigned int i=0; i<points; i++){
+        clateralprof[i]=cradialprof[i]/cfibers[i];
+        clateralprofer[i]=cradialprofer[i]/cfibers[i];
+    }
     double ccounter = 0;
     int cindex = 0;
     for (auto& n : cradialprof){
@@ -214,11 +237,11 @@ void eradius( const double& energy, const string& file ){
     cout<<"Cherenkov Cumulative profile:"<<endl;
     for (auto& n : ccumulativeprof){cout<<n<<endl;}
 
-    auto Gr1 = new TGraph(points, radii, lateralprof);
+    auto Gr1 = new TGraphErrors(points, radii, lateralprof, radiier, lateralprofer);
     Gr1->SetTitle("lateralprof");
     Gr1->SetName("lateralprof");
     Gr1->SetMarkerStyle(20);
-    auto Gr2 = new TGraph(points, radii, radialprof);
+    auto Gr2 = new TGraphErrors(points, radii, radialprof, radiier, radialprofer);
     Gr2->SetTitle("radialprof");
     Gr2->SetName("radialprof");
     Gr2->SetMarkerStyle(20);
@@ -231,11 +254,11 @@ void eradius( const double& energy, const string& file ){
     Gr2->Write();
     Gr3->Write();
 
-    auto CGr1 = new TGraph(points, radii, clateralprof);
+    auto CGr1 = new TGraphErrors(points, radii, clateralprof, radiier, clateralprofer);
     CGr1->SetTitle("cherlateralprof");
     CGr1->SetName("cherlateralprof");
     CGr1->SetMarkerStyle(29);
-    auto CGr2 = new TGraph(points, radii, cradialprof);
+    auto CGr2 = new TGraphErrors(points, radii, cradialprof, radiier, cradialprofer);
     CGr2->SetTitle("cherradialprof");
     CGr2->SetName("cherradialprof");
     CGr2->SetMarkerStyle(29);
@@ -248,7 +271,7 @@ void eradius( const double& energy, const string& file ){
     CGr2->Write();
     CGr3->Write();
 };
-
+/*
 void edisplay( const double& energy, const string& file ){
 
     cout<<"DREMTubes analysis:"<<endl;
@@ -259,7 +282,6 @@ void edisplay( const double& energy, const string& file ){
     TTree* tree = (TTree*)infile->Get( "DREMTubesout" );
 
     auto outfile = new TFile("edisplay.root", "RECREATE");
-
 
     int pdg; tree->SetBranchAddress( "PrimaryPDGID", &pdg );
     double venergy; tree->SetBranchAddress( "PrimaryParticleEnergy", &venergy );
@@ -355,7 +377,7 @@ void edisplay( const double& energy, const string& file ){
     }
 
 };
-
+*/
 #endif
 
 //**************************************************

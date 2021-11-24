@@ -26,7 +26,7 @@ double* ScinSiPMmap(const int& index) {
     int row = index / 16;
     int column = (index - 16*row);
     SSiPMpos[0] = 1.0+2*column+96./3.;
-    SSiPMpos[1] = 1.0+2.*1.72*row+96./3.;
+    SSiPMpos[1] = 1.0+2.*1.73*row+96./3.;
 
     return SSiPMpos;
 };
@@ -37,7 +37,7 @@ double* CherSiPMmap(const int& index){
     int row = index / 16;
     int column = (index - 16*row);
     CSiPMpos[0] = 2.+2.0*column+96./3.;
-    CSiPMpos[1] = 1.72+2.*1.72*row+96./3.;
+    CSiPMpos[1] = 1.73+2.*1.73*row+96./3.;
     
     return CSiPMpos;
 };
@@ -62,7 +62,6 @@ double* GetScinbar(float svec[160]) {
     return Sbar;
 }
 
-
 double* GetCherbar(const vector<double>& cvec){
     
     static double Cbar[2];
@@ -86,7 +85,7 @@ double* GetCherbar(const vector<double>& cvec){
 void ImageAnalysis(){
 
     std::string infile =
-          "/Users/lorenzo/Desktop/tbntuples/recoNtuple/physics_sps2021_run670.root";
+          "/Users/lorenzo/Desktop/tbntuples/recoNtuple/physics_sps2021_run695.root";
     std::cout << "Using file: " << infile << std::endl;
     char cinfile[infile.size() + 1];
     strcpy(cinfile, infile.c_str());
@@ -106,26 +105,34 @@ void ImageAnalysis(){
     auto MUh1 = new TH1F("Muon","Muon",300,100.,500.);
     auto C1h1 = new TH1F("C1","C1",500,0.,5000.);
     auto C2h1 = new TH1F("C2","C2",500,0.,5000.);
-    auto barh2 = new TH2F("bar","bar",92,0.,92.,92,0.,92.);
+    auto barh2 = new TH2F("bar","bar",2000,0.,96.,2000,0.,96.);
 
     const int points = 13;
     double radialprof[points] = {};
+    double radialprofer[points] = {};
+    TH1F radprofh1[points]; for (auto& n : radprofh1){n.SetBins(1000,0.,1.0);}
     double fibers[points] = {};
     double lateralprof[points] = {};
+    double lateralprofer[points] = {};
     double cumulativeprof[points] = {};
     double radii[points] = {};
+    double radiier[points]; std::fill(radiier, radiier+points, 1.); 
     
     double cradialprof[points] = {};
+    double cradialprofer[points] = {};
+    TH1F cradprofh1[points]; for (auto& n : cradprofh1){n.SetBins(1000,0.,1.0);}
     double cfibers[points] = {};
     double clateralprof[points] = {};
+    double clateralprofer[points] = {};
     double ccumulativeprof[points] = {};
 
     int cutentries = 0;
     int pitch = 2;
     double totS = 0.;
     double totC = 0.;
+    double center[2] = {52.,52.};
+    double maxdist=10.;
 
-    
     for (unsigned int i=0; i<tree->GetEntries(); i++){
         tree->GetEntry(i);
         C1h1->Fill(evt->C1);
@@ -140,8 +147,7 @@ void ImageAnalysis(){
 
                 auto sbar = GetScinbar(evt->SiPMPheS);
                 auto cbar = GetScinbar(evt->SiPMPheC);
-                if (47.<sbar[0] && sbar[0]<49. && 47.<sbar[1] && sbar[1]<49. &&
-                    47.<cbar[0] && cbar[0]<49. && 47.<cbar[1] && cbar[1]<49.){
+                if (Getdist(center, sbar)<maxdist && Getdist(center, cbar)<maxdist) {
                     cutentries += 1; 
                     barh2->Fill(sbar[0],sbar[1]);
                     for (auto& n : evt->SiPMPheS) {totS+=n;}
@@ -161,6 +167,10 @@ void ImageAnalysis(){
                             cfibers[cnewindex] += 1;
                         }
                     }
+                    for(unsigned int i=0; i<points; i++){radprofh1[i].Fill(radialprof[i]);}
+                    for(unsigned int i=0; i<points; i++){radialprof[i]=0.;}
+                    for(unsigned int i=0; i<points; i++){cradprofh1[i].Fill(cradialprof[i]);}
+                    for(unsigned int i=0; i<points; i++){cradialprof[i]=0.;}
                 }
             }
         }
@@ -174,17 +184,22 @@ void ImageAnalysis(){
     barh2->Write();
 
     for (unsigned int i=0; i<points; i++){
-        radialprof[i] = radialprof[i]/cutentries;
+        radprofh1[i].Write();
+        radialprof[i] = radprofh1[i].GetMean();
+        radialprofer[i] = radprofh1[i].GetMeanError();
         fibers[i] = fibers[i]/cutentries;
-        cradialprof[i] = cradialprof[i]/cutentries;
+        cradialprof[i] = cradprofh1[i].GetMean();
+        cradialprofer[i] = cradprofh1[i].GetMeanError();
         cfibers[i] = cfibers[i]/cutentries;
         radii[i] = pitch/2.+pitch*i;
     }
 
-    //cout<<"Fibers:"<<endl;
-    //for (auto& n : fibers){cout<<n<<endl;}
+    cout<<"Fibers:"<<endl; for (auto& n : fibers){cout<<n<<endl;}
 
-    for (unsigned int i=0; i<points; i++){lateralprof[i]=radialprof[i]/fibers[i];}
+    for (unsigned int i=0; i<points; i++){
+        lateralprof[i]=radialprof[i]/fibers[i];
+        lateralprofer[i]=radialprofer[i]/fibers[i];
+    }
     double counter = 0;
     int index = 0;
     for (auto& n : radialprof){
@@ -193,7 +208,11 @@ void ImageAnalysis(){
         index += 1;
     } 
   
-    for (unsigned int i=0; i<points; i++){clateralprof[i]=cradialprof[i]/cfibers[i];}
+    for (unsigned int i=0; i<points; i++){
+        clateralprof[i]=cradialprof[i]/cfibers[i];
+        clateralprofer[i]=cradialprofer[i]/cfibers[i];
+    }
+
     double ccounter = 0;
     int cindex = 0;
     for (auto& n : cradialprof){
@@ -202,12 +221,12 @@ void ImageAnalysis(){
         cindex += 1;
     } 
 
-    auto Gr1 = new TGraph(points, radii, lateralprof);
+    auto Gr1 = new TGraphErrors(points, radii, lateralprof, radiier, lateralprofer);
     Gr1->SetTitle("lateralprof");
     Gr1->SetName("lateralprof");
     Gr1->SetMarkerStyle(20);
     Gr1->Write();
-    auto Gr2 = new TGraph(points, radii, radialprof);
+    auto Gr2 = new TGraphErrors(points, radii, radialprof, radiier,radialprofer);
     Gr2->SetTitle("radialprof");
     Gr2->SetName("radialprof");
     Gr2->SetMarkerStyle(20);
@@ -218,12 +237,12 @@ void ImageAnalysis(){
     Gr3->SetMarkerStyle(20);
     Gr3->Write();
 
-    auto CGr1 = new TGraph(points, radii, clateralprof);
+    auto CGr1 = new TGraphErrors(points, radii, clateralprof, radiier, clateralprofer);
     CGr1->SetTitle("cherlateralprof");
     CGr1->SetName("cherlateralprof");
     CGr1->SetMarkerStyle(29);
     CGr1->Write();
-    auto CGr2 = new TGraph(points, radii, cradialprof);
+    auto CGr2 = new TGraphErrors(points, radii, cradialprof, radiier, cradialprofer);
     CGr2->SetTitle("cherradialprof");
     CGr2->SetName("cherradialprof");
     CGr2->SetMarkerStyle(29);
