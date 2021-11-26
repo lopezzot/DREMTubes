@@ -47,7 +47,8 @@ The following are instructions to handle raw test-beam data taken at the CERN SP
    ```
 5. Create folder for reconstrcuted files. Edit ```DREMTubes/TBDataPreparation/202108_SPS/scripts/DoPhysicsConverter.py``` so that ```mrgpath```, ```recpath``` and ```phspath``` point to the correct repositories. Also edit ```DREMTubes/TBDataPreparation/202108_SPS/scripts/PhysicsConverter.C``` and modify the ```infile``` variable so that it points to the merged files directory. Then, apply calibration constants and high-level objects abstaction
    ```sh
-   python DREMTubes/TBDataPreparation/202108_SPS/scripts/DoPhysicsConverter.py
+   cd DREMTubes/TBDataPreparation/202108_SPS/scripts/
+   python DoPhysicsConverter.py
    ```
    
 ### 202106_DESY: Testbeam at DESY. 
