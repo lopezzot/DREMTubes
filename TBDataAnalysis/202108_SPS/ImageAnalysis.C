@@ -85,7 +85,7 @@ double* GetCherbar(const vector<double>& cvec){
 void ImageAnalysis(){
 
     std::string infile =
-          "/Users/lorenzo/Desktop/tbntuples/recoNtuple/physics_sps2021_run695.root";
+          "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
     std::cout << "Using file: " << infile << std::endl;
     char cinfile[infile.size() + 1];
     strcpy(cinfile, infile.c_str());
@@ -105,7 +105,8 @@ void ImageAnalysis(){
     auto MUh1 = new TH1F("Muon","Muon",300,100.,500.);
     auto C1h1 = new TH1F("C1","C1",500,0.,5000.);
     auto C2h1 = new TH1F("C2","C2",500,0.,5000.);
-    auto barh2 = new TH2F("bar","bar",2000,0.,96.,2000,0.,96.);
+    auto barh2 = new TH2F("DWC1","DWC1",2000,-32.,32.,2000,-32.,32.);
+    auto bar2h2 = new TH2F("DWC2","DWC2",2000,-32.,32.,2000,-32.,32.);
 
     const int points = 13;
     double radialprof[points] = {};
@@ -149,7 +150,8 @@ void ImageAnalysis(){
                 auto cbar = GetScinbar(evt->SiPMPheC);
                 if (Getdist(center, sbar)<maxdist && Getdist(center, cbar)<maxdist) {
                     cutentries += 1; 
-                    barh2->Fill(sbar[0],sbar[1]);
+                    bar2h2->Fill(evt->XDWC2,evt->YDWC2);
+                    barh2->Fill(evt->XDWC1,evt->YDWC1);
                     for (auto& n : evt->SiPMPheS) {totS+=n;}
                     for (auto& n : evt->SiPMPheC) {totC+=n;}
 
@@ -181,6 +183,7 @@ void ImageAnalysis(){
     MUh1->Write();
     C1h1->Write();
     C2h1->Write();
+    bar2h2->Write();
     barh2->Write();
 
     for (unsigned int i=0; i<points; i++){
