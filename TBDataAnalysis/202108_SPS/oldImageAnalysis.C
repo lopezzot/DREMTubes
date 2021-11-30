@@ -1,4 +1,4 @@
-//*************************************************
+//**************************************************
 // \file ImageAnalysis.C
 // \brief: analysis on imaging capabilities
 //         of Event objects
@@ -94,7 +94,7 @@ double* GetCherbar(const vector<double>& cvec){
 void ImageAnalysis(){
 
     //std::string infile = "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
-    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3/physics_sps2021_run693.root";
+    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
     std::cout << "Using file: " << infile << std::endl;
     char cinfile[infile.size() + 1];
     strcpy(cinfile, infile.c_str());
@@ -105,17 +105,19 @@ void ImageAnalysis(){
     tree->SetBranchAddress("Events", &evt);
     auto outfile = new TFile("out.root", "RECREATE");
 
+    //auto SPMTplot = new TH2F("SPMTplot", "SPMTplot", 3, 0., 96., 3, 0., 96.);
+    //SPMTplot->SetDirectory(outfile);
+    //auto CPMTplot = new TH2F("CPMTplot", "CPMTplot", 3, 0., 96., 3, 0., 96.);
+    //CPMTplot->SetDirectory(outfile);
+    
     auto PSh1 = new TH1F("PS","PS",300, 0., 3000.);
     auto MUh1 = new TH1F("Muon","Muon",300,100.,500.);
     auto C1h1 = new TH1F("C1","C1",500,0.,5000.);
     auto C2h1 = new TH1F("C2","C2",500,0.,5000.);
-    auto DWC1h2 = new TH2F("DWC1","DWC1",2000,-32.,32.,2000,-32.,32.);
-    auto DWC2h2 = new TH2F("DWC2","DWC2",2000,-32.,32.,2000,-32.,32.);
-    auto Sbarh2 = new TH2F("Sbar","Sbar",6000,-92.,92.,6000,-92.,92.);
-    auto Stoth1 = new TH1F("Stot","Stot",100,0.,100.);
-    auto Ctoth1 = new TH1F("Ctot","Ctot",100,0.,100.);
+    auto barh2 = new TH2F("DWC1","DWC1",2000,-32.,32.,2000,-32.,32.);
+    auto bar2h2 = new TH2F("DWC2","DWC2",2000,-32.,32.,2000,-32.,32.);
 
-    const int points = 8;
+    const int points = 13;
     double radialprof[points] = {};
     double radialprofer[points] = {};
     TH1F radprofh1[points]; for (auto& n : radprofh1){n.SetBins(1000,0.,1.0);}
@@ -135,11 +137,10 @@ void ImageAnalysis(){
     double ccumulativeprof[points] = {};
 
     int cutentries = 0;
-    int pitch = 3;
+    int pitch = 2;
     double totS = 0.;
     double totC = 0.;
-    double center[2] = {-5.361,12.51};
-    double DWC1pos[2];
+    double center[2] = {52.,52.};
     double maxdist=10.;
 
     for (unsigned int i=0; i<tree->GetEntries(); i++){
@@ -153,25 +154,15 @@ void ImageAnalysis(){
             PSh1->Fill(evt->PShower);
             MUh1->Fill(evt->MCounter);
             if (evt->PShower<350.){ 
-                
-                DWC1pos[0]=evt->XDWC1;
-                DWC1pos[1]=evt->YDWC1;
-                //if (Getdist(center, sbar)<maxdist && Getdist(center, cbar)<maxdist) {
-                if (Getdist(center, DWC1pos)<maxdist) {
-                    DWC2h2->Fill(evt->XDWC2,evt->YDWC2);
-                    DWC1h2->Fill(evt->XDWC1,evt->YDWC1);
-                
-                    auto sbar = GetScinbar(evt->SiPMPheS);
-                    auto cbar = GetScinbar(evt->SiPMPheC);
 
-                    Sbarh2->Fill(sbar[0],sbar[1]);
+                auto sbar = GetScinbar(evt->SiPMPheS);
+                auto cbar = GetScinbar(evt->SiPMPheC);
+                if (Getdist(center, sbar)<maxdist && Getdist(center, cbar)<maxdist) {
                     cutentries += 1; 
+                    bar2h2->Fill(evt->XDWC2,evt->YDWC2);
+                    barh2->Fill(evt->XDWC1,evt->YDWC1);
                     for (auto& n : evt->SiPMPheS) {totS+=n;}
                     for (auto& n : evt->SiPMPheC) {totC+=n;}
-
-                    Stoth1->Fill(totS);
-                    Ctoth1->Fill(totC);
-                    cout<<totS<<" "<<evt->totSiPMSene<<endl;
 
                     for (unsigned int index=0; index<160; index++){
                         auto r = Getdist( ScinSiPMmap(index), sbar );
@@ -201,11 +192,8 @@ void ImageAnalysis(){
     MUh1->Write();
     C1h1->Write();
     C2h1->Write();
-    Stoth1->Write();
-    Ctoth1->Write();
-    DWC1h2->Write();
-    DWC2h2->Write();
-    Sbarh2->Write();
+    bar2h2->Write();
+    barh2->Write();
 
     for (unsigned int i=0; i<points; i++){
         radprofh1[i].Write();
@@ -276,6 +264,62 @@ void ImageAnalysis(){
     CGr3->SetName("chercumulativeprof");
     CGr3->SetMarkerStyle(29);
     CGr3->Write();
+
+    /*for (unsigned int i = 0; i < 100; i++) {
+        tree->GetEntry(i);
+        if (true) {
+             
+            auto SSiPMplot = new TGraph2D();
+            SSiPMplot->SetName("SSiPM");
+            SSiPMplot->SetTitle("SSiPM");
+            SSiPMplot->SetMarkerStyle(20);
+            SSiPMplot->SetMarkerSize(2.0);
+            SSiPMplot->GetXaxis()->SetTitle("X [mm]");
+            SSiPMplot->GetYaxis()->SetTitle("Y [mm]");
+
+            auto CSiPMplot = new TGraph2D();
+            CSiPMplot->SetName("CSiPM");
+            CSiPMplot->SetTitle("CSiPM");
+            CSiPMplot->SetMarkerStyle(29);
+            CSiPMplot->SetMarkerSize(2.0);
+            CSiPMplot->GetXaxis()->SetTitle("X [mm]");
+            CSiPMplot->GetYaxis()->SetTitle("Y [mm]");
+            
+            for (unsigned int index=0; index<160; index++){
+                SSiPMplot->SetPoint(index, ScinSiPMmap(index)[0], ScinSiPMmap(index)[1], evt->SiPMPheS[index]);
+                CSiPMplot->SetPoint(index, CherSiPMmap(index)[0], CherSiPMmap(index)[1], evt->SiPMPheC[index]);
+            } 
+            
+            SPMTplot->Fill(PMTmap(1)[0], PMTmap(1)[1], evt->SPMT1);
+            SPMTplot->Fill(PMTmap(2)[0], PMTmap(2)[1], evt->SPMT2);
+            SPMTplot->Fill(PMTmap(3)[0], PMTmap(3)[1], evt->SPMT3);
+            SPMTplot->Fill(PMTmap(4)[0], PMTmap(4)[1], evt->SPMT4);
+            SPMTplot->Fill(PMTmap(5)[0], PMTmap(5)[1], evt->SPMT5);
+            SPMTplot->Fill(PMTmap(6)[0], PMTmap(6)[1], evt->SPMT6);
+            SPMTplot->Fill(PMTmap(7)[0], PMTmap(7)[1], evt->SPMT7);
+            SPMTplot->Fill(PMTmap(8)[0], PMTmap(8)[1], evt->SPMT8);
+
+            CPMTplot->Fill(PMTmap(1)[0], PMTmap(1)[1], evt->CPMT1);
+            CPMTplot->Fill(PMTmap(2)[0], PMTmap(2)[1], evt->CPMT2);
+            CPMTplot->Fill(PMTmap(3)[0], PMTmap(3)[1], evt->CPMT3);
+            CPMTplot->Fill(PMTmap(4)[0], PMTmap(4)[1], evt->CPMT4);
+            CPMTplot->Fill(PMTmap(5)[0], PMTmap(5)[1], evt->CPMT5);
+            CPMTplot->Fill(PMTmap(6)[0], PMTmap(6)[1], evt->CPMT6);
+            CPMTplot->Fill(PMTmap(7)[0], PMTmap(7)[1], evt->CPMT7);
+            CPMTplot->Fill(PMTmap(8)[0], PMTmap(8)[1], evt->CPMT8);
+
+            SPMTplot->Write("SPMTplot");
+            SPMTplot->Reset();
+            CPMTplot->Write("CPMTplot");
+            CPMTplot->Reset();
+            SSiPMplot->Write();
+            CSiPMplot->Write();
+
+            delete CSiPMplot;
+            delete SSiPMplot; 
+
+        }
+    }*/
 
     outfile->Close();
 
