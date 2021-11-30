@@ -84,8 +84,8 @@ double* GetCherbar(const vector<double>& cvec){
 
 void ImageAnalysis(){
 
-    std::string infile =
-          "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
+    //std::string infile = "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
+    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
     std::cout << "Using file: " << infile << std::endl;
     char cinfile[infile.size() + 1];
     strcpy(cinfile, infile.c_str());
@@ -160,11 +160,11 @@ void ImageAnalysis(){
                         auto cr = Getdist( CherSiPMmap(index), cbar );
                         int newindex = std::round(r/pitch);
                         int cnewindex = std::round(cr/pitch);
-                        if (newindex <= points){
+                        if (newindex < points){
                             radialprof[newindex] += evt->SiPMPheS[index]/totS;
                             fibers[newindex] += 1;
                         }
-                        if (cnewindex <= points){
+                        if (cnewindex < points){
                             cradialprof[cnewindex] += evt->SiPMPheC[index]/totC;
                             cfibers[cnewindex] += 1;
                         }
