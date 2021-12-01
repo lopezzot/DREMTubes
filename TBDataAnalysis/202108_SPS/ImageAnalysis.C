@@ -34,8 +34,8 @@ double* ScinSiPMmap(const int& index) {
     static double SSiPMpos[2];
     int row = index / 16;
     int column = (index - 16*row);
-    SSiPMpos[0] = 1.0+2*column+96./3.;
-    SSiPMpos[1] = 1.0+2.*1.73*row+96./3.;
+    SSiPMpos[0] = 1.0+2*column;
+    SSiPMpos[1] = 1.0+2.*1.73*row;
 
     return SSiPMpos;
 };
@@ -45,8 +45,8 @@ double* CherSiPMmap(const int& index){
     static double CSiPMpos[2];
     int row = index / 16;
     int column = (index - 16*row);
-    CSiPMpos[0] = 2.+2.0*column+96./3.;
-    CSiPMpos[1] = 1.73+2.*1.73*row+96./3.;
+    CSiPMpos[0] = 2.+2.0*column;
+    CSiPMpos[1] = 1.73+2.*1.73*row;
     
     return CSiPMpos;
 };
@@ -94,7 +94,7 @@ double* GetCherbar(const vector<double>& cvec){
 void ImageAnalysis(){
 
     //std::string infile = "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
-    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3/physics_sps2021_run693.root";
+    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3.1/physics_sps2021_run695.root";
     std::cout << "Using file: " << infile << std::endl;
     char cinfile[infile.size() + 1];
     strcpy(cinfile, infile.c_str());
@@ -112,14 +112,25 @@ void ImageAnalysis(){
     auto DWC1h2 = new TH2F("DWC1","DWC1",2000,-32.,32.,2000,-32.,32.);
     auto DWC2h2 = new TH2F("DWC2","DWC2",2000,-32.,32.,2000,-32.,32.);
     auto Sbarh2 = new TH2F("Sbar","Sbar",6000,-92.,92.,6000,-92.,92.);
-    auto Stoth1 = new TH1F("Stot","Stot",100,0.,100.);
-    auto Ctoth1 = new TH1F("Ctot","Ctot",100,0.,100.);
+    auto Stoth1 = new TH1F("Stot","Stot",1000,0.,100.);
+    auto Ctoth1 = new TH1F("Ctot","Ctot",1000,0.,100.);
+    auto disth1 = new TH1F("dist","dist",1000,0.,100.);
 
-    const int points = 8;
+    const int points = 15;
     double radialprof[points] = {};
     double radialprofer[points] = {};
-    TH1F radprofh1[points]; for (auto& n : radprofh1){n.SetBins(1000,0.,1.0);}
+    TH1F radprofh1[points]; for (auto& n : radprofh1){
+        n.SetTitle("scinprof");
+        n.SetName("scinprof");
+        n.SetBins(1000,0.,1.0);
+    }
     double fibers[points] = {};
+    TH1F fibersh1[points];
+    for (auto& n : fibersh1){
+        n.SetTitle("scinfibers");
+        n.SetName("scinfibers");
+        n.SetBins(100,0.,100.);
+    }
     double lateralprof[points] = {};
     double lateralprofer[points] = {};
     double cumulativeprof[points] = {};
@@ -128,19 +139,32 @@ void ImageAnalysis(){
     
     double cradialprof[points] = {};
     double cradialprofer[points] = {};
-    TH1F cradprofh1[points]; for (auto& n : cradprofh1){n.SetBins(1000,0.,1.0);}
+    TH1F cradprofh1[points]; for (auto& n : cradprofh1){
+        n.SetTitle("cherprof");
+        n.SetName("cherprof");
+        n.SetBins(1000,0.,1.0);
+    }
     double cfibers[points] = {};
+    TH1F cfibersh1[points];
+    for (auto& n : cfibersh1){
+        n.SetTitle("cherfibers");
+        n.SetName("cherfibers");
+        n.SetBins(100,0.,100.);
+    }
     double clateralprof[points] = {};
     double clateralprofer[points] = {};
     double ccumulativeprof[points] = {};
 
     int cutentries = 0;
-    int pitch = 3;
+    int pitch = 2.;
     double totS = 0.;
     double totC = 0.;
-    double center[2] = {-5.361,12.51};
+    double center[2] = {-2.897,3.235};
+    double center2[2] = {-5.475,12.68};
+    double scenter[2] = {22.36,18.34};
     double DWC1pos[2];
-    double maxdist=10.;
+    double DWC2pos[2];
+    double maxdist=5.;
 
     for (unsigned int i=0; i<tree->GetEntries(); i++){
         tree->GetEntry(i);
@@ -156,13 +180,16 @@ void ImageAnalysis(){
                 
                 DWC1pos[0]=evt->XDWC1;
                 DWC1pos[1]=evt->YDWC1;
-                //if (Getdist(center, sbar)<maxdist && Getdist(center, cbar)<maxdist) {
-                if (Getdist(center, DWC1pos)<maxdist) {
+                DWC2pos[0]=evt->XDWC2;
+                DWC2pos[1]=evt->YDWC2;
+                auto sbar = GetScinbar(evt->SiPMPheS);
+                auto cbar = GetScinbar(evt->SiPMPheC);
+                if (Getdist(center, DWC1pos)<maxdist && Getdist(center2,DWC2pos)<maxdist
+                    && Getdist(scenter, sbar)<maxdist ) {
+                
                     DWC2h2->Fill(evt->XDWC2,evt->YDWC2);
                     DWC1h2->Fill(evt->XDWC1,evt->YDWC1);
-                
-                    auto sbar = GetScinbar(evt->SiPMPheS);
-                    auto cbar = GetScinbar(evt->SiPMPheC);
+                    
 
                     Sbarh2->Fill(sbar[0],sbar[1]);
                     cutentries += 1; 
@@ -171,13 +198,15 @@ void ImageAnalysis(){
 
                     Stoth1->Fill(totS);
                     Ctoth1->Fill(totC);
-                    cout<<totS<<" "<<evt->totSiPMSene<<endl;
+                    //cout<<totS<<" "<<evt->totSiPMSene<<endl;
 
                     for (unsigned int index=0; index<160; index++){
                         auto r = Getdist( ScinSiPMmap(index), sbar );
+                        disth1->Fill(r);
+                        //cout<<"entry "<<i<<" Sipm "<<index<<" distance "<<r<<" round "<<(int)r/pitch<<endl;
                         auto cr = Getdist( CherSiPMmap(index), cbar );
-                        int newindex = std::round(r/pitch);
-                        int cnewindex = std::round(cr/pitch);
+                        int newindex = (int)r/pitch;
+                        int cnewindex = (int)cr/pitch;
                         if (newindex < points){
                             radialprof[newindex] += evt->SiPMPheS[index]/totS;
                             fibers[newindex] += 1;
@@ -187,8 +216,13 @@ void ImageAnalysis(){
                             cfibers[cnewindex] += 1;
                         }
                     }
+                    cout<<"------------------------>entrys "<<i<<" scin: "<<radialprof[0]<<" "<<fibers[0]<<endl;
                     for(unsigned int i=0; i<points; i++){radprofh1[i].Fill(radialprof[i]);}
                     for(unsigned int i=0; i<points; i++){radialprof[i]=0.;}
+                    for(unsigned int i=0; i<points; i++){fibersh1[i].Fill(fibers[i]);}
+                    for(unsigned int i=0; i<points; i++){fibers[i]=0.;}
+                    for(unsigned int i=0; i<points; i++){cfibersh1[i].Fill(cfibers[i]);}
+                    for(unsigned int i=0; i<points; i++){cfibers[i]=0.;}
                     for(unsigned int i=0; i<points; i++){cradprofh1[i].Fill(cradialprof[i]);}
                     for(unsigned int i=0; i<points; i++){cradialprof[i]=0.;}
                 }
@@ -203,22 +237,26 @@ void ImageAnalysis(){
     C2h1->Write();
     Stoth1->Write();
     Ctoth1->Write();
+    disth1->Write();
     DWC1h2->Write();
     DWC2h2->Write();
     Sbarh2->Write();
 
     for (unsigned int i=0; i<points; i++){
         radprofh1[i].Write();
+        cradprofh1[i].Write();
+        fibersh1[i].Write();
         radialprof[i] = radprofh1[i].GetMean();
-        radialprofer[i] = radprofh1[i].GetMeanError();
-        fibers[i] = fibers[i]/cutentries;
+        radialprofer[i] = 3.*radprofh1[i].GetMeanError();
+        fibers[i] = fibersh1[i].GetMean();
         cradialprof[i] = cradprofh1[i].GetMean();
-        cradialprofer[i] = cradprofh1[i].GetMeanError();
-        cfibers[i] = cfibers[i]/cutentries;
+        cradialprofer[i] = 3.*cradprofh1[i].GetMeanError();
+        cfibers[i] = cfibersh1[i].GetMean();
         radii[i] = pitch/2.+pitch*i;
     }
 
-    cout<<"Fibers:"<<endl; for (auto& n : fibers){cout<<n<<endl;}
+    cout<<"Scin fibers:"<<endl; for (auto& n : fibers){cout<<n<<endl;}
+    cout<<"Cher fibers:"<<endl; for (auto& n : cfibers){cout<<n<<endl;}
 
     for (unsigned int i=0; i<points; i++){
         lateralprof[i]=radialprof[i]/fibers[i];
