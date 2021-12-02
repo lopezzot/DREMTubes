@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <string>
 #include <TVector2.h>
+#include<algorithm>
 
 ClassImp(EventOut);
 
@@ -91,10 +92,18 @@ double* GetCherbar(const vector<double>& cvec){
     return Cbar;
 }
 
-void ImageAnalysis(){
+double invsmear(const double& Nfired){
+    double phe = 0.;
+    const double Ncells = 4440.;
+    phe = -Ncells*std::log(1-(Nfired/Ncells));
+
+    return phe;
+}
+
+void DoAnalysis(const string RunNo){
 
     //std::string infile = "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
-    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3.1/physics_sps2021_run695.root";
+    std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3.1/physics_sps2021_run"+RunNo+".root";
     std::cout << "Using file: " << infile << std::endl;
     char cinfile[infile.size() + 1];
     strcpy(cinfile, infile.c_str());
@@ -103,7 +112,7 @@ void ImageAnalysis(){
     auto *tree = (TTree *)file->Get("Ftree");
     auto evt = new EventOut();
     tree->SetBranchAddress("Events", &evt);
-    auto outfile = new TFile("out.root", "RECREATE");
+    auto outfile = new TFile(("Out_"+RunNo+".root").c_str(), "RECREATE");
 
     auto PSh1 = new TH1F("PS","PS",300, 0., 3000.);
     auto MUh1 = new TH1F("Muon","Muon",300,100.,500.);
@@ -115,6 +124,7 @@ void ImageAnalysis(){
     auto Stoth1 = new TH1F("Stot","Stot",1000,0.,100.);
     auto Ctoth1 = new TH1F("Ctot","Ctot",1000,0.,100.);
     auto disth1 = new TH1F("dist","dist",1000,0.,100.);
+    auto smaxh1 = new TH1F("Smax","Smax",100,0.,10.);
 
     const int points = 15;
     double radialprof[points] = {};
@@ -195,7 +205,8 @@ void ImageAnalysis(){
                     cutentries += 1; 
                     for (auto& n : evt->SiPMPheS) {totS+=n;}
                     for (auto& n : evt->SiPMPheC) {totC+=n;}
-
+                    
+                    smaxh1->Fill(*std::max_element(evt->SiPMPheS, evt->SiPMPheS+160)); 
                     Stoth1->Fill(totS);
                     Ctoth1->Fill(totC);
                     //cout<<totS<<" "<<evt->totSiPMSene<<endl;
@@ -241,16 +252,17 @@ void ImageAnalysis(){
     DWC1h2->Write();
     DWC2h2->Write();
     Sbarh2->Write();
+    smaxh1->Write();
 
     for (unsigned int i=0; i<points; i++){
         radprofh1[i].Write();
         cradprofh1[i].Write();
         fibersh1[i].Write();
         radialprof[i] = radprofh1[i].GetMean();
-        radialprofer[i] = 3.*radprofh1[i].GetMeanError();
+        radialprofer[i] = radprofh1[i].GetMeanError();
         fibers[i] = fibersh1[i].GetMean();
         cradialprof[i] = cradprofh1[i].GetMean();
-        cradialprofer[i] = 3.*cradprofh1[i].GetMeanError();
+        cradialprofer[i] = cradprofh1[i].GetMeanError();
         cfibers[i] = cfibersh1[i].GetMean();
         radii[i] = pitch/2.+pitch*i;
     }
@@ -285,6 +297,8 @@ void ImageAnalysis(){
 
     auto Gr1 = new TGraphErrors(points, radii, lateralprof, radiier, lateralprofer);
     Gr1->SetTitle("lateralprof");
+    Gr1->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    Gr1->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
     Gr1->SetName("lateralprof");
     Gr1->SetMarkerStyle(20);
     Gr1->Write();
@@ -302,6 +316,8 @@ void ImageAnalysis(){
     auto CGr1 = new TGraphErrors(points, radii, clateralprof, radiier, clateralprofer);
     CGr1->SetTitle("cherlateralprof");
     CGr1->SetName("cherlateralprof");
+    CGr1->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    CGr1->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
     CGr1->SetMarkerStyle(29);
     CGr1->Write();
     auto CGr2 = new TGraphErrors(points, radii, cradialprof, radiier, cradialprofer);
@@ -317,6 +333,56 @@ void ImageAnalysis(){
 
     outfile->Close();
 
+}
+
+void ImageAnalysis(){
+    //10 GeV -> 404 events selected
+    DoAnalysis("657");
+    auto file1 = new TFile("Out_657.root","READ"); 
+    TGraphErrors* gr10s; file1->GetObject("lateralprof",gr10s);
+    gr10s->SetMarkerColor(2); gr10s->SetLineColor(2);
+    //10 GeV -> 175 events selected
+    //DoAnalysis("655");
+    //20 GeV -> 339 events selected
+    //DoAnalysis("670");
+    //20 GeV -> 564 events selected
+    DoAnalysis("694");
+    auto file2 = new TFile("Out_694.root","READ"); 
+    TGraphErrors* gr20s; file2->GetObject("lateralprof",gr20s);
+    gr20s->SetMarkerColor(4); gr20s->SetLineColor(4);
+    //10 GeV -> 175 events selected
+    //20 GeV no preshower -> 4818 events selected
+    //DoAnalysis("695");
+    //30 GeV -> 93 events selected
+    //DoAnalysis("693");
+    //30 GeV -> 72 events selected
+    //DoAnalysis("671");
+    //40 GeV -> 106 events selected
+    DoAnalysis("687");
+    auto file3 = new TFile("Out_687.root","READ"); 
+    TGraphErrors* gr40s; file3->GetObject("lateralprof",gr40s);
+    gr40s->SetMarkerColor(8); gr40s->SetLineColor(8);
+    //10 GeV -> 175 events selected
+    //40 GeV ->69 events selected
+    //DoAnalysis("686");
+    //6 GeV ->70 events selected
+    //DoAnalysis("696");
+    
+    //Energy comparison convas
+    //
+    auto canvasfile = new TFile("Canvases.root", "RECREATE");
+    canvasfile->cd();
+    auto C1laterals = new TCanvas("", "", 600, 600);
+    gr10s->Draw("AP");
+    gr20s->Draw("same P");
+    gr40s->Draw("same P");
+    auto C1lateralslegend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
+    C1lateralslegend->AddEntry(gr10s,"10 GeV e+ (Run 657)","ep");
+    C1lateralslegend->AddEntry(gr20s,"20 GeV e+ (Run 694)","ep");
+    C1lateralslegend->AddEntry(gr40s,"40 GeV e+ (Run 687)","ep");
+    C1lateralslegend->Draw("same");
+    C1laterals->SetLeftMargin(0.15);
+    C1laterals->Write();
 }
 
 //**************************************************
