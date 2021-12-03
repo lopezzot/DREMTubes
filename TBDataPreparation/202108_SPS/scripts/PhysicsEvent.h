@@ -70,10 +70,10 @@ DWCCalibration::DWCCalibration(const std::string& fname){
     DWC_z = jFile["Calibrations"]["DWC"]["DWC_z"];
 }
 
-class EventOut{
+class PhysicsEvent{
   public:
-	EventOut(){};
-	~EventOut(){};
+	PhysicsEvent(){};
+	~PhysicsEvent(){};
 	uint32_t EventID;
 
   float SPMT1, SPMT2, SPMT3, SPMT4, SPMT5, SPMT6, SPMT7, SPMT8;
@@ -109,13 +109,13 @@ class Event{
 		UShort_t SiPMHighGain[320];
 		UShort_t SiPMLowGain[320];
 
-		void calibrate(const SiPMCalibration&, EventOut*);
-		void calibratePMT(const PMTCalibration&, EventOut*);
-		void calibrateDWC(const DWCCalibration&, EventOut*);
+		void calibrate(const SiPMCalibration&, PhysicsEvent*);
+		void calibratePMT(const PMTCalibration&, PhysicsEvent*);
+		void calibrateDWC(const DWCCalibration&, PhysicsEvent*);
 
 };
 
-void Event::calibrate(const SiPMCalibration& calibration, EventOut* evout){
+void Event::calibrate(const SiPMCalibration& calibration, PhysicsEvent* evout){
 
 	//SiPM calibration
 	//
@@ -149,7 +149,7 @@ void Event::calibrate(const SiPMCalibration& calibration, EventOut* evout){
 	}
 }
 
-void Event::calibratePMT(const PMTCalibration& pmtcalibration, EventOut* evout){
+void Event::calibratePMT(const PMTCalibration& pmtcalibration, PhysicsEvent* evout){
 
     //PMT calibration
     //
@@ -172,7 +172,7 @@ void Event::calibratePMT(const PMTCalibration& pmtcalibration, EventOut* evout){
     evout->CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 15./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[7]);
 }
 
-void Event::calibrateDWC(const DWCCalibration& dwccalibration, EventOut* evout){
+void Event::calibrateDWC(const DWCCalibration& dwccalibration, PhysicsEvent* evout){
     evout->XDWC1 = (DWC1R-DWC1L)*dwccalibration.DWC_sl[0]*dwccalibration.DWC_tons+dwccalibration.DWC_offs[0];
     evout->YDWC1 = (DWC1D-DWC1U)*dwccalibration.DWC_sl[1]*dwccalibration.DWC_tons+dwccalibration.DWC_offs[1];
     evout->XDWC2 = (DWC2R-DWC2L)*dwccalibration.DWC_sl[2]*dwccalibration.DWC_tons+dwccalibration.DWC_offs[2];
