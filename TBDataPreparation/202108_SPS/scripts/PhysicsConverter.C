@@ -23,7 +23,7 @@
 
 using json = nlohmann::json;
 
-ClassImp(PhysicsEvent)
+ClassImp(EventOut)
 
 void PhysicsConverter(const string run){
 
@@ -45,7 +45,7 @@ void PhysicsConverter(const string run){
   auto ftree = new TTree("Ftree","Ftree");
   ftree->SetDirectory(Outfile);
   auto ev = new Event();
-  auto evout = new PhysicsEvent();
+  auto evout = new EventOut();
   ftree->Branch("Events",evout);
   //Create calibration objects
   //
