@@ -80,15 +80,12 @@ class PhysicsEvent{
   float CPMT1, CPMT2, CPMT3, CPMT4, CPMT5, CPMT6, CPMT7, CPMT8;
   float SiPMPheC[160] = {0};
   float SiPMPheS[160] = {0};
-	float totSiPMCene = 0.;
-	float totSiPMSene = 0.;
+	float SSiPMenergy = 0.;
+	float CSiPMenergy = 0.;
 	float SPMTenergy = 0.;
 	float CPMTenergy = 0.;
 	float XDWC1,XDWC2,YDWC1,YDWC2;
 	int PShower, MCounter, C1, C2;
-
-	void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
-	void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
 };
 
 
@@ -109,19 +106,20 @@ class Event{
 		UShort_t SiPMHighGain[320];
 		UShort_t SiPMLowGain[320];
 
-		void calibrate(const SiPMCalibration&, PhysicsEvent*);
+		void calibrateSiPM(const SiPMCalibration&, PhysicsEvent*);
 		void calibratePMT(const PMTCalibration&, PhysicsEvent*);
 		void calibrateDWC(const DWCCalibration&, PhysicsEvent*);
 
 };
 
-void Event::calibrate(const SiPMCalibration& calibration, PhysicsEvent* evout){
+void Event::calibrateSiPM(const SiPMCalibration& calibration, PhysicsEvent* evout){
 
 	//SiPM calibration
 	//
+  evout->SSiPMenergy = 0;
+  evout->CSiPMenergy = 0;
 	int ccount = 0;
 	int scount = 0;
-	int nmiss=0;
 	for(uint16_t i=0;i<320;++i){
 		//  encode row and columns from i
 		//  and zero output vectors
@@ -138,12 +136,12 @@ void Event::calibrate(const SiPMCalibration& calibration, PhysicsEvent* evout){
 		if(row % 2 == 0){
 			// Cher
 			evout->SiPMPheC[ccount] = SiPMPhe/calibration.PheGeVC;
-			evout->totSiPMCene += SiPMPhe/calibration.PheGeVC;
+			evout->CSiPMenergy += SiPMPhe/calibration.PheGeVC;
 			ccount++;
 		} else {
 			// Scin
 			evout->SiPMPheS[scount] = SiPMPhe/calibration.PheGeVS;
-			evout->totSiPMSene += SiPMPhe/calibration.PheGeVS;
+			evout->SSiPMenergy += SiPMPhe/calibration.PheGeVS;
 			scount++;
 		}
 	}
@@ -170,6 +168,9 @@ void Event::calibratePMT(const PMTCalibration& pmtcalibration, PhysicsEvent* evo
     evout->CPMT6 = (CPMT6-pmtcalibration.PMTCpd[5]) * 15./(pmtcalibration.PMTCpk[5]-pmtcalibration.PMTCpd[5]);
     evout->CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) * 15./(pmtcalibration.PMTCpk[6]-pmtcalibration.PMTCpd[6]);
     evout->CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 15./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[7]);
+
+    evout->SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;
+    evout->CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;
 }
 
 void Event::calibrateDWC(const DWCCalibration& dwccalibration, PhysicsEvent* evout){
