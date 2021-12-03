@@ -23,17 +23,18 @@
 
 using json = nlohmann::json;
 
-ClassImp(EventOut)
+ClassImp(PhysicsEvent)
 
-void PhysicsConverter(const string run){
+void PhysicsConverter(const int run){
 
   //Open merge ntuples
   //
-  string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+run+".root";
+  string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+std::to_string(run)+".root";
+  // string infile = "merged_sps2021_run"+std::to_string(run)+".root";
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
-  string outfile = "physics_sps2021_run"+run+".root";
+  string outfile = "physics_sps2021_run"+std::to_string(run)+".root";
   char coutfile[outfile.size() + 1];
   strcpy(coutfile, outfile.c_str());
   auto Mergfile = new TFile(cinfile, "READ");
@@ -45,7 +46,7 @@ void PhysicsConverter(const string run){
   auto ftree = new TTree("Ftree","Ftree");
   ftree->SetDirectory(Outfile);
   auto ev = new Event();
-  auto evout = new EventOut();
+  auto evout = new PhysicsEvent();
   ftree->Branch("Events",evout);
   //Create calibration objects
   //
