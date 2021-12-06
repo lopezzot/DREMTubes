@@ -19,6 +19,7 @@
 #include <string>
 #include <TVector2.h>
 #include<algorithm>
+#include <string.h>
 
 ClassImp(EventOut);
 
@@ -100,7 +101,7 @@ double invsmear(const double& Nfired){
     return phe;
 };
 
-void DoAnalysis(const string RunNo, const double& mdist){
+void DoAnalysis(const string RunNo, const double& mdist, const int& beamene){
 
     //std::string infile = "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
     std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3.1/physics_sps2021_run"+RunNo+".root";
@@ -110,7 +111,7 @@ void DoAnalysis(const string RunNo, const double& mdist){
     auto *tree = (TTree *)file->Get("Ftree");
     auto evt = new EventOut();
     tree->SetBranchAddress("Events", &evt);
-    auto outfile = new TFile(("Out_"+RunNo+".root").c_str(), "RECREATE");
+    auto outfile = new TFile(("Out_"+RunNo+"_"+to_string(beamene)+"GeV.root").c_str(), "RECREATE");
 
     auto PSh1 = new TH1F("PS","PS",300, 0., 3000.);
     auto MUh1 = new TH1F("Muon","Muon",300,100.,500.);
@@ -143,7 +144,7 @@ void DoAnalysis(const string RunNo, const double& mdist){
     double lateralprofer[points] = {};
     double cumulativeprof[points] = {};
     double radii[points] = {};
-    double radiier[points]; std::fill(radiier, radiier+points, 1.); 
+    double radiier[points]; std::fill(radiier, radiier+points, 0.5); 
     
     double cradialprof[points] = {};
     double cradialprofer[points] = {};
@@ -263,29 +264,35 @@ void DoAnalysis(const string RunNo, const double& mdist){
     sprof->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
     sprof->SetName("lateralprof");
     sprof->SetMarkerStyle(20);
+    sprof->SetMarkerColor(2);
+    sprof->SetLineColor(2);
     sprof->Write();
     cprof->SetTitle("cherlateralprof");
     cprof->SetName("cherlateralprof");
     cprof->GetXaxis()->SetTitle("Distance from shower axis [mm]");
     cprof->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
-    cprof->SetMarkerStyle(29);
+    cprof->SetMarkerStyle(23);
+    cprof->SetMarkerColor(4);
+    cprof->SetLineColor(4);
     cprof->Write();
 
     for (unsigned int i=0; i<points; i++){
         radprofh1[i].Write();
         cradprofh1[i].Write();
         fibersh1[i].Write();
+
         radialprof[i] = radprofh1[i].GetMean();
         radialprofer[i] = radprofh1[i].GetMeanError();
         fibers[i] = fibersh1[i].GetMean();
+        
         cradialprof[i] = cradprofh1[i].GetMean();
         cradialprofer[i] = cradprofh1[i].GetMeanError();
         cfibers[i] = cfibersh1[i].GetMean();
         radii[i] = pitch/2.+pitch*i;
     }
 
-    cout<<"Scin fibers:"<<endl; for (auto& n : fibers){cout<<n<<endl;}
-    cout<<"Cher fibers:"<<endl; for (auto& n : cfibers){cout<<n<<endl;}
+    //cout<<"Scin fibers:"<<endl; for (auto& n : fibers){cout<<n<<endl;}
+    //cout<<"Cher fibers:"<<endl; for (auto& n : cfibers){cout<<n<<endl;}
 
     double counter = 0;
     int index = 0;
@@ -306,24 +313,81 @@ void DoAnalysis(const string RunNo, const double& mdist){
     auto Gr2 = new TGraphErrors(points, radii, radialprof, radiier,radialprofer);
     Gr2->SetTitle("radialprof");
     Gr2->SetName("radialprof");
+    Gr2->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    Gr2->GetYaxis()->SetTitle("Percentage of SiPM signal in 1 mm thick radial shell");
     Gr2->SetMarkerStyle(20);
+    Gr2->SetMarkerColor(2);
+    Gr2->SetLineColor(2);
     Gr2->Write();
     auto Gr3 = new TGraph(points, radii, cumulativeprof);
     Gr3->SetTitle("cumulativeprof");
     Gr3->SetName("cumulativeprof");
+    Gr3->GetXaxis()->SetTitle("Radius of cylinder around shower axis [mm]");
+    Gr3->GetYaxis()->SetTitle("Percentage of SiPM signal");
     Gr3->SetMarkerStyle(20);
+    Gr3->SetMarkerColor(2);
+    Gr3->SetLineColor(2);
     Gr3->Write();
 
     auto CGr2 = new TGraphErrors(points, radii, cradialprof, radiier, cradialprofer);
     CGr2->SetTitle("cherradialprof");
     CGr2->SetName("cherradialprof");
-    CGr2->SetMarkerStyle(29);
+    CGr2->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    CGr2->GetYaxis()->SetTitle("Percentage of SiPM signal in 1 mm thick radial shell");
+    CGr2->SetMarkerStyle(23);
+    CGr2->SetMarkerColor(4);
+    CGr2->SetLineColor(4);
     CGr2->Write();
     auto CGr3 = new TGraph(points, radii, ccumulativeprof);
     CGr3->SetTitle("chercumulativeprof");
     CGr3->SetName("chercumulativeprof");
-    CGr3->SetMarkerStyle(29);
+    CGr3->GetXaxis()->SetTitle("Radius of cylinder around shower axis [mm]");
+    CGr3->GetYaxis()->SetTitle("Percentage of SiPM signal");
+    CGr3->SetMarkerStyle(23);
+    CGr3->SetMarkerColor(4);
+    CGr3->SetLineColor(4);
     CGr3->Write();
+    
+    auto C1laterals = new TCanvas("lateralprofs", "lateralprofs", 600, 600);
+    sprof->GetYaxis()->SetRangeUser(0.,0.09);
+    sprof->SetTitle("");
+    sprof->SetStats(0.);
+    sprof->Draw("");
+    cprof->Draw("same P");
+    auto C1lateralslegend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
+    C1lateralslegend->AddEntry(sprof,("CERN SPS: Scintillation "+to_string(beamene)+" GeV e+, Run "+RunNo).c_str(),"ep");
+    C1lateralslegend->AddEntry(cprof,("CERN SPS: Cherenkov "+to_string(beamene)+" GeV e+, Run "+RunNo).c_str(),"ep");
+    C1lateralslegend->Draw("same");
+    C1laterals->SetLeftMargin(0.15);
+    C1laterals->Write();
+    delete C1laterals;
+
+    auto C1radials = new TCanvas("radialprofs", "radialprofs", 600, 600);
+    Gr2->GetHistogram()->SetMinimum(0.);
+    Gr2->GetHistogram()->SetMaximum(0.18);
+    Gr2->SetTitle("");
+    Gr2->Draw("APL");
+    CGr2->Draw("same PL");
+    auto C1radialslegend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
+    C1radialslegend->AddEntry(Gr2,("CERN SPS: Scintillation "+to_string(beamene)+" GeV e+, Run "+RunNo).c_str(),"ep");
+    C1radialslegend->AddEntry(CGr2,("CERN SPS: Cherenkov "+to_string(beamene)+" GeV e+, Run "+RunNo).c_str(),"ep");
+    C1radialslegend->Draw("same");
+    C1radials->SetLeftMargin(0.15);
+    C1radials->Write();
+    delete C1radials;
+
+    /*auto C1cumulatives = new TCanvas("cumulativeprofs", "cumulativeprofs", 600, 600);
+    Gr3->GetHistogram()->SetMinimum(0.);
+    Gr3->GetHistogram()->SetMaximum(1.1);
+    Gr3->SetTitle("");
+    Gr3->Draw("APL");
+    CGr3->Draw("same PL");
+    auto C1cucumulativeelegend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
+    C1cumulativelegend->AddEntry(Gr3,("CERN SPS: Scintillation "+to_string(beamene)+" GeV e+, Run "+RunNo).c_str(),"ep");
+    C1cumulativelegend->AddEntry(CGr3,("CERN SPS: Cherenkov "+to_string(beamene)+" GeV e+, Run "+RunNo).c_str(),"ep");
+    C1cumulativelegend->Draw("same");
+    C1cumulatives->SetLeftMargin(0.15);
+    C1cumulatives->Write();*/
 
     outfile->Close();
 
@@ -333,69 +397,41 @@ void ImageAnalysis(){
 
     double mdist = 5.0;
 
-    //10 GeV -> 404 events selected
-    DoAnalysis("657", mdist);
-    auto file1 = new TFile("Out_657.root","READ"); 
-    TGraphErrors* gr10s; file1->GetObject("lateralprof",gr10s);
-    TGraphErrors* gr10c; file1->GetObject("cherlateralprof",gr10c);
-    gr10s->SetMarkerColor(2); gr10s->SetLineColor(2);
-    gr10c->SetMarkerColor(2); gr10c->SetLineColor(2); gr10c->SetMarkerStyle(22);
-
-    //10 GeV -> 175 events selected
-    //DoAnalysis("655");
-    //20 GeV -> 339 events selected
-    //DoAnalysis("670");
-    //20 GeV -> 564 events selected
-    
-    DoAnalysis("694", mdist);
-    auto file2 = new TFile("Out_694.root","READ"); 
-    TGraphErrors* gr20s; file2->GetObject("lateralprof",gr20s);
-    TGraphErrors* gr20c; file2->GetObject("cherlateralprof",gr20c);
-    gr20s->SetMarkerColor(4); gr20s->SetLineColor(4);
-    gr20c->SetMarkerColor(4); gr20c->SetLineColor(4); gr20c->SetMarkerStyle(22);
-    //20 GeV no preshower -> 4818 events selected
-    DoAnalysis("695", mdist);
-    //30 GeV -> 93 events selected
-    //DoAnalysis("693");
-    //30 GeV -> 72 events selected
-    //DoAnalysis("671");
-    //40 GeV -> 106 events selected
-    DoAnalysis("687", mdist);
-    auto file3 = new TFile("Out_687.root","READ"); 
-    TGraphErrors* gr40s; file3->GetObject("lateralprof",gr40s);
-    TGraphErrors* gr40c; file3->GetObject("cherlateralprof",gr40c);
-    gr40s->SetMarkerColor(8); gr40s->SetLineColor(8);
-    gr40c->SetMarkerColor(8); gr40c->SetLineColor(8); gr40c->SetMarkerStyle(22);
-    //10 GeV -> 175 events selected
-    //40 GeV ->69 events selected
-    //DoAnalysis("686");
-    //6 GeV ->70 events selected
-    //DoAnalysis("696");
-    
-    //Energy comparison convas
+    //10 GeV -> 437 events selected
     //
-    /*
-    auto canvasfile = new TFile("Canvases.root", "RECREATE");
-    canvasfile->cd();
-    auto C1laterals = new TCanvas("", "", 600, 600);
-    gr10s->GetHistogram()->SetMinimum(0.);
-    gr10s->GetHistogram()->SetMaximum(0.09);
-    gr10s->Draw("AP");
-    gr20s->Draw("same P");
-    gr40s->Draw("same P");
-    gr10c->Draw("same P");
-    gr20c->Draw("same P");
-    gr40c->Draw("same P");
-    auto C1lateralslegend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
-    C1lateralslegend->AddEntry(gr10s,"10 GeV e+ Scintillation (Run 657)","ep");
-    C1lateralslegend->AddEntry(gr20s,"20 GeV e+ Scintillation (Run 694)","ep");
-    C1lateralslegend->AddEntry(gr40s,"40 GeV e+ Scintillation (Run 687)","ep");
-    C1lateralslegend->AddEntry(gr10c,"10 GeV e+ Cherenkov (Run 657)","ep");
-    C1lateralslegend->AddEntry(gr20c,"20 GeV e+ Cherenkov (Run 694)","ep");
-    C1lateralslegend->AddEntry(gr40c,"40 GeV e+ Cherenkov (Run 687)","ep");
-    C1lateralslegend->Draw("same");
-    C1laterals->SetLeftMargin(0.15);
-    C1laterals->Write();*/
+    DoAnalysis("657", mdist, 10);
+    //!10 GeV -> 198 events selected
+    //
+    DoAnalysis("655", mdist, 10);
+
+    //!20 GeV -> 354 events selected
+    //
+    DoAnalysis("670", mdist, 20);
+    //20 GeV -> 558 events selected
+    //
+    DoAnalysis("694", mdist, 20);
+    //20 GeV no preshower -> 4522 events selected
+    //
+    DoAnalysis("695", mdist, 20);
+    
+    //!30 GeV -> 90 events selected
+    //
+    DoAnalysis("693", mdist, 30);
+    //30 GeV -> 67 events selected
+    //
+    DoAnalysis("671", mdist, 30);
+    
+    //!40 GeV -> 109 events selected
+    //
+    DoAnalysis("687", mdist, 40);
+    //!40 GeV ->72 events selected
+    //
+    DoAnalysis("686", mdist, 40);
+    
+    //!6 GeV ->107 events selected
+    //
+    DoAnalysis("696", mdist, 6);
+    
 }
 
 //**************************************************
