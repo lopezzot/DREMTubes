@@ -39,7 +39,7 @@ double* ScinSiPMmap(const int& index) {
     SSiPMpos[1] = 1.0+2.*1.73*row;
 
     return SSiPMpos;
-};
+}
 
 double* CherSiPMmap(const int& index){
     
@@ -50,7 +50,7 @@ double* CherSiPMmap(const int& index){
     CSiPMpos[1] = 1.73+2.*1.73*row;
     
     return CSiPMpos;
-};
+}
 
 double* GetScinbar(float svec[160]) {
 
@@ -72,25 +72,25 @@ double* GetScinbar(float svec[160]) {
     return Sbar;
 }
 
-double* GetCherbar(const vector<double>& cvec){
+double* GetCherbar(float cvec[160]){
     
     static double Cbar[2];
     double x = 0;
     for (unsigned int index=0; index<160; index++){
-        x+=cvec.at(index)*CherSiPMmap(index)[0];
+        x+=cvec[index]*CherSiPMmap(index)[0];
     }
-    x = x/std::accumulate(cvec.begin(), cvec.end(), 0.);
+    x = x/std::accumulate(cvec, cvec+160, 0.);
 
     double y = 0;
     for (unsigned int index=0; index<160; index++){
-        y+=cvec.at(index)*CherSiPMmap(index)[1];
+        y+=cvec[index]*CherSiPMmap(index)[1];
     }
-    y = y/std::accumulate(cvec.begin(), cvec.end(), 0.);
+    y = y/std::accumulate(cvec, cvec+160, 0.);
     Cbar[0] = x;
     Cbar[1] = y;
     
     return Cbar;
-}
+};
 
 double invsmear(const double& Nfired){
     double phe = 0.;
@@ -98,17 +98,15 @@ double invsmear(const double& Nfired){
     phe = -Ncells*std::log(1-(Nfired/Ncells));
 
     return phe;
-}
+};
 
-void DoAnalysis(const string RunNo){
+void DoAnalysis(const string RunNo, const double& mdist){
 
     //std::string infile = "/Users/lorenzo/Desktop/tbntuples/v1.3/physics_sps2021_run695.root";
     std::string infile = "/Users/lorenzopezzotti/Desktop/tbntuples/v1.3.1/physics_sps2021_run"+RunNo+".root";
     std::cout << "Using file: " << infile << std::endl;
-    char cinfile[infile.size() + 1];
-    strcpy(cinfile, infile.c_str());
 
-    auto file = new TFile(cinfile);
+    auto file = new TFile(infile.c_str());
     auto *tree = (TTree *)file->Get("Ftree");
     auto evt = new EventOut();
     tree->SetBranchAddress("Events", &evt);
@@ -126,7 +124,7 @@ void DoAnalysis(const string RunNo){
     auto disth1 = new TH1F("dist","dist",1000,0.,100.);
     auto smaxh1 = new TH1F("Smax","Smax",100,0.,10.);
 
-    const int points = 15;
+    const int points = 30;
     double radialprof[points] = {};
     double radialprofer[points] = {};
     TH1F radprofh1[points]; for (auto& n : radprofh1){
@@ -166,7 +164,7 @@ void DoAnalysis(const string RunNo){
     double ccumulativeprof[points] = {};
 
     int cutentries = 0;
-    int pitch = 2.;
+    int pitch = 1.;
     double totS = 0.;
     double totC = 0.;
     double center[2] = {-2.897,3.235};
@@ -174,7 +172,10 @@ void DoAnalysis(const string RunNo){
     double scenter[2] = {22.36,18.34};
     double DWC1pos[2];
     double DWC2pos[2];
-    double maxdist=5.;
+    double maxdist=mdist;
+
+    auto Slateralh2 = new TH2F("Slateral","Slateral",35,0.,35.,1000,0.,0.5);
+    auto Clateralh2 = new TH2F("Clateral","Clateral",35,0.,35.,1000,0.,0.5);
 
     for (unsigned int i=0; i<tree->GetEntries(); i++){
         tree->GetEntry(i);
@@ -193,13 +194,12 @@ void DoAnalysis(const string RunNo){
                 DWC2pos[0]=evt->XDWC2;
                 DWC2pos[1]=evt->YDWC2;
                 auto sbar = GetScinbar(evt->SiPMPheS);
-                auto cbar = GetScinbar(evt->SiPMPheC);
+                auto cbar = GetCherbar(evt->SiPMPheC);
                 if (Getdist(center, DWC1pos)<maxdist && Getdist(center2,DWC2pos)<maxdist
                     && Getdist(scenter, sbar)<maxdist ) {
                 
                     DWC2h2->Fill(evt->XDWC2,evt->YDWC2);
                     DWC1h2->Fill(evt->XDWC1,evt->YDWC1);
-                    
 
                     Sbarh2->Fill(sbar[0],sbar[1]);
                     cutentries += 1; 
@@ -209,7 +209,6 @@ void DoAnalysis(const string RunNo){
                     smaxh1->Fill(*std::max_element(evt->SiPMPheS, evt->SiPMPheS+160)); 
                     Stoth1->Fill(totS);
                     Ctoth1->Fill(totC);
-                    //cout<<totS<<" "<<evt->totSiPMSene<<endl;
 
                     for (unsigned int index=0; index<160; index++){
                         auto r = Getdist( ScinSiPMmap(index), sbar );
@@ -218,6 +217,8 @@ void DoAnalysis(const string RunNo){
                         auto cr = Getdist( CherSiPMmap(index), cbar );
                         int newindex = (int)r/pitch;
                         int cnewindex = (int)cr/pitch;
+                        Slateralh2->Fill(r,evt->SiPMPheS[index]/totS);
+                        Clateralh2->Fill(r,evt->SiPMPheC[index]/totC);
                         if (newindex < points){
                             radialprof[newindex] += evt->SiPMPheS[index]/totS;
                             fibers[newindex] += 1;
@@ -227,7 +228,7 @@ void DoAnalysis(const string RunNo){
                             cfibers[cnewindex] += 1;
                         }
                     }
-                    cout<<"------------------------>entrys "<<i<<" scin: "<<radialprof[0]<<" "<<fibers[0]<<endl;
+                    //cout<<"------------------------>entrys "<<i<<" scin: "<<radialprof[0]<<" "<<fibers[0]<<endl;
                     for(unsigned int i=0; i<points; i++){radprofh1[i].Fill(radialprof[i]);}
                     for(unsigned int i=0; i<points; i++){radialprof[i]=0.;}
                     for(unsigned int i=0; i<points; i++){fibersh1[i].Fill(fibers[i]);}
@@ -253,6 +254,22 @@ void DoAnalysis(const string RunNo){
     DWC2h2->Write();
     Sbarh2->Write();
     smaxh1->Write();
+    Slateralh2->Write();
+    Clateralh2->Write();
+    auto sprof = Slateralh2->ProfileX();
+    auto cprof = Clateralh2->ProfileX();
+    sprof->SetTitle("lateralprof");
+    sprof->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    sprof->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
+    sprof->SetName("lateralprof");
+    sprof->SetMarkerStyle(20);
+    sprof->Write();
+    cprof->SetTitle("cherlateralprof");
+    cprof->SetName("cherlateralprof");
+    cprof->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    cprof->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
+    cprof->SetMarkerStyle(29);
+    cprof->Write();
 
     for (unsigned int i=0; i<points; i++){
         radprofh1[i].Write();
@@ -270,10 +287,6 @@ void DoAnalysis(const string RunNo){
     cout<<"Scin fibers:"<<endl; for (auto& n : fibers){cout<<n<<endl;}
     cout<<"Cher fibers:"<<endl; for (auto& n : cfibers){cout<<n<<endl;}
 
-    for (unsigned int i=0; i<points; i++){
-        lateralprof[i]=radialprof[i]/fibers[i];
-        lateralprofer[i]=radialprofer[i]/fibers[i];
-    }
     double counter = 0;
     int index = 0;
     for (auto& n : radialprof){
@@ -282,11 +295,6 @@ void DoAnalysis(const string RunNo){
         index += 1;
     } 
   
-    for (unsigned int i=0; i<points; i++){
-        clateralprof[i]=cradialprof[i]/cfibers[i];
-        clateralprofer[i]=cradialprofer[i]/cfibers[i];
-    }
-
     double ccounter = 0;
     int cindex = 0;
     for (auto& n : cradialprof){
@@ -295,13 +303,6 @@ void DoAnalysis(const string RunNo){
         cindex += 1;
     } 
 
-    auto Gr1 = new TGraphErrors(points, radii, lateralprof, radiier, lateralprofer);
-    Gr1->SetTitle("lateralprof");
-    Gr1->GetXaxis()->SetTitle("Distance from shower axis [mm]");
-    Gr1->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
-    Gr1->SetName("lateralprof");
-    Gr1->SetMarkerStyle(20);
-    Gr1->Write();
     auto Gr2 = new TGraphErrors(points, radii, radialprof, radiier,radialprofer);
     Gr2->SetTitle("radialprof");
     Gr2->SetName("radialprof");
@@ -313,13 +314,6 @@ void DoAnalysis(const string RunNo){
     Gr3->SetMarkerStyle(20);
     Gr3->Write();
 
-    auto CGr1 = new TGraphErrors(points, radii, clateralprof, radiier, clateralprofer);
-    CGr1->SetTitle("cherlateralprof");
-    CGr1->SetName("cherlateralprof");
-    CGr1->GetXaxis()->SetTitle("Distance from shower axis [mm]");
-    CGr1->GetYaxis()->SetTitle("Percentage of total SiPM signal in fiber");
-    CGr1->SetMarkerStyle(29);
-    CGr1->Write();
     auto CGr2 = new TGraphErrors(points, radii, cradialprof, radiier, cradialprofer);
     CGr2->SetTitle("cherradialprof");
     CGr2->SetName("cherradialprof");
@@ -336,32 +330,42 @@ void DoAnalysis(const string RunNo){
 }
 
 void ImageAnalysis(){
+
+    double mdist = 5.0;
+
     //10 GeV -> 404 events selected
-    DoAnalysis("657");
+    DoAnalysis("657", mdist);
     auto file1 = new TFile("Out_657.root","READ"); 
     TGraphErrors* gr10s; file1->GetObject("lateralprof",gr10s);
+    TGraphErrors* gr10c; file1->GetObject("cherlateralprof",gr10c);
     gr10s->SetMarkerColor(2); gr10s->SetLineColor(2);
+    gr10c->SetMarkerColor(2); gr10c->SetLineColor(2); gr10c->SetMarkerStyle(22);
+
     //10 GeV -> 175 events selected
     //DoAnalysis("655");
     //20 GeV -> 339 events selected
     //DoAnalysis("670");
     //20 GeV -> 564 events selected
-    DoAnalysis("694");
+    
+    DoAnalysis("694", mdist);
     auto file2 = new TFile("Out_694.root","READ"); 
     TGraphErrors* gr20s; file2->GetObject("lateralprof",gr20s);
+    TGraphErrors* gr20c; file2->GetObject("cherlateralprof",gr20c);
     gr20s->SetMarkerColor(4); gr20s->SetLineColor(4);
-    //10 GeV -> 175 events selected
+    gr20c->SetMarkerColor(4); gr20c->SetLineColor(4); gr20c->SetMarkerStyle(22);
     //20 GeV no preshower -> 4818 events selected
-    //DoAnalysis("695");
+    DoAnalysis("695", mdist);
     //30 GeV -> 93 events selected
     //DoAnalysis("693");
     //30 GeV -> 72 events selected
     //DoAnalysis("671");
     //40 GeV -> 106 events selected
-    DoAnalysis("687");
+    DoAnalysis("687", mdist);
     auto file3 = new TFile("Out_687.root","READ"); 
     TGraphErrors* gr40s; file3->GetObject("lateralprof",gr40s);
+    TGraphErrors* gr40c; file3->GetObject("cherlateralprof",gr40c);
     gr40s->SetMarkerColor(8); gr40s->SetLineColor(8);
+    gr40c->SetMarkerColor(8); gr40c->SetLineColor(8); gr40c->SetMarkerStyle(22);
     //10 GeV -> 175 events selected
     //40 GeV ->69 events selected
     //DoAnalysis("686");
@@ -370,19 +374,28 @@ void ImageAnalysis(){
     
     //Energy comparison convas
     //
+    /*
     auto canvasfile = new TFile("Canvases.root", "RECREATE");
     canvasfile->cd();
     auto C1laterals = new TCanvas("", "", 600, 600);
+    gr10s->GetHistogram()->SetMinimum(0.);
+    gr10s->GetHistogram()->SetMaximum(0.09);
     gr10s->Draw("AP");
     gr20s->Draw("same P");
     gr40s->Draw("same P");
+    gr10c->Draw("same P");
+    gr20c->Draw("same P");
+    gr40c->Draw("same P");
     auto C1lateralslegend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
-    C1lateralslegend->AddEntry(gr10s,"10 GeV e+ (Run 657)","ep");
-    C1lateralslegend->AddEntry(gr20s,"20 GeV e+ (Run 694)","ep");
-    C1lateralslegend->AddEntry(gr40s,"40 GeV e+ (Run 687)","ep");
+    C1lateralslegend->AddEntry(gr10s,"10 GeV e+ Scintillation (Run 657)","ep");
+    C1lateralslegend->AddEntry(gr20s,"20 GeV e+ Scintillation (Run 694)","ep");
+    C1lateralslegend->AddEntry(gr40s,"40 GeV e+ Scintillation (Run 687)","ep");
+    C1lateralslegend->AddEntry(gr10c,"10 GeV e+ Cherenkov (Run 657)","ep");
+    C1lateralslegend->AddEntry(gr20c,"20 GeV e+ Cherenkov (Run 694)","ep");
+    C1lateralslegend->AddEntry(gr40c,"40 GeV e+ Cherenkov (Run 687)","ep");
     C1lateralslegend->Draw("same");
     C1laterals->SetLeftMargin(0.15);
-    C1laterals->Write();
+    C1laterals->Write();*/
 }
 
 //**************************************************
