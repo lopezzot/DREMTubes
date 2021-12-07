@@ -255,6 +255,10 @@ void DoAnalysis(const string RunNo, const double& mdist, const int& beamene){
     DWC2h2->Write();
     Sbarh2->Write();
     smaxh1->Write();
+    Slateralh2->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    Slateralh2->GetYaxis()->SetTitle("Percentage of total S SiPM signal in fiber");
+    Clateralh2->GetXaxis()->SetTitle("Distance from shower axis [mm]");
+    Clateralh2->GetYaxis()->SetTitle("Percentage of total C SiPM signal in fiber");
     Slateralh2->Write();
     Clateralh2->Write();
     auto sprof = Slateralh2->ProfileX();
