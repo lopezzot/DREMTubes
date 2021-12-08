@@ -20,6 +20,8 @@
 
 using json = nlohmann::json;
 
+double const sq3=sqrt(3.);
+
 struct SiPMCalibration{
     std::array<double,320> highGainPedestal,highGainDpp,lowGainPedestal,lowGainDpp;
     std::array<double,1> PheGeVS,PheGeVC;
@@ -90,6 +92,22 @@ class EventOut{
 
 	void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
 	void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
+        int SiPMCol(int index){ return index%16; }
+        int SiPMRow(int index){ return index/16; }
+        pair<double, double> SiPMSpos(int index){
+           int row = index / 16;
+           int column = index%16;
+           double x = (column-7)*2-1.5;
+           double y = 2.*sq3*(4-row)+sq3/2;
+           return pair<double,double>(x,y);
+        }
+        pair<double, double> SiPMCpos(int index){
+           int row = index / 16;
+           int column = index%16;
+           double x = (column-7)*2-0.5;
+           double y = 2.*sq3*(4-row)+1.5*sq3;
+           return pair<double,double>(x,y);
+        }
 };
 
 
