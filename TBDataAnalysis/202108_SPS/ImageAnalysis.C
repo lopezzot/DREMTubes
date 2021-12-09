@@ -219,7 +219,7 @@ void DoAnalysis(const string RunNo, const double& mdist, const int& beamene){
                         int newindex = (int)r/pitch;
                         int cnewindex = (int)cr/pitch;
                         Slateralh2->Fill(r,evt->SiPMPheS[index]/totS);
-                        Clateralh2->Fill(r,evt->SiPMPheC[index]/totC);
+                        Clateralh2->Fill(cr,evt->SiPMPheC[index]/totC);
                         if (newindex < points){
                             radialprof[newindex] += evt->SiPMPheS[index]/totS;
                             fibers[newindex] += 1;
