@@ -165,23 +165,23 @@ void Event::calibratePMT(const PMTCalibration& pmtcalibration, EventOut* evout){
 
     //PMT calibration
     //
-    evout->SPMT1 = (SPMT1-pmtcalibration.PMTSpd[0]) * 14./(pmtcalibration.PMTSpk[0]-pmtcalibration.PMTSpd[0]);
-    evout->SPMT2 = (SPMT2-pmtcalibration.PMTSpd[1]) * 14./(pmtcalibration.PMTSpk[1]-pmtcalibration.PMTSpd[1]);
-    evout->SPMT3 = (SPMT3-pmtcalibration.PMTSpd[2]) * 14./(pmtcalibration.PMTSpk[2]-pmtcalibration.PMTSpd[2]);
-    evout->SPMT4 = (SPMT4-pmtcalibration.PMTSpd[3]) * 14./(pmtcalibration.PMTSpk[3]-pmtcalibration.PMTSpd[3]);
-    evout->SPMT5 = (SPMT5-pmtcalibration.PMTSpd[4]) * 14./(pmtcalibration.PMTSpk[4]-pmtcalibration.PMTSpd[4]);
-    evout->SPMT6 = (SPMT6-pmtcalibration.PMTSpd[5]) * 14./(pmtcalibration.PMTSpk[5]-pmtcalibration.PMTSpd[5]);
-    evout->SPMT7 = (SPMT7-pmtcalibration.PMTSpd[6]) * 14./(pmtcalibration.PMTSpk[6]-pmtcalibration.PMTSpd[6]);
-    evout->SPMT8 = (SPMT8-pmtcalibration.PMTSpd[7]) * 14./(pmtcalibration.PMTSpk[7]-pmtcalibration.PMTSpd[7]);
+    evout->SPMT1 = (SPMT1-pmtcalibration.PMTSpd[0]) * 15./(pmtcalibration.PMTSpk[0]-pmtcalibration.PMTSpd[0]);
+    evout->SPMT2 = (SPMT2-pmtcalibration.PMTSpd[1]) * 15./(pmtcalibration.PMTSpk[1]-pmtcalibration.PMTSpd[1]);
+    evout->SPMT3 = (SPMT3-pmtcalibration.PMTSpd[2]) * 15./(pmtcalibration.PMTSpk[2]-pmtcalibration.PMTSpd[2]);
+    evout->SPMT4 = (SPMT4-pmtcalibration.PMTSpd[3]) * 15./(pmtcalibration.PMTSpk[3]-pmtcalibration.PMTSpd[3]);
+    evout->SPMT5 = (SPMT5-pmtcalibration.PMTSpd[4]) * 15./(pmtcalibration.PMTSpk[4]-pmtcalibration.PMTSpd[4]);
+    evout->SPMT6 = (SPMT6-pmtcalibration.PMTSpd[5]) * 15./(pmtcalibration.PMTSpk[5]-pmtcalibration.PMTSpd[5]);
+    evout->SPMT7 = (SPMT7-pmtcalibration.PMTSpd[6]) * 15./(pmtcalibration.PMTSpk[6]-pmtcalibration.PMTSpd[6]);
+    evout->SPMT8 = (SPMT8-pmtcalibration.PMTSpd[7]) * 15./(pmtcalibration.PMTSpk[7]-pmtcalibration.PMTSpd[7]);
 	
-    evout->CPMT1 = (CPMT1-pmtcalibration.PMTCpd[0]) * 14./(pmtcalibration.PMTCpk[0]-pmtcalibration.PMTCpd[0]);
-    evout->CPMT2 = (CPMT2-pmtcalibration.PMTCpd[1]) * 14./(pmtcalibration.PMTCpk[1]-pmtcalibration.PMTCpd[1]);
-    evout->CPMT3 = (CPMT3-pmtcalibration.PMTCpd[2]) * 14./(pmtcalibration.PMTCpk[2]-pmtcalibration.PMTCpd[2]);
-    evout->CPMT4 = (CPMT4-pmtcalibration.PMTCpd[3]) * 14./(pmtcalibration.PMTCpk[3]-pmtcalibration.PMTCpd[3]);
-    evout->CPMT5 = (CPMT5-pmtcalibration.PMTCpd[4]) * 14./(pmtcalibration.PMTCpk[4]-pmtcalibration.PMTCpd[4]);
-    evout->CPMT6 = (CPMT6-pmtcalibration.PMTCpd[5]) * 14./(pmtcalibration.PMTCpk[5]-pmtcalibration.PMTCpd[5]);
-    evout->CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) * 14./(pmtcalibration.PMTCpk[6]-pmtcalibration.PMTCpd[6]);
-    evout->CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 14./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[7]);
+    evout->CPMT1 = (CPMT1-pmtcalibration.PMTCpd[0]) * 15./(pmtcalibration.PMTCpk[0]-pmtcalibration.PMTCpd[0]);
+    evout->CPMT2 = (CPMT2-pmtcalibration.PMTCpd[1]) * 15./(pmtcalibration.PMTCpk[1]-pmtcalibration.PMTCpd[1]);
+    evout->CPMT3 = (CPMT3-pmtcalibration.PMTCpd[2]) * 15./(pmtcalibration.PMTCpk[2]-pmtcalibration.PMTCpd[2]);
+    evout->CPMT4 = (CPMT4-pmtcalibration.PMTCpd[3]) * 15./(pmtcalibration.PMTCpk[3]-pmtcalibration.PMTCpd[3]);
+    evout->CPMT5 = (CPMT5-pmtcalibration.PMTCpd[4]) * 15./(pmtcalibration.PMTCpk[4]-pmtcalibration.PMTCpd[4]);
+    evout->CPMT6 = (CPMT6-pmtcalibration.PMTCpd[5]) * 15./(pmtcalibration.PMTCpk[5]-pmtcalibration.PMTCpd[5]);
+    evout->CPMT7 = (CPMT7-pmtcalibration.PMTCpd[6]) * 15./(pmtcalibration.PMTCpk[6]-pmtcalibration.PMTCpd[6]);
+    evout->CPMT8 = (CPMT8-pmtcalibration.PMTCpd[7]) * 15./(pmtcalibration.PMTCpk[7]-pmtcalibration.PMTCpd[7]);
 }
 
 void Event::calibrateDWC(const DWCCalibration& dwccalibration, EventOut* evout){
