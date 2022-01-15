@@ -236,8 +236,8 @@ def doRun(runnumber,outfilename):
 
 def GetNewRuns():
     retval = []
-    sim_list = glob.glob(SiPMFileDir + '/*')
-    daq_list = glob.glob(DaqFileDir + '/*')
+    sim_list = glob.glob(SiPMFileDir + '/*.root')
+    daq_list = glob.glob(DaqFileDir + '/*.root')
     merged_list = glob.glob(MergedFileDir + '/*')
 
     sim_run_list = []
@@ -258,9 +258,9 @@ def GetNewRuns():
     cand_tomerge = set()
 
     for runnum in sim_run_list:
-        if (int(runnum) >= 644):
-            if runnum in daq_run_list:
-                cand_tomerge.add(runnum)
+        #if (int(runnum) >= 644):
+         if runnum in daq_run_list:
+             cand_tomerge.add(runnum)
     tobemerged = cand_tomerge - already_merged
     return sorted(tobemerged)
 

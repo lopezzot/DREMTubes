@@ -25,7 +25,7 @@ using json = nlohmann::json;
 
 ClassImp(EventOut)
 
-void PhysicsConverter(const string run){
+void PhysicsConverter(const string run, int myconf){
 
   //Open merge ntuples
   //
@@ -48,9 +48,12 @@ void PhysicsConverter(const string run){
   auto evout = new EventOut();
   ftree->Branch("Events",evout);
   //Create calibration objects
-  //
-  SiPMCalibration sipmCalibration("RunXXX.json");
-  PMTCalibration pmtCalibration("RunXXX.json");
+
+  ostringstream jsonfile;
+  jsonfile << "Run_"<< myconf << ".json";
+
+  SiPMCalibration sipmCalibration(jsonfile.str());
+  PMTCalibration pmtCalibration(jsonfile.str());
 
   //Check entries in trees
   //
