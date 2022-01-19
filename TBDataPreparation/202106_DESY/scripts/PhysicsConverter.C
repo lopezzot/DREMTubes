@@ -33,7 +33,7 @@ void PhysicsConverter(const string run, int myconf){
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
-  string outfile = "physics_desy2021_run"+run+".root";
+  string outfile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/physics_desy2021_run"+run+".root";
   char coutfile[outfile.size() + 1];
   strcpy(coutfile, outfile.c_str());
   auto Mergfile = new TFile(cinfile, "READ");

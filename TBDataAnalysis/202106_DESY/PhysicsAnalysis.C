@@ -38,27 +38,27 @@ void PhysicsAnalysis(const string run){
   
   float energyS = 0;
   float energyC = 0;
-  TH2F * enesplot = new TH2F("splot", "splot", 200, 0., 20., 200, 0., 20.);
+  TH2F * enesplot = new TH2F("splot", "splot", 200, 1., 20., 200, 1., 20.);
   enesplot->GetXaxis()->SetTitle("Scintillation (SiPM+PMT) - Energy (GeV)");
   enesplot->GetYaxis()->SetTitle("Cherenkov (SiPM+PMT) - Energy (GeV)");
 
   TH1F *E_S = new TH1F("E_S", "E_S", 200, 0., 20.);
-  E_S->GetXaxis()->SetTitle("Scintillation - Energy (GeV)");
+  E_S->GetXaxis()->SetTitle("Scintillation (GeV)");
 
   TH1F *E_C = new TH1F("E_C", "E_C", 200, 0., 20.);
-  E_C->GetXaxis()->SetTitle("Scintillation - Energy (GeV)");
+  E_C->GetXaxis()->SetTitle("Cherenkov (GeV)");
 
   TH1F *E_pmtS = new TH1F("E_pmtS", "E_pmtS", 200, 0., 20.);
-  E_pmtS->GetXaxis()->SetTitle("Scintillation (PMT) - Energy (GeV)");
+  E_pmtS->GetXaxis()->SetTitle("Scintillation PMT (GeV)");
 
   TH1F *E_pmtC = new TH1F("E_pmtC", "E_pmtC", 200, 0., 20.);
-  E_pmtC->GetXaxis()->SetTitle("Cherenkov (PMT) - Energy (GeV)");
+  E_pmtC->GetXaxis()->SetTitle("Cherenkov PMT (GeV)");
 
-  TH1F *E_SiPMS = new TH1F("E_SiPMS", "E_SiPMS", 100, 0., 10.);
-  E_SiPMS->GetXaxis()->SetTitle("Scintillation (SiPM) - Energy (GeV)");
+  TH1F *E_SiPMS = new TH1F("E_SiPMS", "E_SiPMS", 200, 0., 20.);
+  E_SiPMS->GetXaxis()->SetTitle("Scintillation SiPM (GeV)");
 
-  TH1F *E_SiPMC = new TH1F("E_SiPMC", "E_SiPMC", 100, 0., 10.);
-  E_SiPMC->GetXaxis()->SetTitle("Cherenkov (SiPM) - Energy (GeV)");
+  TH1F *E_SiPMC = new TH1F("E_SiPMC", "E_SiPMC", 200, 0., 20.);
+  E_SiPMC->GetXaxis()->SetTitle("Cherenkov SiPM (GeV)");
 
 
   for (unsigned int i=0; i<tree->GetEntries(); i++){

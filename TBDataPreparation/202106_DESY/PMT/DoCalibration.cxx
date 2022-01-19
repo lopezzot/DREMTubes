@@ -60,6 +60,8 @@ void DoCalibration(int myconf){
 	int c_idx=0;
 	int s_idx=0;
 
+	cout << " equalization .... " << endl; 
+
 	// loop on towers to get all ped and S and C peaks
 	for(int tow=1; tow<9; tow++){ 
 
@@ -75,20 +77,6 @@ void DoCalibration(int myconf){
            myAdc_c.push_back(myAdc.at(3));
 	}// endl loop on towers
 
-	// calculate equalization constants
-	cout << "myAdc size " << myAdc_s.size() << " " << myAdc_c.size() <<  endl; 
-	for(int i=0; i< myAdc_s.size(); i++){
-		cout <<myAdc_s.at(i) << " " <<  myAdc_c.at(i) << endl;	
-		eq_s.push_back(myAdc_s.at(i)/myAdc_s.at(0));
-		eq_c.push_back(myAdc_c.at(i)/myAdc_c.at(0));
-	}
-	for(int i=0; i< eq_s.size(); i++){
-		cout <<eq_s.at(i) << " " <<  eq_c.at(i) << endl;
-	}
-
-	Float_t totE = 5.64; // Energy conteined in the module 0.94*6; 
-	Float_t PMT_ES=0;
-	Float_t PMT_EC=0;
 
 	// using data file with beam steered in the center
 	TFile *f;
@@ -104,7 +92,7 @@ void DoCalibration(int myconf){
 	auto ev = new Event();
         auto evout = new EventOut();
 
-	SiPMCalibration sipmCalibration("RunXXX.json");
+	SiPMCalibration sipmCalibration("RunXXXcalib.json");
 
 	// SiPM branches
 	tSIPM->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
@@ -123,6 +111,77 @@ void DoCalibration(int myconf){
         t->SetBranchAddress("ADCs",&ADC);
         t->SetBranchAddress("TriggerMask",&TriggerMask);
 
+
+	Float_t sumc=0; 
+	Float_t sums=0; 
+
+	TH1F *h_SumC_SIPM = new TH1F("SumC_SIPM", "SumC_SIPM", 2048/4, 0, 4096/4);
+        h_SumC_SIPM->GetXaxis()->SetTitle("Energy (GeV)");
+
+        TH1F *h_SumS_SIPM = new TH1F("SumS_SIPM", "SumS_SIPM", 2048, 0, 4096);
+        h_SumS_SIPM->GetXaxis()->SetTitle("Energy (GeV)");
+
+	// loop on ntuple entries to get adc peak position in T0 for equalization 
+	for( unsigned int i=0; i<t->GetEntries(); i++){
+	
+           tSIPM->GetEntry(i);	
+           t->GetEntry(i);
+
+	   // Calibration of SiPM
+	   ev->calibrate(sipmCalibration, evout);
+	   if (i%50000 ==0) cout << i << " " << evout->totSiPMSene << " " << evout->totSiPMCene<< endl; 
+
+	   // Sum of calibrated SiPM energy deposition
+           if(TriggerMask ==1){   // phys histo 
+	      h_SumS_SIPM->Fill(evout->totSiPMSene);
+	      h_SumC_SIPM->Fill(evout->totSiPMCene);
+
+	   }// end phys case
+
+
+	   //reset SiPM sum value 
+	   evout->totSiPMCene = 0;
+    	   evout->totSiPMSene = 0;
+
+	} // end for on events
+
+	TH1F *hsipmS = (TH1F*)h_SumS_SIPM->Clone("hsipmS");
+	TH1F *hsipmC = (TH1F*)h_SumC_SIPM->Clone("hsipmC");
+
+        TCanvas *sipm = new TCanvas("SiPM", "SiPM", 1000, 700);
+	sipm->Divide(1,2);
+	sipm->cd(1);
+	gPad->SetLogy();
+	//if(myconf==0) h_SumS_SIPM->GetXaxis()->SetRangeUser(0.05, 7);
+	//else h_SumS_SIPM->GetXaxis()->SetRangeUser(1, 7);
+	h_SumS_SIPM->GetXaxis()->SetRangeUser(500, 4000);
+	h_SumS_SIPM->Draw();
+        int binmaxSSIPM = h_SumS_SIPM->GetMaximumBin();
+        double adc_SSIPM = h_SumS_SIPM->GetXaxis()->GetBinCenter(binmaxSSIPM);
+	sipm->cd(2);
+	gPad->SetLogy();
+	h_SumC_SIPM->GetXaxis()->SetRangeUser(100, 500);
+	h_SumC_SIPM->Draw();
+        int binmaxCSIPM = h_SumC_SIPM->GetMaximumBin();
+        double adc_CSIPM = h_SumC_SIPM->GetXaxis()->GetBinCenter(binmaxCSIPM);
+  
+        myAdc_s.push_back(adc_SSIPM);
+        myAdc_c.push_back(adc_CSIPM);
+
+	// calculate equalization constants
+	cout << "myAdc size " << myAdc_s.size() << " " << myAdc_c.size() <<  endl; 
+	for(int i=0; i< myAdc_s.size(); i++){
+		cout <<"adc "  << i << " " << myAdc_s.at(i) << " " <<  myAdc_c.at(i) << endl;	
+		eq_s.push_back(myAdc_s.at(i)/myAdc_s.at(8));
+		eq_c.push_back(myAdc_c.at(i)/myAdc_c.at(8));
+	}
+	cout << "equalization constant " << endl; 
+	for(int i=0; i< eq_s.size(); i++){
+		cout <<"eq " << i << " " << eq_s.at(i) << " " <<  eq_c.at(i) << endl;
+	}
+
+	cout << "calibrating now "<< endl; 
+
         TH1F *h[16];
         int nbin =2048;
         int xlow = 0;
@@ -135,7 +194,7 @@ void DoCalibration(int myconf){
                 hname<<"h_C_"<<n+1;
                 htitle << "Cher_"<<n+1;
                 if(myconf==2) h[n]=new TH1F(hname.str().c_str(), htitle.str().c_str(), nbin, xlow,xhigh);
-                else h[n]=new TH1F(hname.str().c_str(), htitle.str().c_str(), nbin/2, xlow,nbin);
+                else h[n]=new TH1F(hname.str().c_str(), htitle.str().c_str(), nbin/4, xlow,nbin/2);
                 h[n]->GetXaxis()->SetTitle("ADC counts");
         }
 	for(int n=8;n<16; n++){
@@ -147,86 +206,59 @@ void DoCalibration(int myconf){
                 h[n]->GetXaxis()->SetTitle("ADC counts");
 	}
 
-	Float_t sumc=0; 
-	Float_t sums=0; 
-
         TH1F *h_SumC = new TH1F("SumC", "SumC", 2048, 0,4096);
         h_SumC->GetXaxis()->SetTitle("ADC Counts");
 
         TH1F *h_SumS = new TH1F("SumS", "SumS", 2048, 0,4096);
         h_SumS->GetXaxis()->SetTitle("ADC Counts");
 
-	TH1F *h_SumC_SIPM = new TH1F("SumC_SIPM", "SumC_SIPM", 700, 0, 7);
-        h_SumC_SIPM->GetXaxis()->SetTitle("Energy (GeV)");
-
-        TH1F *h_SumS_SIPM = new TH1F("SumS_SIPM", "SumS_SIPM", 700, 0, 7);
-        h_SumS_SIPM->GetXaxis()->SetTitle("Energy (GeV)");
-
-	// loop on ntuple entries
 	for( unsigned int i=0; i<t->GetEntries(); i++){
 	
            tSIPM->GetEntry(i);	
            t->GetEntry(i);
 
-	   // Calibration of SiPM
-	   ev->calibrate(sipmCalibration, evout);
-	   if (i%50000 ==0) cout << i << " " << evout->totSiPMSene << " " << evout->totSiPMCene<< endl; 
-	   // Sum of calibrated SiPM energy deposition
-	   h_SumS_SIPM->Fill(evout->totSiPMSene);
-	   h_SumC_SIPM->Fill(evout->totSiPMCene);
 
+	   // Sum of calibrated SiPM energy deposition
            if(TriggerMask ==1){   // phys histo 
+
 	      for(int tow=1; tow<9; tow++){
 
                  // index for ADC channels       
                  c_idx= mych[tow-1];
                  s_idx= mych[tow+7];
 
-		 //per tower histo, adc distributiom, ped substracted and equalised
-                 h[tow-1]->Fill((ADC[c_idx]-ped_c.at(tow-1))*eq_c.at(tow-1));
-                 h[tow+7]->Fill((ADC[s_idx]-ped_s.at(tow-1))*eq_s.at(tow-1));
-
 		 // sum up on all the towers (ADC counts)
 		 sumc+=(ADC[c_idx]-ped_c.at(tow-1))*eq_c.at(tow-1);
 		 sums+=(ADC[s_idx]-ped_s.at(tow-1))*eq_s.at(tow-1);
 
-		 /*if(i==0){
-			 cout << "tow " << tow <<  " c_idx " << c_idx << " ped_c.at(tow-1) " 
-			      << ped_c.at(tow-1) << " eq_c.at(tow-1) " << eq_c.at(tow-1) << endl;  
-			 cout << "tow " << tow <<  " s_idx " << s_idx << " ped_s.at(tow-1) " 
-			      << ped_s.at(tow-1) << " eq_s.at(tow-1) " << eq_s.at(tow-1) << endl;  
-		}*/
-              } // end for on towers
+		 //per tower histo, adc distributiom, ped substracted and equalised
+                 h[tow-1]->Fill((ADC[c_idx]-ped_c.at(tow-1))*eq_c.at(tow-1));
+                 h[tow+7]->Fill((ADC[s_idx]-ped_s.at(tow-1))*eq_s.at(tow-1));
+
+	      } // end loop on tower
+
+	      // Calibration of SiPM
+	      ev->calibrate(sipmCalibration, evout);
+	      if (i%50000 ==0) cout << i << " " << evout->totSiPMSene << " " << evout->totSiPMCene<< endl; 
+
+	      sums+= evout->totSiPMSene;
+	      sumc+= evout->totSiPMCene;
 	   
-	   h_SumC->Fill(sumc);
-	   h_SumS->Fill(sums);
-	
-
-
-/*	
-	   // only events with larger energy deposition in the central tower
-	   if(evout->totSiPMSene > 4.5){
-	      h_SumC_cut->Fill(sumc);
-	      h_SumS_cut->Fill(sums);
-	      kS_cut= sums/PMT_ES;
-	      kC_cut= sumc/PMT_EC;
-	
-	      h_kS_cut->Fill(kS_cut);
-	      h_kC_cut->Fill(kC_cut);
-	   }
-*/
-	   //reset PMT sum value 
-	   sumc=0;
-	   sums=0;
-
 	   }// end phys case
 
+	   h_SumC->Fill(sumc);
+	   h_SumS->Fill(sums);
 
 	   //reset SiPM sum value 
 	   evout->totSiPMCene = 0;
     	   evout->totSiPMSene = 0;
+	   //reset PMT sum value 
+	   sumc=0;
+	   sums=0;
 
 	} // end for on events
+
+
 
 
 	TCanvas *c_all = new TCanvas("c_distrib", "c_distrib", 1000, 700);
@@ -243,7 +275,10 @@ void DoCalibration(int myconf){
         c_all->cd(4);
         gPad->SetLogy();
         h[4]->Draw();
-        c_all->cd(6);
+        c_all->cd(5);
+        gPad->SetLogy();
+	hsipmC->Draw(); 	
+	c_all->cd(6);
         gPad->SetLogy();
         h[3]->Draw();
         c_all->cd(7);
@@ -270,6 +305,9 @@ void DoCalibration(int myconf){
         s_all->cd(4);
         gPad->SetLogy();
         h[12]->Draw();
+        s_all->cd(5);
+        gPad->SetLogy();
+	hsipmS->Draw(); 	
         s_all->cd(6);
         gPad->SetLogy();
         h[11]->Draw();
@@ -284,54 +322,35 @@ void DoCalibration(int myconf){
         h[8]->Draw();
 
         TCanvas *sum = new TCanvas("sum_distrib", "sum_distrib", 1000, 700);
-	sum->Divide(2,2);
+	sum->Divide(2,1);
 	sum->cd(1);
 	gPad->SetLogy();
-	h_SumS->GetXaxis()->SetRangeUser(150, 3000);
+	h_SumS->GetXaxis()->SetRangeUser(500, 4096);
 	h_SumS->Draw();
         int binmaxS = h_SumS->GetMaximumBin();
         double E_S = h_SumS->GetXaxis()->GetBinCenter(binmaxS);
 	sum->cd(2);
 	gPad->SetLogy();
-	h_SumC->GetXaxis()->SetRangeUser(10, 3000);
+	h_SumC->GetXaxis()->SetRangeUser(100, 1000);
 	h_SumC->Draw();
         int binmaxC = h_SumC->GetMaximumBin();
         double E_C = h_SumC->GetXaxis()->GetBinCenter(binmaxC);
-	sum->cd(3);
-	gPad->SetLogy();
-	if(myconf==0) h_SumS_SIPM->GetXaxis()->SetRangeUser(0.05, 7);
-	else h_SumS_SIPM->GetXaxis()->SetRangeUser(1, 7);
-	h_SumS_SIPM->Draw();
-        int binmaxSSIPM = h_SumS_SIPM->GetMaximumBin();
-        double E_SSIPM = h_SumS_SIPM->GetXaxis()->GetBinCenter(binmaxSSIPM);
-	sum->cd(4);
-	gPad->SetLogy();
-	h_SumC_SIPM->GetXaxis()->SetRangeUser(1, 7);
-	h_SumC_SIPM->Draw();
-        int binmaxCSIPM = h_SumC_SIPM->GetMaximumBin();
-        double E_CSIPM = h_SumC_SIPM->GetXaxis()->GetBinCenter(binmaxCSIPM);
 
 
 	float Ks, Kc; 
 	std::vector<float> CS;
 	std::vector<float> CC;
 
+	Float_t totE = 5.64; // Energy contained in the module 0.94*6; 
 
-        // Total energy in PMT tower is Contained Energy - SiPM energy
-	PMT_ES = totE-E_SSIPM;	   
-	PMT_EC = totE-E_CSIPM;	   
-
-	cout << "tot PMT ENERGY " << endl; 
-	cout << totE << " " << E_SSIPM << " " << PMT_ES << endl; 
-	cout << totE << " " << E_CSIPM << " " << PMT_EC << endl; 
 
         // scaling factor (ADC/GeV)	
-	Ks = E_S/PMT_ES;
-	Kc = E_C/PMT_EC;
+	Ks = E_S/totE;
+	Kc = E_C/totE;
 
 	cout << "Scaling factors " << endl; 
-	cout<< E_S << " " << PMT_ES << " " << Ks << endl;  
-	cout<< E_C << " " << PMT_EC << " " << Kc << endl;  
+	cout<< E_S << " " << Ks << endl;  
+	cout<< E_C << " " << Kc << endl;  
 
 		
 	cout << "Equalizazion and calibration constant " << endl; 
@@ -341,7 +360,6 @@ void DoCalibration(int myconf){
 	   CC.push_back(Kc/eq_c.at(i));
 	   cout <<"Calib " << CS.at(i) << " " <<  CC.at(i) << endl;
 	}
-
 
 	// write calibration constant for JSON file
         ostringstream pmtjsonfile;
@@ -355,6 +373,9 @@ void DoCalibration(int myconf){
 	pmtjson << " \"PMTC_pd\": [" << ped_c.at(0) <<", " << ped_c.at(1) <<", " << ped_c.at(2) <<", " <<ped_c.at(3) <<", " <<ped_c.at(4) <<", " <<ped_c.at(5) <<", " <<ped_c.at(6) <<", " <<ped_c.at(7) <<"], " << endl;    
 	pmtjson << " \"PMTC_pk\": [" << CC.at(0) <<", " << CC.at(1) <<", " << CC.at(2) <<", " <<CC.at(3) <<", " <<CC.at(4) <<", " <<CC.at(5) <<", " <<CC.at(6) <<", " <<CC.at(7) <<"] " << endl;    
 
+
+	pmtjson << " \"PhetoGeVS\": [" << CS.at(8) <<"], " << endl;    
+	pmtjson << " \"PhetoGeVC\": [" << CC.at(8) <<"] " << endl;    
 
 	return; 
  }
