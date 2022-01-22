@@ -152,9 +152,8 @@ void DoCalibration(int myconf){
 	sipm->Divide(1,2);
 	sipm->cd(1);
 	gPad->SetLogy();
-	//if(myconf==0) h_SumS_SIPM->GetXaxis()->SetRangeUser(0.05, 7);
-	//else h_SumS_SIPM->GetXaxis()->SetRangeUser(1, 7);
-	h_SumS_SIPM->GetXaxis()->SetRangeUser(500, 4000);
+	if(myconf==0) h_SumS_SIPM->GetXaxis()->SetRangeUser(10, 500);
+	else h_SumS_SIPM->GetXaxis()->SetRangeUser(500,4000);
 	h_SumS_SIPM->Draw();
         int binmaxSSIPM = h_SumS_SIPM->GetMaximumBin();
         double adc_SSIPM = h_SumS_SIPM->GetXaxis()->GetBinCenter(binmaxSSIPM);
@@ -202,7 +201,8 @@ void DoCalibration(int myconf){
                 stringstream htitle;
                 hname<<"h_S_"<<n-7;
                 htitle << "Scint_"<<n-7;
-                h[n]=new TH1F(hname.str().c_str(), htitle.str().c_str(), nbin, xlow, xhigh);
+                if(myconf==0) h[n]=new TH1F(hname.str().c_str(), htitle.str().c_str(), nbin/4, xlow, nbin/2);
+                else h[n]=new TH1F(hname.str().c_str(), htitle.str().c_str(), nbin, xlow, xhigh);
                 h[n]->GetXaxis()->SetTitle("ADC counts");
 	}
 
@@ -307,6 +307,7 @@ void DoCalibration(int myconf){
         h[12]->Draw();
         s_all->cd(5);
         gPad->SetLogy();
+	if(myconf==0) hsipmS->GetXaxis()->SetRangeUser(0, 1000);
 	hsipmS->Draw(); 	
         s_all->cd(6);
         gPad->SetLogy();
@@ -325,7 +326,8 @@ void DoCalibration(int myconf){
 	sum->Divide(2,1);
 	sum->cd(1);
 	gPad->SetLogy();
-	h_SumS->GetXaxis()->SetRangeUser(500, 4096);
+	if(myconf==0) h_SumS->GetXaxis()->SetRangeUser(200, 1000);
+	else h_SumS->GetXaxis()->SetRangeUser(500, 4096);
 	h_SumS->Draw();
         int binmaxS = h_SumS->GetMaximumBin();
         double E_S = h_SumS->GetXaxis()->GetBinCenter(binmaxS);
@@ -479,13 +481,13 @@ std::vector<float> peakFinder(int tow, int runno, int s_idx, int c_idx,  string 
         c10->cd(1);
         gPad->SetLogy();
         h_adc_S->Draw();
-        h_adc_S->GetXaxis()->SetRangeUser(150, 3000);
+        h_adc_S->GetXaxis()->SetRangeUser(150, 4000);
         int binmax1 = h_adc_S->GetMaximumBin();
         double x_S = h_adc_S->GetXaxis()->GetBinCenter(binmax1);
         c10->cd(2);
         gPad->SetLogy();
         h_adc_C->Draw();
-        if(myconf==2) h_adc_C->GetXaxis()->SetRangeUser(150, 3000);
+        if(myconf==2) h_adc_C->GetXaxis()->SetRangeUser(150, 4000);
 	else h_adc_C->GetXaxis()->SetRangeUser(40, 1000);
         int binmax2 = h_adc_C->GetMaximumBin();
         double x_C = h_adc_C->GetXaxis()->GetBinCenter(binmax2);
