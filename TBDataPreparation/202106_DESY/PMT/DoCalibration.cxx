@@ -47,6 +47,11 @@ void DoCalibration(int myconf){
         ostringstream ped;
         ped << OUTDIR << "pedestal_" << myconf << ".txt" ;
         cout << "pedestal output file: " << endl << ped.str() << endl;
+	
+	// write equalization for used ADC file S_i C_i
+        ostringstream equal;
+        equal << OUTDIR << "equal_" << myconf << ".txt" ;
+        cout << "equalization  output file: " << endl << equal.str() << endl;
 
 	// vectors for storing peaks and pedestals for C and S  for all the PMT towers
 	std::vector<float> myAdc; 
@@ -174,9 +179,12 @@ void DoCalibration(int myconf){
 		eq_s.push_back(myAdc_s.at(i)/myAdc_s.at(8));
 		eq_c.push_back(myAdc_c.at(i)/myAdc_c.at(8));
 	}
+        ofstream eqfile;
+        eqfile.open(equal.str(), ofstream::out | ofstream::app);
 	cout << "equalization constant " << endl; 
 	for(int i=0; i< eq_s.size(); i++){
 		cout <<"eq " << i << " " << eq_s.at(i) << " " <<  eq_c.at(i) << endl;
+		eqfile <<  eq_s.at(i) << " " <<  eq_c.at(i) << endl;
 	}
 
 	cout << "calibrating now "<< endl; 
@@ -228,12 +236,12 @@ void DoCalibration(int myconf){
                  s_idx= mych[tow+7];
 
 		 // sum up on all the towers (ADC counts)
-		 sumc+=(ADC[c_idx]-ped_c.at(tow-1))*eq_c.at(tow-1);
-		 sums+=(ADC[s_idx]-ped_s.at(tow-1))*eq_s.at(tow-1);
+		 sumc+=(ADC[c_idx]-ped_c.at(tow-1))/eq_c.at(tow-1);
+		 sums+=(ADC[s_idx]-ped_s.at(tow-1))/eq_s.at(tow-1);
 
 		 //per tower histo, adc distributiom, ped substracted and equalised
-                 h[tow-1]->Fill((ADC[c_idx]-ped_c.at(tow-1))*eq_c.at(tow-1));
-                 h[tow+7]->Fill((ADC[s_idx]-ped_s.at(tow-1))*eq_s.at(tow-1));
+                 h[tow-1]->Fill((ADC[c_idx]-ped_c.at(tow-1))/eq_c.at(tow-1));
+                 h[tow+7]->Fill((ADC[s_idx]-ped_s.at(tow-1))/eq_s.at(tow-1));
 
 	      } // end loop on tower
 
@@ -326,7 +334,7 @@ void DoCalibration(int myconf){
 	sum->Divide(2,1);
 	sum->cd(1);
 	gPad->SetLogy();
-	if(myconf==0) h_SumS->GetXaxis()->SetRangeUser(200, 1000);
+	if(myconf==0) h_SumS->GetXaxis()->SetRangeUser(40, 1000);
 	else h_SumS->GetXaxis()->SetRangeUser(500, 4096);
 	h_SumS->Draw();
         int binmaxS = h_SumS->GetMaximumBin();
@@ -358,8 +366,8 @@ void DoCalibration(int myconf){
 	cout << "Equalizazion and calibration constant " << endl; 
 	for(int i=0; i< eq_s.size(); i++){
 	   cout <<"EQ " << eq_s.at(i) << " " <<  eq_c.at(i) << endl;
-	   CS.push_back(Ks/eq_s.at(i)); 
-	   CC.push_back(Kc/eq_c.at(i));
+	   CS.push_back(Ks*eq_s.at(i)); 
+	   CC.push_back(Kc*eq_c.at(i));
 	   cout <<"Calib " << CS.at(i) << " " <<  CC.at(i) << endl;
 	}
 
