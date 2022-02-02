@@ -19,34 +19,41 @@
 #include <fstream>
 #include "PhysicsEvent.h"
 #include <string>
-#include <cstring>
+#include <stdlib.h>
 
 using json = nlohmann::json;
 
-ClassImp(EventOut)
+ClassImp(PhysicsEvent)
 
-void PhysicsConverter(const string run){
+void PhysicsConverter(const int run){
 
   //Open merge ntuples
   //
-  string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+run+".root";
-  std::cout<<"Using file: "<<infile<<std::endl;
-  char cinfile[infile.size() + 1];
-  strcpy(cinfile, infile.c_str());
-  string outfile = "physics_sps2021_run"+run+".root";
-  char coutfile[outfile.size() + 1];
-  strcpy(coutfile, outfile.c_str());
-  auto Mergfile = new TFile(cinfile, "READ");
-  auto *PMTtree = (TTree*) Mergfile->Get("CERNSPS2021");
-  auto *SiPMtree = (TTree*) Mergfile->Get("SiPMSPS2021");
+  // const string inputFileName = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+std::to_string(run)+".root";
+  const string inputFileName = "merged_sps2021_run"+std::to_string(run)+".root";
+  std::cout<<"Using file: "<<inputFileName<<std::endl;
+  const string outputFileName = "physics_sps2021_run"+std::to_string(run)+".root";
+  auto mergedFile = new TFile(inputFileName.c_str(), "READ");
+  if(!mergedFile->IsOpen()){
+    std::cerr<<"Cannot open file: " + inputFileName;
+    exit(EXIT_FAILURE);
+  }
+
+  auto *PMTtree = (TTree*) mergedFile->Get("CERNSPS2021");
+  auto *SiPMtree = (TTree*) mergedFile->Get("SiPMSPS2021");
   //Create new tree and Event object
   //
-  auto Outfile = new TFile(coutfile,"RECREATE");
-  auto ftree = new TTree("Ftree","Ftree");
-  ftree->SetDirectory(Outfile);
-  auto ev = new Event();
-  auto evout = new EventOut();
-  ftree->Branch("Events",evout);
+  auto outputFile = new TFile(outputFileName.c_str(),"RECREATE");
+  if(!outputFile->IsOpen()){
+    std::cerr<<"Cannot open new file: " + inputFileName;
+    exit(EXIT_FAILURE);
+  }
+
+  auto physicsTree = new TTree("physicsTree","physicsTree");
+  physicsTree->SetDirectory(outputFile);
+  auto daqEvent = new Event();
+  auto physicsEvent = new PhysicsEvent();
+  physicsTree->Branch("Events",physicsEvent);
   //Create calibration objects
   //
   SiPMCalibration sipmCalibration("RunXXX.json");
@@ -56,88 +63,95 @@ void PhysicsConverter(const string run){
   //Check entries in trees
   //
   std::cout<<"Entries in PMT / SiPM tree "<<PMTtree->GetEntries()<<" / "<<SiPMtree->GetEntries()<<std::endl;
+  if ( PMTtree->GetEntries() != SiPMtree->GetEntries() ){
+    std::cout << "PMT and SiPM trees should contain same amount of entries!";
+  }
 
   //Allocate branch pointers
   //
   int EventID;
-  PMTtree->SetBranchAddress("EventNumber",&EventID);
   int ADCs[96];
-  PMTtree->SetBranchAddress("ADCs",&ADCs);
-  SiPMtree->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
-  SiPMtree->SetBranchAddress("HG_Board1",&ev->SiPMHighGain[64]);
-  SiPMtree->SetBranchAddress("HG_Board2",&ev->SiPMHighGain[128]);
-  SiPMtree->SetBranchAddress("HG_Board3",&ev->SiPMHighGain[192]);
-  SiPMtree->SetBranchAddress("HG_Board4",&ev->SiPMHighGain[256]);
-  SiPMtree->SetBranchAddress("LG_Board0",&ev->SiPMLowGain[0]);
-  SiPMtree->SetBranchAddress("LG_Board1",&ev->SiPMLowGain[64]);
-  SiPMtree->SetBranchAddress("LG_Board2",&ev->SiPMLowGain[128]);
-  SiPMtree->SetBranchAddress("LG_Board3",&ev->SiPMLowGain[192]);
-  SiPMtree->SetBranchAddress("LG_Board4",&ev->SiPMLowGain[256]);
   int TDCsval[48];
+  PMTtree->SetBranchAddress("EventNumber",&EventID);
+  PMTtree->SetBranchAddress("ADCs",&ADCs);
+  SiPMtree->SetBranchAddress("HG_Board0",&daqEvent->SiPMHighGain[0]);
+  SiPMtree->SetBranchAddress("HG_Board1",&daqEvent->SiPMHighGain[64]);
+  SiPMtree->SetBranchAddress("HG_Board2",&daqEvent->SiPMHighGain[128]);
+  SiPMtree->SetBranchAddress("HG_Board3",&daqEvent->SiPMHighGain[192]);
+  SiPMtree->SetBranchAddress("HG_Board4",&daqEvent->SiPMHighGain[256]);
+  SiPMtree->SetBranchAddress("LG_Board0",&daqEvent->SiPMLowGain[0]);
+  SiPMtree->SetBranchAddress("LG_Board1",&daqEvent->SiPMLowGain[64]);
+  SiPMtree->SetBranchAddress("LG_Board2",&daqEvent->SiPMLowGain[128]);
+  SiPMtree->SetBranchAddress("LG_Board3",&daqEvent->SiPMLowGain[192]);
+  SiPMtree->SetBranchAddress("LG_Board4",&daqEvent->SiPMLowGain[256]);
   PMTtree->SetBranchAddress("TDCsval",&TDCsval);
 
-  //Loop over events 
+  //Loop over events
   //
-  for( unsigned int i=0; i<PMTtree->GetEntries(); i++){
+  const int nEntries = PMTtree->GetEntries();
+  for( int i=0; i<nEntries; i++){
     PMTtree->GetEntry(i);
     SiPMtree->GetEntry(i);
-    evout->EventID = EventID;
 
-    //Fill ev data members
+    physicsEvent->EventID = EventID;
+
+    //Fill daqEvent data members
     //
-    ev->SPMT1 = ADCs[8];
-    ev->SPMT2 = ADCs[9];
-    ev->SPMT3 = ADCs[10];
-    ev->SPMT4 = ADCs[11];
-    ev->SPMT5 = ADCs[12];
-    ev->SPMT6 = ADCs[13];
-    ev->SPMT7 = ADCs[14];
-    ev->SPMT8 = ADCs[15];
-    ev->CPMT1 = ADCs[0];
-    ev->CPMT2 = ADCs[1];
-    ev->CPMT3 = ADCs[2];
-    ev->CPMT4 = ADCs[3];
-    ev->CPMT5 = ADCs[4];
-    ev->CPMT6 = ADCs[5];
-    ev->CPMT7 = ADCs[6];
-    ev->CPMT8 = ADCs[7];
-    evout->PShower = ADCs[16];
-    evout->MCounter = ADCs[32];
-    evout->C1 = ADCs[64];
-    evout->C2 = ADCs[65];
-    //
-    ev->DWC1L=TDCsval[0];
-    ev->DWC1R=TDCsval[1];
-    ev->DWC1U=TDCsval[2];
-    ev->DWC1D=TDCsval[3];
-    ev->DWC2L=TDCsval[4];
-    ev->DWC2R=TDCsval[5];
-    ev->DWC2U=TDCsval[6];
-    ev->DWC2D=TDCsval[7];
+    daqEvent->SPMT1 = ADCs[8];
+    daqEvent->SPMT2 = ADCs[9];
+    daqEvent->SPMT3 = ADCs[10];
+    daqEvent->SPMT4 = ADCs[11];
+    daqEvent->SPMT5 = ADCs[12];
+    daqEvent->SPMT6 = ADCs[13];
+    daqEvent->SPMT7 = ADCs[14];
+    daqEvent->SPMT8 = ADCs[15];
+    daqEvent->CPMT1 = ADCs[0];
+    daqEvent->CPMT2 = ADCs[1];
+    daqEvent->CPMT3 = ADCs[2];
+    daqEvent->CPMT4 = ADCs[3];
+    daqEvent->CPMT5 = ADCs[4];
+    daqEvent->CPMT6 = ADCs[5];
+    daqEvent->CPMT7 = ADCs[6];
+    daqEvent->CPMT8 = ADCs[7];
+    daqEvent->DWC1L = TDCsval[0];
+    daqEvent->DWC1R = TDCsval[1];
+    daqEvent->DWC1U = TDCsval[2];
+    daqEvent->DWC1D = TDCsval[3];
+    daqEvent->DWC2L = TDCsval[4];
+    daqEvent->DWC2R = TDCsval[5];
+    daqEvent->DWC2U = TDCsval[6];
+    daqEvent->DWC2D = TDCsval[7];
+
+    // Fille pysicsEvent data
+    physicsEvent->PShower = ADCs[16];
+    physicsEvent->MCounter = ADCs[32];
+    physicsEvent->C1 = ADCs[64];
+    physicsEvent->C2 = ADCs[65];
 
     //Calibrate SiPMs and PMTs
     //
-    ev->calibrate(sipmCalibration, evout);
-    ev->calibratePMT(pmtCalibration, evout);
-    ev->calibrateDWC(dwcCalibration, evout);
-    evout->CompSPMTene();
-    evout->CompCPMTene();
-    //std::cout<<ev->EventID<<" "<<ev->totSiPMPheS<<std::endl;
-    //Write event in ftree
+    daqEvent->calibrateSiPM(sipmCalibration, physicsEvent);
+    daqEvent->calibratePMT(pmtCalibration, physicsEvent);
+    daqEvent->calibrateDWC(dwcCalibration, physicsEvent);
+
+    //Write event in physicsTree
     //
-    ftree->Fill();
+    physicsTree->Fill();
     //Reset totSiPMPheC and totSiPMPheS to 0
     //
-    evout->totSiPMCene = 0;
-    evout->totSiPMSene = 0;
   }
 
-  //Write and close Outfile
+  //Write and close outputFile
   //
-  Mergfile->Close();
-  ftree->Write();
-  Outfile->Close();
-
+  mergedFile->Close();
+  if(mergedFile->IsOpen()){
+    std::cout<<"Cannot close file!";
+    exit(EXIT_FAILURE);
+  }
+  physicsTree->Write();
+  outputFile->Close();
+  if(outputFile->IsOpen()){
+    std::cout<<"Cannot close file!";
+    exit(EXIT_FAILURE);
+  }
 }
-
-//**************************************************
