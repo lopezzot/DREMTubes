@@ -2,9 +2,9 @@ import glob
 import os
 
 mrgpath = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/"
-mrgfls = [x[42+18:42+21] for x in glob.glob(mrgpath+"*.root")]
+mrgfls = [x[len(x)-8:len(x)-5] for x in glob.glob(mrgpath+"*.root")]
 recpath = "/eos/user/i/ideadr/TB2021_H8/recoNtuple/"
-recfls = [x[41+18:41+21] for x in glob.glob(recpath+"*.root")]
+recfls = [x[len(x)-8:len(x)-5] for x in glob.glob(recpath+"*.root")]
 mrgfls = list(set(mrgfls) - set(recfls))
 phspath = "/eos/user/i/ideadr/TB2021_H8/recoNtuple/"
 

@@ -55,6 +55,8 @@ The project targets a standalone Geant4 simulation of the Dual-Readout electroma
 ### Available datasets and analyses
 | DREMTubes         | Reproduce data | Reproduce analysis | Comments     |
 | -------------     | ----------     | -----------        | -----------  |
+| v1.3 Dataset #3 <br /> tag 1.3_3 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 26/11/2021 <br /> | ./DREMTubes -m runcards/DREMTubes_run6.mac | No analysis | Run 6 same as Run 5 but with beam spot with 2.0 cm radius. |
+| v1.3 Dataset #2 <br /> tag 1.3_2 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 24/11/2021 <br /> | ./DREMTubes -m runcards/DREMTubes_run4.mac ./DREMTubes -m runcards/DREMTubes_run5.mac | No analysis | Run 4 same as Run 3 but with higher statistics, Run 5 same as Run 4 but without preshower. |
 | v1.3 Dataset #1 <br /> tag 1.3_1 (Geant4.10.07.p01, ATLHECTB v1.3, FTFP_BERT) <br /> Added on 17/11/2021 <br /> | ./DREMTubes -m runcards/DREMTubes_run3.mac | root -l DREMTubesanalysis_v1p3.C | Produced data and results shown in the presentation on 19/11/2021 by Lorenzo. Assuming root files from Geant4 are within run3/ folder as pointed in root macro. |
 
 <!--How to:-->
