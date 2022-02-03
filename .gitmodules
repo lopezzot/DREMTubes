@@ -1,0 +1,3 @@
+[submodule "TBDataPreparation/FERS-5200-DataConverter"]
+	path = TBDataPreparation/FERS-5200-DataConverter
+	url = https://github.com/EdoPro98/FERS-5200-DataConverter.git
