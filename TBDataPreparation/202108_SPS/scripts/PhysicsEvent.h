@@ -86,6 +86,7 @@ class EventOut{
 	float CPMTenergy = 0.;
 	float XDWC1,XDWC2,YDWC1,YDWC2;
 	int PShower, MCounter, C1, C2;
+  uint32_t NSiPMZero = 0;
 
 	void CompSPMTene(){SPMTenergy = SPMT1+SPMT2+SPMT3+SPMT4+SPMT5+SPMT6+SPMT7+SPMT8;}
 	void CompCPMTene(){CPMTenergy = CPMT1+CPMT2+CPMT3+CPMT4+CPMT5+CPMT6+CPMT7+CPMT8;}
@@ -134,6 +135,7 @@ void Event::calibrate(const SiPMCalibration& calibration, EventOut* evout){
 		// use HG if pe < 140 else use LG. Use bool casting to avoid if/else branching
     if(highGainPe == 0){
       SiPMPhe = 0;
+      NSiPMZero++;
     }
 		if(row % 2 == 0){
 			// Cher
