@@ -12,7 +12,10 @@ For every relevant software version we release the corresponding test beam data 
 | v1.3          | /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/ | Data produced starting from .bz2 files from PMT DAQ and from .root files from SiPM DAQ as available at the end of the CERN test beam. Produced by Lorenzo on 26/11/2021. |
 
 ### Testbeam at DESY
-To be written.
+| SW version    | Path          |  Comments     |
+| ------------- | ------------- | ------------- |
+| v1.3.1        | /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3.1/ | Data produced with v1.3.1 i.e. with new calibration constants. Only PhysicsConverter was updated, so data production starts from mergedNtuples/ as copied from v1.3. Only reconNtuple/ files are stored.  |
+
 
 ## Data production
 
