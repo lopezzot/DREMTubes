@@ -14,7 +14,8 @@ For every relevant software version we release the corresponding test beam data 
 ### Testbeam at DESY
 | SW version    | Path          |  Comments     |
 | ------------- | ------------- | ------------- |
-| v1.3.1        | /eos/user/i/ideadr/TB2021_Desy/DESYDATA/v1.3.1/ | Data produced with v1.3.1: unique calibration for PMTs and SiPMs|
+| v1.3.3        | /eos/user/i/ideadr/TB2021_Desy/DESYDATA/v1.3.3/ | Data produced with v1.3.3: new full calibration using new equilization for SiPM.  Data produced from merged ntuple as copied from v1.3.2 . Only reconNtuple/ files are stored. Produced by Gabriella on 7.3.2022 |
+| v1.3.2        | /eos/user/i/ideadr/TB2021_Desy/DESYDATA/v1.3.2/ | Data produced with v1.3.2: unique calibration for PMTs and SiPMs. Data produced starting from .bz2 files from PMT DAQ and SiPM. Produced by Gabriella on 29.1.2022 |
 
 
 ## Data production
