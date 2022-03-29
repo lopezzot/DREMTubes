@@ -26,7 +26,8 @@ ClassImp(EventOut)
 
 void PhysicsAnalysis(const string run){
 
-  string infile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/physics_desy2021_run"+run+".root";
+  //string infile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/physics_desy2021_run"+run+".root";
+  string infile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220307/physics_desy2021_run"+run+".root";
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
@@ -65,14 +66,15 @@ void PhysicsAnalysis(const string run){
       tree->GetEntry(i);
       energyS = evt->totSiPMSene + evt->SPMTenergy;    //Energy unit is GeV
       energyC = evt->totSiPMCene + evt->CPMTenergy;
-      enesplot->Fill(energyS, energyC);
-      E_S->Fill(energyS); 
-      E_C->Fill(energyC); 
-      E_pmtS->Fill(evt->SPMTenergy);
-      E_pmtC->Fill(evt->CPMTenergy);
-      E_SiPMS->Fill(evt->totSiPMSene);
-      E_SiPMC->Fill(evt->totSiPMCene);
-
+      if(energyS > 1 &&  energyC >1 ){
+         enesplot->Fill(energyS, energyC);
+         E_S->Fill(energyS); 
+         E_C->Fill(energyC); 
+         E_pmtS->Fill(evt->SPMTenergy);
+         E_pmtC->Fill(evt->CPMTenergy);
+         E_SiPMS->Fill(evt->totSiPMSene);
+         E_SiPMC->Fill(evt->totSiPMCene);
+      }
   }
 
   enesplot->Draw("COLZ");
