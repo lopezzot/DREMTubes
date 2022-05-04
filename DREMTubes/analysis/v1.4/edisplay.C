@@ -457,8 +457,8 @@ void edisplay(){
     tbslat->Draw("same P");
     tbclat->Draw("same P");
     auto legend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
-    legend->AddEntry(tbslat,"Scintillation, 30 GeV e+ (CERN-SPS TB Run 694)","ep");
-    legend->AddEntry(tbclat,"Cherenkov, 30 GeV e+ (CERN-SPS TB Run 694)","ep");
+    legend->AddEntry(tbslat,"Scintillation, 30 GeV e+ (CERN-SPS TB Run 671)","ep");
+    legend->AddEntry(tbclat,"Cherenkov, 30 GeV e+ (CERN-SPS TB Run 671)","ep");
     legend->AddEntry(ban,"Scintillation, GEANT4.10.7.p01 - FTFP_BERT - 91.3-91.7 deg","f");
     legend->AddEntry(cban,"Cherenkov, GEANT4.10.7.p01 - FTFP_BERT - 91.3-91.7 deg","f");
     legend->Draw("same");
