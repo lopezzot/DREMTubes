@@ -15,7 +15,7 @@ if mrgfls:
 
 
 for fl in mrgfls:
-	cmnd1 = "root -l -b -q .x 'PhysicsConverter_modified.C(\""+fl+"\")'"
+	cmnd1 = "root -l -b -q .x 'PhysicsConverter.C(\""+fl+"\")'"
 	os.system(cmnd1)
 	cmnd2 = "mv physics_sps2021_run"+fl+".root "+phspath
 	os.system(cmnd2)
