@@ -5,10 +5,10 @@ import os
 
 mrgpath = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/"
 mrgfls = [x[len(x)-8:len(x)-5] for x in glob.glob(mrgpath+"*.root")]
-recpath = "/afs/cern.ch/user/j/jagarwal/workspace/public/SPS2021/physicsNtuple/"
+recpath = "/eos/user/i/ideadr/TB2021_H8/recoNtuple/"
 recfls = [x[len(x)-8:len(x)-5] for x in glob.glob(recpath+"*.root")]
 mrgfls = list(set(mrgfls) - set(recfls))
-phspath = "/afs/cern.ch/user/j/jagarwal/workspace/public/SPS2021/physicsNtuple/"
+phspath = "/eos/user/i/ideadr/TB2021_H8/recoNtuple/"
 
 if mrgfls:
 	print str(len(mrgfls))+" new files found"
