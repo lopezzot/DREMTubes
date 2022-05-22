@@ -153,7 +153,7 @@ void eradius( const double& energy, const string& file, const string& file2 ){
     double totS = 0.;
     double totC = 0.;
     double center[2] = {11.19,17.35};
-    double maxdist=5.;
+    double maxdist=2;
 
     auto Sbarh2 = new TH2F("Sbar","Sbar",2000,-100.,100.,2000,-100.,100.);
     auto Cbarh2 = new TH2F("Cbar","Cbar",2000,-100.,100.,2000,-100.,100.);
@@ -227,7 +227,7 @@ void eradius( const double& energy, const string& file, const string& file2 ){
     cprof->SetLineColor(4);
     cprof->Write();
 
-    auto tbfile = new TFile("../../../TBDataAnalysis/202108_SPS/Out_694_20GeV.root","READ");
+    auto tbfile = new TFile("../../../TBDataAnalysis/202108_SPS/Out_695_20GeV.root","READ");
     TProfile* slat; tbfile->GetObject("lateralprof",slat);
     TProfile* clat; tbfile->GetObject("cherlateralprof",clat);
     auto C1laterals = new TCanvas("", "", 600, 600);
@@ -341,26 +341,28 @@ void edisplay(){
     //20 GeV GEANT4 data
     //eradius( 20., "run7_1.1", "/DREMTubesout_Run1.root");
     //eradius( 20., "run7_1.3", "/DREMTubesout_Run1.root");
+    eradius( 20., "newrotrun7_1.4", "/DREMTubesout_Run1.root");
     //eradius( 20., "run7_1.4", "/DREMTubesout_Run1.root");
     //eradius( 20., "run7_1.5", "/DREMTubesout_Run1.root");
     //eradius( 20., "run7_1.6", "/DREMTubesout_Run1.root");
-    //eradius( 20., "run7_1.7", "/DREMTubesout_Run1.root");
+    eradius( 20., "newrotrun7_1.8", "/DREMTubesout_Run1.root");
 
     //10 GeV GEANT4 data
     //eradius( 10., "run7_1.3", "/DREMTubesout_Run0.root"); 
+    //eradius( 10., "newrotrun7", "/DREMTubesout_Run0.root"); 
     //eradius( 10., "run7_1.4", "/DREMTubesout_Run0.root"); 
     //eradius( 10., "run7_1.7", "/DREMTubesout_Run0.root"); 
 
     //30 GeV GEANT4 data
     //eradius( 30., "run7_1.1", "/DREMTubesout_Run2.root"); 
-    eradius( 30., "run7_1.3", "/DREMTubesout_Run2.root"); 
-    eradius( 30., "run7_1.7", "/DREMTubesout_Run2.root"); 
-    
+    //eradius( 30., "newrotrun7_1.0", "/DREMTubesout_Run2.root"); 
+    //eradius( 30., "newrotrun7_1.7", "/DREMTubesout_Run2.root"); 
+           
     //Get 1.4 and 1.7 degree TProfile
-    auto tbfile1 = new TFile("run7_1.3_30.root","READ");
+    auto tbfile1 = new TFile("newrotrun7_1.0_20.root","READ");
     TProfile* slat; tbfile1->GetObject("lateralprof",slat);
     TProfile* clat; tbfile1->GetObject("cherlateralprof",clat);
-    auto tbfile2 = new TFile("run7_1.7_30.root","READ");
+    auto tbfile2 = new TFile("newrotrun7_1.8_20.root","READ");
     TProfile* slat2; tbfile2->GetObject("lateralprof",slat2);
     TProfile* clat2; tbfile2->GetObject("cherlateralprof",clat2);
 
@@ -435,7 +437,7 @@ void edisplay(){
     cban->SetLineWidth(2);
     cban->SetLineColor(blue);
 
-    auto tbfile = new TFile("../../../TBDataAnalysis/202108_SPS/Out_671_30GeV.root","READ");
+    auto tbfile = new TFile("../../../TBDataAnalysis/202108_SPS/Out_694_20GeV.root","READ");
     TProfile* tbslat; tbfile->GetObject("lateralprof",tbslat);
     TProfile* tbclat; tbfile->GetObject("cherlateralprof",tbclat);
 
@@ -457,16 +459,17 @@ void edisplay(){
     tbslat->Draw("same P");
     tbclat->Draw("same P");
     auto legend = new TLegend(1.-0.18,0.7,1.-0.61,0.89);
-    legend->AddEntry(tbslat,"Scintillation, 30 GeV e+ (CERN-SPS TB Run 671)","ep");
-    legend->AddEntry(tbclat,"Cherenkov, 30 GeV e+ (CERN-SPS TB Run 671)","ep");
-    legend->AddEntry(ban,"Scintillation, GEANT4.10.7.p01 - FTFP_BERT - 91.3-91.7 deg","f");
-    legend->AddEntry(cban,"Cherenkov, GEANT4.10.7.p01 - FTFP_BERT - 91.3-91.7 deg","f");
+    legend->AddEntry(tbslat,"Scintillation, 20 GeV e+ (CERN-SPS TB Run 694)","ep");
+    legend->AddEntry(tbclat,"Cherenkov, 20 GeV e+ (CERN-SPS TB Run 694)","ep");
+    legend->AddEntry(ban,"Scintillation, GEANT4.10.7.p01 - FTFP_BERT - 91.0-91.8 deg","f");
+    legend->AddEntry(cban,"Cherenkov, GEANT4.10.7.p01 - FTFP_BERT - 91.0-91.8 deg","f");
     legend->Draw("same");
     banfile->cd();
     C1->Write();
     ban->Write();
     cban->Write();
     banfile->Close();
+    
 }
 
 /*
