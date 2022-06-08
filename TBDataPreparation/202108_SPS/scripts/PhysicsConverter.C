@@ -27,9 +27,9 @@ ClassImp(EventOut)
 
 void PhysicsConverter(const string run){
 
-  //Open merge ntuples
+  //Open merged ntuples
   //
-  string infile = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/merged_sps2021_run"+run+".root";
+  string infile = "/eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/mergedNtuple/merged_sps2021_run"+run+".root";
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
@@ -49,9 +49,9 @@ void PhysicsConverter(const string run){
   ftree->Branch("Events",evout);
   //Create calibration objects
   //
-  SiPMCalibration sipmCalibration("RunXXX_modified.json");
-  PMTCalibration pmtCalibration("RunXXX_modified.json");
-  DWCCalibration dwcCalibration("RunXXX_modified.json");
+  SiPMCalibration sipmCalibration("RunXXX_modifiedV1.3.5.json");
+  PMTCalibration pmtCalibration("RunXXX_modifiedV1.3.5.json");
+  DWCCalibration dwcCalibration("RunXXX_modifiedV1.3.5.json");
 
   //Check entries in trees
   //

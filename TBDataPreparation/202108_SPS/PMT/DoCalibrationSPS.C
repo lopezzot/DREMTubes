@@ -1,6 +1,6 @@
 //root -l 'DoCalibrationSPS.C'
 //pmt_json.txt is produced
-//it contains the calibration constants
+//it contains the calibration constants for PMT towers and p.e. to GeV conversion factors for SiPM tower
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +17,8 @@
 using json = nlohmann::json;
 ClassImp(EventOut)
 
-#define DATADIR  "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/"
-//#define OUTDIR "/afs/cern.ch/user/j/jagarwal/workspace/public/emsizedPT/DREMTubes/TBDataPreparation/202108_SPS/PMT/textfiles/temp/"
+#define DATADIR  "/eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/mergedNtuple/"
+//#define OUTDIR "/afs/cern.ch/user/j/jagarwal/workspace/public/emsizedPT/DREMTubes/TBDataPreparation/202108_SPS/PMT/textfiles/calibV1.3.5/"
 
 void DoCalibrationSPS(){
 
@@ -85,7 +85,8 @@ void DoCalibrationSPS(){
 	auto ev = new Event();
         auto evout = new EventOut();
 
-	SiPMCalibration sipmCalibration("RunXXX.json");
+	//SiPMCalibration sipmCalibration("RunXXX.json");
+	SiPMCalibration sipmCalibration("RunXXXcalibV1.3.5.json");
 
 	// SiPM branches
 	tSIPM->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
@@ -292,7 +293,7 @@ void DoCalibrationSPS(){
 
 	gStyle->SetOptStat(111111);
 	gStyle->SetStatX(0.90);
-	gStyle->SetStatY(0.88);
+	gStyle->SetStatY(0.90);
 
 	TCanvas *c_all = new TCanvas("c_distrib", "c_distrib", 1000, 700);
 	c_all->Divide(3,3); 
@@ -324,8 +325,8 @@ void DoCalibrationSPS(){
         c_all->cd(9);
         gPad->SetLogy();
         h[0]->Draw();
-	//c_all->SaveAs("C_distribution.pdf");
-	//c_all->SaveAs("C_distribution.png");
+	//c_all->SaveAs("C_equalized.pdf");
+	//c_all->SaveAs("C_equalized.png");
 
 	TCanvas *s_all = new TCanvas("s_distrib", "s_distrib", 1000, 700);
 	s_all->Divide(3,3); 
@@ -357,8 +358,8 @@ void DoCalibrationSPS(){
         s_all->cd(9);
         gPad->SetLogy();
         h[8]->Draw();
-	//s_all->SaveAs("S_distribution.pdf");
-        //s_all->SaveAs("S_distribution.png");
+	//s_all->SaveAs("S_equalized.pdf");
+        //s_all->SaveAs("S_equalized.png");
 
         TCanvas *sum = new TCanvas("sum_distrib", "sum_distrib", 1000, 700);
 	sum->Divide(2,1);
@@ -475,7 +476,7 @@ std::vector<float> peakFinder(int tow, int runno, int s_idx, int c_idx,  string 
 	   
 	   t->GetEntry(i);
 	
-	   if(TriggerMask ==2){   // ped histo	
+	   if(TriggerMask == 6){   // pedestal events
 		h_ped_S->Fill(ADC[s_idx]);			
 		h_ped_C->Fill(ADC[c_idx]);			
 	   }
