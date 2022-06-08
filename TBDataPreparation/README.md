@@ -57,7 +57,29 @@ The following are instructions to handle raw test-beam data taken at the CERN SP
    cd DREMTubes/TBDataPreparation/202108_SPS/scripts/
    python DoPhysicsConverter.py
    ```
-   
+### 202108_SPS UPDATE (June 2022): data production with modified calibration constants for PMTs and PheToGeV for SiPMs
+The following are instructions to produce set of reconstructed ntuples for physics analyisis with updated calibration.
+1. It starts from ```/eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/mergedNtuple/```.
+   Run the macro ```DoCalibrationSPS.C```
+   ```sh
+   cd DREMTubes/TBDataPreparation/202108_SPS/PMT/
+   root -l 'DoCalibrationSPS.C'
+   ```
+   It produces the file ```pmt_json.txt``` that has pedestal values, values for PMT calibrations and p.e. to GeV conversion values for SiPMs.
+   These values are inserted in
+   ```DREMTubes/TBDataPreparation/202108_SPS/scripts/RunXXX_modified_v1.3.5.json```
+2. Modification in existing codes:
+   In ```DREMTubes/TBDataPreparation/202108_SPS/scripts/PhysicsConverter.C``` calibration objects are initialized with ```RunXXX_modified_v1.3.5.json```
+3. To produce the new reconstructed ntuples first edit the variables ```recpath``` and ```phspath``` in ```DoPhysicsConverter.py```. Then run it.
+   ```sh
+   cd DREMTubes/TBDataPreparation/202108_SPS/scripts/
+   python DoPhysicsConverter.py
+   ```
+4. Using these steps the reconstructed ntuples are produced in
+   ```sh
+   /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3.5/
+   ```   
+ 
 ### 202108_SPS UPDATE: data production with modified calibration constants for PMTs and PheToGeV for SiPMs
 The following are instructions to produce set of reconstructed ntuples for physics analyisis with updated calibration.
 1. It starts from ```/eos/user/i/ideadr/TB2021_H8/mergedNtuple/```.
