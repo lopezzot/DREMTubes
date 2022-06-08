@@ -49,9 +49,9 @@ void PhysicsConverter(const string run){
   ftree->Branch("Events",evout);
   //Create calibration objects
   //
-  SiPMCalibration sipmCalibration("RunXXX_modifiedV1.3.5.json");
-  PMTCalibration pmtCalibration("RunXXX_modifiedV1.3.5.json");
-  DWCCalibration dwcCalibration("RunXXX_modifiedV1.3.5.json");
+  SiPMCalibration sipmCalibration("RunXXX_modified_v1.3.5.json");
+  PMTCalibration pmtCalibration("RunXXX_modified_v1.3.5.json");
+  DWCCalibration dwcCalibration("RunXXX_modified_v1.3.5.json");
 
   //Check entries in trees
   //

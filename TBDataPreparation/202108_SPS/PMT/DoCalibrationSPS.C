@@ -86,7 +86,7 @@ void DoCalibrationSPS(){
         auto evout = new EventOut();
 
 	//SiPMCalibration sipmCalibration("RunXXX.json");
-	SiPMCalibration sipmCalibration("RunXXXcalibV1.3.5.json");
+	SiPMCalibration sipmCalibration("RunXXXcalib_v1.3.5.json");
 
 	// SiPM branches
 	tSIPM->SetBranchAddress("HG_Board0",&ev->SiPMHighGain[0]);
