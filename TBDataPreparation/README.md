@@ -8,6 +8,7 @@ For every relevant software version we release the corresponding test beam data 
 
 | SW version    | Path          |  Comments     |
 | ------------- | ------------- | ------------- |
+| v1.3.5        | /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3.5/ | Data produced with v1.3.5 i.e. with updated calibration constants. DoCalibrationSPS.C is using RunXXXcalib_v1.3.5.json that has updated pedestal values for SiPMs. RunXXX_modified_v1.3.5.jon is added inside scripts directory under TBDataProduction. It has updated calibration constants. Data production starts from "/eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/mergedNtuple/". Produced by Jinky on 08.06.2022 |
 | v1.3.4        | /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3.4/ | Data produced with v1.3.4 i.e. with new PMT calibration constants. DoCalibrationSPS.C is added. PhysicsEvent.h and PhysicsConverter.C are updated. Data production starts from "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/". Only reconNtuple/ files are stored. Produced by Jinky on 06.05.2022 |
 | v1.3.1        | /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3.1/ | Data produced with v1.3.1 i.e. with new calibration constants. Only PhysicsConverter was updated, so data production starts from mergedNtuples/ as copied from v1.3. Only reconNtuple/ files are stored.  |
 | v1.3          | /eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/ | Data produced starting from .bz2 files from PMT DAQ and from .root files from SiPM DAQ as available at the end of the CERN test beam. Produced by Lorenzo on 26/11/2021. |
