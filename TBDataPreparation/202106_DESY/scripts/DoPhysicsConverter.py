@@ -3,7 +3,8 @@ import os
 import sys
 
 mrgpath = "/eos/user/i/ideadr/TB2021_Desy/mergedNtuple/"
-recpath = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220307/"
+#recpath = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220307/"
+recpath = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220608/"
 
 myconf = str(sys.argv[1])
 print myconf

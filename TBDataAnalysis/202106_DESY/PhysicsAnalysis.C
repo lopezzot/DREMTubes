@@ -28,6 +28,7 @@ void PhysicsAnalysis(const string run){
 
   //string infile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/physics_desy2021_run"+run+".root";
   string infile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220307/physics_desy2021_run"+run+".root";
+  //string infile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220608/physics_desy2021_run"+run+".root";
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
