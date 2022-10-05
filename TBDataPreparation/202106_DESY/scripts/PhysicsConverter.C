@@ -33,7 +33,8 @@ void PhysicsConverter(const string run, int myconf){
   std::cout<<"Using file: "<<infile<<std::endl;
   char cinfile[infile.size() + 1];
   strcpy(cinfile, infile.c_str());
-  string outfile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/physics_desy2021_run"+run+".root";
+  //string outfile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220307/physics_desy2021_run"+run+".root";
+  string outfile = "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220608/physics_desy2021_run"+run+".root";
   std::cout << "Output file: " << outfile << std::endl; 
   char coutfile[outfile.size() + 1];
   strcpy(coutfile, outfile.c_str());

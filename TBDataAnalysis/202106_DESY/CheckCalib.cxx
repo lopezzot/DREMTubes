@@ -12,7 +12,9 @@
 ClassImp(EventOut)
 
 
-#define DATADIR  "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/"
+//#define DATADIR  "/eos/user/i/ideadr/TB2021_Desy/recoNtuple/"
+//#define DATADIR  "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220307/"
+#define DATADIR  "/eos/user/i/ideadr/TB2021_Desy/recoNtuple_20220608/"
 #define OUTDIR  "/eos/user/i/ideadr/TB2021_Desy/PMT_calibration/"
 
 void CheckCalib(int myconf){
