@@ -3,7 +3,7 @@
 import glob
 import os
 
-mrgpath = "/eos/user/i/ideadr/TB2021_H8/mergedNtuple/"
+mrgpath = "/eos/user/i/ideadr/TB2021_H8/CERNDATA/v1.3/mergedNtuple/"
 mrgfls = [x[len(x)-8:len(x)-5] for x in glob.glob(mrgpath+"*.root")]
 recpath = "/eos/user/i/ideadr/TB2021_H8/recoNtuple/"
 recfls = [x[len(x)-8:len(x)-5] for x in glob.glob(recpath+"*.root")]
