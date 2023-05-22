@@ -184,9 +184,9 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           400*cm, 400*cm, 400*cm, 400*cm,
           400*cm, 400*cm, 400*cm, 400*cm };*/
 
-    G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
-    MPTScin -> AddProperty("RINDEX", 
-        photonEnergy, rindexScin, ENTRIES)->SetSpline(true);
+    //G4MaterialPropertiesTable *MPTScin = new G4MaterialPropertiesTable();
+    //MPTScin -> AddProperty("RINDEX", 
+    //    photonEnergy, rindexScin, ENTRIES);//->SetSpline(true);
     /*MPTScin -> AddProperty("ABSLENGTH",
          photonEnergy, absorptionScin, ENTRIES)->SetSpline(true);*/
 
@@ -211,7 +211,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     G4MaterialPropertiesTable *MPTCher = new G4MaterialPropertiesTable();
     MPTCher -> AddProperty("RINDEX",
-            photonEnergy, rindexCher, ENTRIES)->SetSpline(true);
+            &photonEnergy[0], &rindexCher[0], ENTRIES);//->SetSpline(true);
     /*MPTCher -> AddProperty("ABSLENGTH", 
             photonEnergy, absorptionCher, ENTRIES)->SetSpline(true);*/
     CherMaterial -> SetMaterialPropertiesTable(MPTCher);
@@ -228,7 +228,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     G4MaterialPropertiesTable *MPTCherclad = new G4MaterialPropertiesTable();
     MPTCherclad -> AddProperty("RINDEX", 
-        photonEnergy, rindexCherclad, ENTRIES)->SetSpline(true);
+        &photonEnergy[0], &rindexCherclad[0], ENTRIES);//->SetSpline(true);
     CladCherMaterial -> SetMaterialPropertiesTable(MPTCherclad);
 
     G4double rindexglass[ENTRIES] =
@@ -243,8 +243,8 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     G4MaterialPropertiesTable *MPTglass = new G4MaterialPropertiesTable();
     MPTglass -> AddProperty("RINDEX", 
-            photonEnergy, rindexglass, ENTRIES)->SetSpline(true);
-    GlassMaterial -> SetMaterialPropertiesTable(MPTglass);
+            &photonEnergy[0], &rindexglass[0], ENTRIES);//->SetSpline(true);
+    //GlassMaterial -> SetMaterialPropertiesTable(MPTglass);
 
     G4double rindexSi[ENTRIES] =
         { 3.42, 3.42, 3.42, 3.42,
@@ -267,10 +267,10 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           0.001*mm, 0.001*mm, 0.001*mm, 0.001*mm };
 
     G4MaterialPropertiesTable *MPTSi = new G4MaterialPropertiesTable();
-    MPTSi -> AddProperty("RINDEX", photonEnergy, rindexSi, ENTRIES)->SetSpline(true);
-    MPTSi -> AddProperty("ABSLENGHT", 
-        photonEnergy, absorptionSi, ENTRIES)->SetSpline(true);
-    SiMaterial -> SetMaterialPropertiesTable(MPTSi); 
+    //MPTSi -> AddProperty("RINDEX", photonEnergy, rindexSi, ENTRIES);//->SetSpline(true);
+    //MPTSi -> AddProperty("ABSLENGHT", 
+    //    photonEnergy, absorptionSi, ENTRIES, true, true);//->SetSpline(true);
+    //SiMaterial -> SetMaterialPropertiesTable(MPTSi); 
   
     // Scintillating proprieties of the scintillating fiber material
     // Birks constant of the polystyrene
@@ -294,19 +294,19 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
           0., 0., 0., 0.,
           0., 0., 0., 0. };
 
-    ScinMaterial->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
+    //ScinMaterial->GetIonisation()->SetBirksConstant(0.126*mm/MeV);
 
-    MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES);
-    MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES);
-    MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); 
+    //MPTScin -> AddProperty("FASTCOMPONENT", photonEnergy, Scin_FAST, ENTRIES, true, true);
+    //MPTScin -> AddProperty("SLOWCOMPONENT", photonEnergy, Scin_SLOW, ENTRIES, true, true);
+    //MPTScin -> AddConstProperty("SCINTILLATIONYIELD", 10000./MeV); 
     // Typical is 10000./MeV (this is what makes full simulations long as hell)
-    MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); 
+    //MPTScin -> AddConstProperty("RESOLUTIONSCALE", 1.0); 
     // Broad the fluctuation of photons produced
-    MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns);
-    MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns);
-    MPTScin -> AddConstProperty("YIELDRATIO", 1.0); 
+    //MPTScin -> AddConstProperty("FASTTIMECONSTANT", 2.8*ns, true);
+    //MPTScin -> AddConstProperty("SLOWTIMECONSTANT", 10.*ns, true);
+    //MPTScin -> AddConstProperty("YIELDRATIO", 1.0, true); 
     // I don't want a slow component, if you want it must change
-    ScinMaterial -> SetMaterialPropertiesTable(MPTScin);
+    //ScinMaterial -> SetMaterialPropertiesTable(MPTScin);
 
     //--------------------------------------------------
     //Define Volumes
@@ -387,7 +387,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                    defaultMaterial, 
                                                    "World");       
   
-    worldLV->SetVisAttributes(G4VisAttributes::Invisible);
+    worldLV->SetVisAttributes(G4VisAttributes::GetInvisible());
 
     fWorldPV = new G4PVPlacement( 0,                // no rotation
                                   G4ThreeVector(),  // at (0,0,0)
@@ -457,7 +457,7 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
                                                              defaultMaterial,  
                                                              "leakageabsorber");        
     
-    leakageabsorberLV->SetVisAttributes(G4VisAttributes::Invisible);   
+    leakageabsorberLV->SetVisAttributes(G4VisAttributes::GetInvisible());   
 
     fLeakCntPV = new G4PVPlacement( 0, G4ThreeVector(),
 				    leakageabsorberLV,         
@@ -590,10 +590,10 @@ G4VPhysicalVolume* DREMTubesDetectorConstruction::DefineVolumes() {
 
     G4MaterialPropertiesTable* MPTOpSurfaceGlassSi = new G4MaterialPropertiesTable();
     MPTOpSurfaceGlassSi -> AddProperty("EFFICIENCY", 
-        photonEnergy, efficiencyOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
+        photonEnergy, efficiencyOpSurfaceGlassSi, ENTRIES);//->SetSpline(true);
     MPTOpSurfaceGlassSi -> AddProperty("REFLECTIVITY", 
-            photonEnergy, reflectivityOpSurfaceGlassSi, ENTRIES)->SetSpline(true);
-    OpSurfaceGlassSi -> SetMaterialPropertiesTable(MPTOpSurfaceGlassSi);
+            photonEnergy, reflectivityOpSurfaceGlassSi, ENTRIES);//->SetSpline(true);
+    //OpSurfaceGlassSi -> SetMaterialPropertiesTable(MPTOpSurfaceGlassSi);
 
     // SiPM
     //

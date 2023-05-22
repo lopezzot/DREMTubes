@@ -56,15 +56,15 @@ void DREMTubesOpticalPhysics::ConstructProcess() {
     //theWLSProcess->UseTimeProfile("delta");
     //theWLSProcess->UseTimeProfile("exponential"); 
     
-    theScintProcess             = new G4Scintillation();
-    theScintProcess->SetScintillationYieldFactor(1.);
+    //theScintProcess             = new G4Scintillation();
+    //theScintProcess->SetScintillationYieldFactor(1.);
     //theScintProcess->SetTrackSecondariesFirst(true);
     //theScintProcess->SetScintillationYieldFactor(1.);
-    theScintProcess->SetScintillationExcitationRatio(0.0);
-    theScintProcess->SetTrackSecondariesFirst(true);
+    //theScintProcess->SetScintillationExcitationRatio(0.0);
+    //theScintProcess->SetTrackSecondariesFirst(true);
     // Use Birks Correction in the Scintillation process
-    G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
-    theScintProcess->AddSaturation(emSaturation);
+    //G4EmSaturation* emSaturation = G4LossTableManager::Instance()->EmSaturation();
+    //theScintProcess->AddSaturation(emSaturation);
     
     theCerenkovProcess          = new G4Cerenkov();
     theCerenkovProcess->SetMaxNumPhotonsPerStep(1000.);
@@ -129,14 +129,14 @@ void DREMTubesOpticalPhysics::ConstructProcess() {
         // Add Scintillation process to each candidate
         // Adding Scintillation process only if fFullOptic == true
         //
-        if(theScintProcess->IsApplicable(*particle)){
+        /*if(theScintProcess->IsApplicable(*particle)){
             if (fFullOptic) {
                 pManager->AddProcess(theScintProcess);
                 pManager->SetProcessOrderingToLast(theScintProcess,idxAtRest);
                 pManager->SetProcessOrderingToLast(theScintProcess,idxPostStep);
             }
             else {}
-        } 
+        }*/
     }//end while
 }
 
